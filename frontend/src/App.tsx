@@ -67,6 +67,7 @@ function App() {
   const [manualMetadataQueue, setManualMetadataQueue] = useState<MetadataIssue[]>([])
   const [currentManualIndex, setCurrentManualIndex] = useState(0)
   const [manualMetadataModalOpen, setManualMetadataModalOpen] = useState(false)
+  const [showSkipAllConfirmation, setShowSkipAllConfirmation] = useState(false)
   const [manualFormState, setManualFormState] = useState({
     url: '',
     title: '',
@@ -503,11 +504,52 @@ function App() {
                 >
                   Skip
                 </button>
+                <button
+                  type="button"
+                  className="modal__button modal__button--secondary"
+                  onClick={() => setShowSkipAllConfirmation(true)}
+                >
+                  Skip All
+                </button>
                 <button type="submit" className="modal__button">
                   Save Details
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      ) : null}
+      
+      {showSkipAllConfirmation ? (
+        <div className="modal">
+          <div className="modal__backdrop" />
+          <div className="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="skip-all-modal-title">
+            <h3 id="skip-all-modal-title">Skip All Reference Editing?</h3>
+            <p>
+              Are you sure you want to skip editing metadata for all remaining {manualMetadataQueue.length - currentManualIndex} source{manualMetadataQueue.length - currentManualIndex !== 1 ? 's' : ''}?
+            </p>
+            <p className="modal__hint">
+              Sources without metadata will use their URL as the citation.
+            </p>
+            <div className="modal__actions">
+              <button
+                type="button"
+                className="modal__button modal__button--secondary"
+                onClick={() => setShowSkipAllConfirmation(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="modal__button"
+                onClick={async () => {
+                  setShowSkipAllConfirmation(false)
+                  await finalizeManualMetadata()
+                }}
+              >
+                Skip All
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
