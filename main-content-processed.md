@@ -87,13 +87,13 @@ date: November 09, 2025
 
 ***
 
-Psychological warfare has been a staple of military engagement for centuries. It has long been demonstrated that weakening the morale and wellbeing of soldiers and civilians contributes to victory in battle and the demise of nations. Its use has been a prevalent component of conflict in nearly all recent history. Consider this excerpt about [Psychological Warfare in World War 2](https://info.publicintelligence.net/GermanPropagandaLeaflets.pdf)[\[1\]](#bib-1):
+Psychological warfare has been a staple of military engagement for centuries. It has long been demonstrated that weakening the morale and wellbeing of soldiers and civilians contributes to victory in battle and the demise of nations. Its use has been a prevalent component of conflict in nearly all recent history. Consider this excerpt about [\[1\]](#bib-1)[Psychological Warfare in World War 2](https://info.publicintelligence.net/GermanPropagandaLeaflets.pdf):
 
 > “During World War II, Psychological Warfare became recognized as an important weapon at the disposal of all combatants. Its dual aim was to build up the user’s home-front, his troops, and his allies; and at the same time attack, undermine and destroy those of the enemy. Truths, half -truths, lies and rumors were spread by as many different media as there were means to carry the written and spoken word.”
 
 For instance both [Axis](https://www.britannica.com/biography/Mildred-Gillars) and [Allied ](https://codenames.info/operation/soldatensender-calais/)nations operated fake radio stations that broadcasted to enemy troops in their own languages and spread misinformation, lies, and demoralizing statements meant to undermine morale and weaken support to their countries. These same sorts of messages were employed via leaflets that were dropped by airplane and fired by cannons again by both [\[2\]](#bib-2)[\[3\]](#bib-3)[Axis](https://info.publicintelligence.net/GermanPropagandaLeaflets.pdf) and [Allied](https://britishonlinearchives.com/posts/category/articles/436/airborne-propaganda-the-battle-for-hearts-and-minds) powers.[\[1\]](#bib-1)[\[4\]](#bib-4)
 
-In a CIA reading room document titled [“Communist Psychological Warfare in the Framework of the Cold War”](https://www.cia.gov/readingroom/docs/COMMUNIST%20PSYCHOLOGICAL%20W%5B16009245%5D.pdf)[\[5\]](#bib-5), there is a quote that dates to writing in the 4th century BC that discusses how covert and psychological warfare is superior to brute force military engagements:
+In a CIA reading room document titled [“Communist Psychological Warfare in the Framework of the Cold War”](https://www.cia.gov/readingroom/docs/COMMUNIST%20PSYCHOLOGICAL%20W%5B16009245%5D.pdf), there is a quote that dates to writing in the 4th century BC that discusses how covert and psychological warfare is superior to brute force military engagements:[\[5\]](#bib-5)
 
 > “...There are other means in order to conquer the country of your enemy without losing the riches of that country. The following is the acme of skillful warfare: Have hand-picked men penetrate unnoticed into the country of your enemy. Have them reconnoiter for the weaknesses in the enemy’s fortresses. Furnish them with ample means so that they will be able to buy the enemy’s counselors. Let them sow \[destruct] in the hearts of its friends and instigate hatred in the hearts of its enemies. Let them induce infidelity in the enemy’s wives and foster jealousy among its sons. Promise freedom to its slaves and have them instigate mutiny among the body guard of your enemy. Poison the wells from which the beasts of burden drink and burn down the \[store] houses containing war materials. Commit atrocities against your enemy’s people in your enemy’s name so that the people will grumble and hate your enemy. First, send your agents in order to accomplish all that and then set your army in motion to occupy the country. With the country in unrest and with his friends and relatives set against him, your opponent will not think of giving battle to you. He will flee into his secret hideout, leaving you all his riches.”
 
@@ -113,19 +113,19 @@ Given the historical precedent of psychological warfare, the increasing prevalen
 
 #### Russian Political Interference
 
-[The 2016 Russian election interference campaigns ](https://www.gmfus.org/news/target-usa-key-takeaways-kremlins-project-lakhta)were deliberate misinformation and psychological missions aimed at warping public perception. Bot farms and fake social media accounts were created en masse to engage in deceptive political dialogue, drive radicalism, further divide, and politically fracture the United States. These are part of ongoing effort known as [\[9\]](#bib-9)[Project Lakhta](https://www.gmfus.org/news/target-usa-key-takeaways-kremlins-project-lakhta)[\[9\]](#bib-9):
+[The 2016 Russian election interference campaigns ](https://www.gmfus.org/news/target-usa-key-takeaways-kremlins-project-lakhta)were deliberate misinformation and psychological missions aimed at warping public perception. Bot farms and fake social media accounts were created en masse to engage in deceptive political dialogue, drive radicalism, further divide, and politically fracture the United States. These are part of ongoing effort known as [\[9\]](#bib-9)[\[9\]](#bib-9)[Project Lakhta](https://www.gmfus.org/news/target-usa-key-takeaways-kremlins-project-lakhta):
 
 > “Project Lakhta’s strategic goal is not just to target elections, but “to sow division and discord in the U.S. political system, including by creating social and political polarization” and by “undermining faith in democratic institutions.” The Project’s preparations for manipulation are extensive, beginning years before any election, and the Kremlin has proved willing and able to seize on developing issues opportunistically to achieve its goals. For example, as described by the FBI, Project Lakhta latched onto divisive events such as the NFL national anthem debate, mass shootings in Charleston and Las Vegas, and the Charlottesville “Unite the Right” rally to spur polarization outside the context of elections. As such, the Kremlin’s online political war is extensive and ongoing, it did not stop after 2016, and it will not stop after 2018.”
 
-Additional descriptions and testaments to this ongoing Russian effort have been released officially by the [ODNI, FBI, and CISA](https://www.fbi.gov/news/press-releases/joint-odni-fbi-and-cisa-statement-110424)[\[10\]](#bib-10):
+Additional descriptions and testaments to this ongoing Russian effort have been released officially by the [ODNI, FBI, and CISA](https://www.fbi.gov/news/press-releases/joint-odni-fbi-and-cisa-statement-110424):[\[10\]](#bib-10)
 
 > “Influence actors linked to Russia in particular are manufacturing videos and creating fake articles to undermine the legitimacy of the \[2020] election, instill fear in voters regarding the election process, and suggest Americans are using violence against each other due to political preferences, judging from information available to the IC. These efforts risk inciting violence, including against election officials.”
 
-It’s difficult to measure the impact of these aggressions. [We do know that civilians are engaging with these interferences.](https://arxiv.org/pdf/2012.11690) Additionally, reports and analysis on the American political divide state that America is currently polarizing quicker than any other country on the planet. Consider this conclusion by Rachel Kleinfield in her 2023 paper “[\[11\]](#bib-11)[Polarization, Democracy, and Political Violence in the United States: What the Research Says](https://carnegieendowment.org/research/2023/09/polarization-democracy-and-political-violence-in-the-united-states-what-the-research-says?lang=en)[\[12\]](#bib-12)”:
+It’s difficult to measure the impact of these aggressions. [We do know that civilians are engaging with these interferences.](https://arxiv.org/pdf/2012.11690) Additionally, reports and analysis on the American political divide state that America is currently polarizing quicker than any other country on the planet. Consider this conclusion by Rachel Kleinfield in her 2023 paper “[\[11\]](#bib-11)[\[12\]](#bib-12)[Polarization, Democracy, and Political Violence in the United States: What the Research Says](https://carnegieendowment.org/research/2023/09/polarization-democracy-and-political-violence-in-the-united-states-what-the-research-says?lang=en)”:
 
 > “The American public feels affectively polarized largely because of misunderstandings about the other side (though the misunderstandings seem sensitive to actual ideological differences). Older Americans are polarizing more quickly than younger Americans. And the United States is polarizing much more rapidly than other Western democracies; partisans even more so. However, the United States may not be more affectively polarized than a number of other multiparty democracies whose systems are functioning much better. The rapidity of U.S. polarization compared to similar wealthy, consolidated democracies suggests that domestic issues in the United States are likely to be driving more of the country’s polarization than issues affecting many other countries.
 
-We can also see that US political terrorism is on the rise. Examine this image taken from another [Rachel Kleinfeld paper “The Rise of Political Violence in the United States”](https://www.journalofdemocracy.org/articles/the-rise-of-political-violence-in-the-united-states/)[\[13\]](#bib-13) which she sourced from the Global Terrorism Database:
+We can also see that US political terrorism is on the rise. Examine this image taken from another [\[13\]](#bib-13)[Rachel Kleinfeld paper “The Rise of Political Violence in the United States”](https://www.journalofdemocracy.org/articles/the-rise-of-political-violence-in-the-united-states/) which she sourced from the Global Terrorism Database:
 
 [![](https://substackcdn.com/image/fetch/$s_!qi2m!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F820821ee-a2c1-4a35-9b8f-b52448b3bf30_1024x802.jpeg)](https://substackcdn.com/image/fetch/$s_!qi2m!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F820821ee-a2c1-4a35-9b8f-b52448b3bf30_1024x802.jpeg)[\[14\]](#bib-14)
 
@@ -163,7 +163,7 @@ In the hearing, experts gave personal testimony on the existence of Directed Ene
 >
 > There are many people who believe they are victims of AHI’s. All you have to do is look at my Twitter feed whenever I post on the topic. I only represent Federal Government employees and their families, so I don’t focus on the accuracy of those particular claims.”
 
-This testimony demonstrates that the United States government has known about the existence and effects of microwave energy weapons and that Russia was using them on Americans since the 1950’s. To further substantiate this, here is a [1976 New York Times Article: Moscow Rays Linked to U.S. Bugging by Bernard Gwertzman](https://www.nytimes.com/1976/02/26/archives/moscow-rays-linked-to-us-bugging-moscow-radiation-is-now-linked-to.html)[\[26\]](#bib-26):
+This testimony demonstrates that the United States government has known about the existence and effects of microwave energy weapons and that Russia was using them on Americans since the 1950’s. To further substantiate this, here is a [\[26\]](#bib-26)[1976 New York Times Article: Moscow Rays Linked to U.S. Bugging by Bernard Gwertzman](https://www.nytimes.com/1976/02/26/archives/moscow-rays-linked-to-us-bugging-moscow-radiation-is-now-linked-to.html):
 
 > “Americans were told that…high‐level microwave radiation could be dangerous, particularly to the reproductive organs and the eyes…”
 >
@@ -191,11 +191,11 @@ Thomas detailed that at the time of writing, the US had its own research initiat
 
 > “several of them designed, among other things, to vibrate the insides of humans, stun or nauseate them, put them to sleep, heat them up, or knock them down with a shock wave. The technologies include dazzling lasers that can force the pupils to close; acoustic or sonic frequencies that cause the hair cells in the inner ear to vibrate and cause motion sickness, vertigo, and nausea, or frequencies that resonate the internal organs causing pain and spasms; and shock waves with the potential to knock down humans or airplanes”
 
-Interestingly, this description sounds very similar to the Havana Syndrome reports. Despite this information being discussed in the late 90’s, US intelligence agencies were reporting that they had no knowledge of these weapons in their official reports on the AHI’s and the Havana syndrome. It appears that they were deliberately misleading Congress in their investigations into the matter. Consider this statement from the National Intelligence Council’s (NIC) “[Updated Assessment of Anomalous Health Incidents, as of December 2024](https://www.dni.gov/files/ODNI/documents/assessments/NIC-Unclassified-ICA-Updated-Assessment-AHI-December2024.pdf)[\[29\]](#bib-29)”:
+Interestingly, this description sounds very similar to the Havana Syndrome reports. Despite this information being discussed in the late 90’s, US intelligence agencies were reporting that they had no knowledge of these weapons in their official reports on the AHI’s and the Havana syndrome. It appears that they were deliberately misleading Congress in their investigations into the matter. Consider this statement from the National Intelligence Council’s (NIC) “[\[29\]](#bib-29)[Updated Assessment of Anomalous Health Incidents, as of December 2024](https://www.dni.gov/files/ODNI/documents/assessments/NIC-Unclassified-ICA-Updated-Assessment-AHI-December2024.pdf)”:
 
 > “Five IC components continue to assess it is “very unlikely” a foreign actor has a capability, such as a pulsed radiofrequency (RF) energy weapon or prototype device, to cause the symptoms and sensory phenomena associated with events reported as possible AHIs.”
 
-How can this be true if we have known about the damaging physiological effects of Russian Electromagnetic Radiation weapons since the 70’s and have documented that the Russians and the US were researching these weapons in military reports from the 90’s? A sentiment of disbelief and distrust in the NIC’s statements is growing both [publicly](https://www.nbcnews.com/politics/national-security/split-emerges-us-spy-agencies-mysterious-havana-syndrome-rcna187187) and within our [government](https://intelligence.house.gov/news/documentsingle.aspx?DocumentID=1486). It appears that these agencies may be deliberately attempting to cover up the existence of these weapons. Stated in The House Permanent Select Committee on Intelligence’s [\[30\]](#bib-30)[\[31\]](#bib-31)[Dec. 2024 press release](https://intelligence.house.gov/news/documentsingle.aspx?DocumentID=1486)[\[31\]](#bib-31) on AHI’s is the following:
+How can this be true if we have known about the damaging physiological effects of Russian Electromagnetic Radiation weapons since the 70’s and have documented that the Russians and the US were researching these weapons in military reports from the 90’s? A sentiment of disbelief and distrust in the NIC’s statements is growing both [publicly](https://www.nbcnews.com/politics/national-security/split-emerges-us-spy-agencies-mysterious-havana-syndrome-rcna187187) and within our [government](https://intelligence.house.gov/news/documentsingle.aspx?DocumentID=1486). It appears that these agencies may be deliberately attempting to cover up the existence of these weapons. Stated in The House Permanent Select Committee on Intelligence’s [\[30\]](#bib-30)[\[31\]](#bib-31)[\[31\]](#bib-31)[Dec. 2024 press release](https://intelligence.house.gov/news/documentsingle.aspx?DocumentID=1486) on AHI’s is the following:
 
 > “This interim report also criticizes the Intelligence Community (IC) for thwarting the Committee’s investigation into AHIs. The IC’s conclusions that foreign adversaries aren’t responsible for targeting U.S. personnel are dubious at best and misleading at worst.”
 
@@ -237,7 +237,7 @@ Meriting closer attention are the research objectives to create technology that 
 
 #### Human Network Attacks
 
-In another article by Thomas published in 1999, [Human Network Attacks ](https://online.fliphtml5.com/Article-on-psych-weapons/zczi/)[\[32\]](#bib-32) discusses how China and Russia believed that it was important to conduct psychological warfare operations using psychotronic weapons during peace time:
+In another article by Thomas published in 1999, [Human Network Attacks ](https://online.fliphtml5.com/Article-on-psych-weapons/zczi/) discusses how China and Russia believed that it was important to conduct psychological warfare operations using psychotronic weapons during peace time:[\[32\]](#bib-32)
 
 > “In fact, there is even some agreement among Chinese and Russian psychologists about the growing importance of both countering and conducting peacetime information-psychological defensive and offensive operations.”
 
@@ -263,7 +263,7 @@ Reiterating, US military personnel were aware of the presence of psychological w
 
 > In their search to offset Western supremacy in the IW \[Information Warfare] arena, Russian and Chinese theorists are exploring nontraditional, asymmetric approaches. One is to utilize the capabilities of psychological operations and deception to fool one’s cognitive processes, especially the case in China, on the strategic level. Another is to control the mind and to affect the nervous system.”
 
-Consider in particular the statement “For example, a recent book offered an extensive set of algorithms designed to implant “suggestive influences” or what the author called “psycho viruses” into a person’s mind”. What exactly is meant by the term “psycho viruses” is not explained in the article, however there are numerous descriptions that can be found across a variety of discussions on Chinese and Russian psychological warfare. Consider the following description from a 2023 RAND institute overview titled [“Chinese Next-Generation Psychological Warfare: The Military Applications of Emerging Technologies and Implications for the United States”](https://www.rand.org/pubs/research_reports/RRA853-1.html)[\[33\]](#bib-33):
+Consider in particular the statement “For example, a recent book offered an extensive set of algorithms designed to implant “suggestive influences” or what the author called “psycho viruses” into a person’s mind”. What exactly is meant by the term “psycho viruses” is not explained in the article, however there are numerous descriptions that can be found across a variety of discussions on Chinese and Russian psychological warfare. Consider the following description from a 2023 RAND institute overview titled [\[33\]](#bib-33)[“Chinese Next-Generation Psychological Warfare: The Military Applications of Emerging Technologies and Implications for the United States”](https://www.rand.org/pubs/research_reports/RRA853-1.html):
 
 > “The specific effect mechanism of psycho-virus concept is attacking an adversary’s BCI \[Brain Computing Interface] system to influence cognitive functions. The authors state, “The brain-computer interface can be attacked by hackers and used to counter the wearer of the brain-computer interface, such as stimulating specific brain areas in a malicious way.” Specifically, the authors envision “a paragraph of text, a sentence, an expression, a behavior, etc., \[and,] after being implanted in the human brain, it quickly replicates itself and destroys the normal cognition of the human brain by manipulating its behavior, will, and beliefs.” The authors argue the concept combines the characteristics of computer and biological viruses: It is infectious, concealed, parasitic, transmissive, latent, irritability, self-reproducing, regenerative, variable, and of similar performance and destructiveness.”
 
@@ -359,15 +359,15 @@ The prospect that someone could be experiencing the effects of psychotronic weap
 
 #### Why someone might hear voices
 
-There are a variety of well established psychiatric and medical reasons why someone would hear voices. For one, there is the true possibility of schizophrenia, which for prolonged experiences of hearing voices, seems to be the most common assessment. [From the DSM-V, the current standard for psychiatric diagnoses, on Schizophrenia, page 87](https://ia800707.us.archive.org/15/items/info_munsha_DSM5/DSM-5.pdf)[\[48\]](#bib-48):
+There are a variety of well established psychiatric and medical reasons why someone would hear voices. For one, there is the true possibility of schizophrenia, which for prolonged experiences of hearing voices, seems to be the most common assessment. [\[48\]](#bib-48)[From the DSM-V, the current standard for psychiatric diagnoses, on Schizophrenia, page 87](https://ia800707.us.archive.org/15/items/info_munsha_DSM5/DSM-5.pdf):
 
 > “Hallucinations are perception-like experiences that occur without an external stimulus. They are vivid and clear, with the full force and impact of normal perceptions, and not under voluntary control. They may occur in any sensory modality, **but auditory hallucinations** **are the most common in schizophrenia and related disorders.** **Auditory hallucinations are usually experienced as voices, whether familiar or unfamiliar, that are perceived as distinct from the individual’s own thoughts.”**
 
-Another reason is that people with traumatic brain injury, or TBI, may experience auditory hallucinations. [From ‘Management of auditory hallucinations as a sequela of traumatic brain injury: a case report and a relevant literature review’ by Yuriy Dobry, Vladan Novakovic, Robert L Barkin, Vikram K Sundaram:](https://pubmed.ncbi.nlm.nih.gov/24263164/)[\[49\]](#bib-49)
+Another reason is that people with traumatic brain injury, or TBI, may experience auditory hallucinations. [\[49\]](#bib-49)[From ‘Management of auditory hallucinations as a sequela of traumatic brain injury: a case report and a relevant literature review’ by Yuriy Dobry, Vladan Novakovic, Robert L Barkin, Vikram K Sundaram:](https://pubmed.ncbi.nlm.nih.gov/24263164/)
 
 > “Although infrequent, auditory hallucinations is a debilitating complication of TBI that can manifest itself 4-5 years after the occurrence of (TBI). Because the age range of TBI survivors is 15-24 years, and the chance of developing post-TBI psychosis is reported to be up to 20%, this chronic neuropsychiatric complication and the available treatment options warrant close scrutiny from the clinical and the biomedical research community.”
 
-And furthermore, a sometimes unfortunately unacknowledged, but very well documented phenomenon is the disorder known as Dissociative Identity Disorder or (DID). Consider the paper [“Guidelines to Differential Diagnosis between Schizophrenia and Ritual Abuse/Mind Control Traumatic Stress” by Ellen P. Lacter, Ph.D., and Karl Lehman, M.D.:](https://endritualabuse.org/wp-content/uploads/2018/03/chapter4finalrevisions2008.pdf)[\[50\]](#bib-50)
+And furthermore, a sometimes unfortunately unacknowledged, but very well documented phenomenon is the disorder known as Dissociative Identity Disorder or (DID). Consider the paper [\[50\]](#bib-50)[“Guidelines to Differential Diagnosis between Schizophrenia and Ritual Abuse/Mind Control Traumatic Stress” by Ellen P. Lacter, Ph.D., and Karl Lehman, M.D.:](https://endritualabuse.org/wp-content/uploads/2018/03/chapter4finalrevisions2008.pdf)
 
 > “If Dissociative Identity Disorder (DID) is present, hearing vocalizations of other “parts” is common, commonly including conversations or arguing between personalities, children’s voices, crying or screaming, or even sounds of animal “parts”. Hearing voices of abusers is also common. Voices criticizing the host, giving hostile commands, or predicting danger can also occur, but are rarely the only voices heard.”
 
@@ -383,7 +383,7 @@ In the following section is an overview of the attempts US and world civilians h
 
 ***
 
-There have been millions of reports of people claiming they are being targeted with advanced psychological weapons for decades. Its phenomenon has grown into an entire sub-culture marked by terminology and ideas. These people have collectively started to refer to one another as [Targeted Individuals or TI’s](https://www.ohchr.org/sites/default/files/Documents/Issues/Torture/Call/Individuals/Militarygrade.pdf) and often refer to the symptoms of psychological weapon attacks as a form of [‘Gang Stalking’](https://www.ohchr.org/sites/default/files/Documents/Issues/Torture/Call/Individuals/Militarygrade.pdf) as its often believed that its perpetrated by a group of individuals. These people report the experience of these weapons to be akin to pure psychological torture. The communities discuss a variety of technologies that are being used on them and have collectively [\[51\]](#bib-51)[\[51\]](#bib-51)[classified them into a few categories](https://www.ohchr.org/sites/default/files/Documents/Issues/Torture/Call/Individuals/Militarygrade.pdf)[\[51\]](#bib-51):
+There have been millions of reports of people claiming they are being targeted with advanced psychological weapons for decades. Its phenomenon has grown into an entire sub-culture marked by terminology and ideas. These people have collectively started to refer to one another as [Targeted Individuals or TI’s](https://www.ohchr.org/sites/default/files/Documents/Issues/Torture/Call/Individuals/Militarygrade.pdf) and often refer to the symptoms of psychological weapon attacks as a form of [‘Gang Stalking’](https://www.ohchr.org/sites/default/files/Documents/Issues/Torture/Call/Individuals/Militarygrade.pdf) as its often believed that its perpetrated by a group of individuals. These people report the experience of these weapons to be akin to pure psychological torture. The communities discuss a variety of technologies that are being used on them and have collectively [\[51\]](#bib-51)[\[51\]](#bib-51)[\[51\]](#bib-51)[classified them into a few categories](https://www.ohchr.org/sites/default/files/Documents/Issues/Torture/Call/Individuals/Militarygrade.pdf):
 
 - **DEWs (Direct Energy Weapons)** - Weapons that cause similar effects as the Havana Syndrome: people report headaches and migraines, tinnitus, burns to their skin, nausea, unnatural stimulations around their body.
 
@@ -473,7 +473,7 @@ Websites:
 >
 > - **Italy**
 >
-> - [www.ontarget.co.cc](http://www.ontarget.co.cc)[\[72\]](#bib-72) **Greece**
+> - [www.ontarget.co.cc](http://www.ontarget.co.cc) **Greece**[\[72\]](#bib-72)
 >
 > -
 
@@ -517,7 +517,7 @@ Websites:
 >
 > - **TARGETED INDIVIDUALS UNITED**
 >
-> - **[Organization of Victims of Psychotronic (Mind/Body Control) Weapons](https://organizationofmindcontrolvictims.com/)[\[80\]](#bib-80) Organization of Victims Psychotronic (Mind Control) Weapons**
+> - **[Organization of Victims of Psychotronic (Mind/Body Control) Weapons](https://organizationofmindcontrolvictims.com/) Organization of Victims Psychotronic (Mind Control) Weapons[\[80\]](#bib-80)**
 >
 > -
 
@@ -553,9 +553,9 @@ Websites:
 >
 > - **US**
 >
-> - **<https://stop007.org/home/about/>[\[61\]](#bib-61) US**
+> - **<https://stop007.org/home/about/> US[\[61\]](#bib-61)**
 >
-> - **<https://bounceblack.org/2025/04/26/call-to-duty-fighting-back-against-organised-harassment/>[\[87\]](#bib-87) US**
+> - **<https://bounceblack.org/2025/04/26/call-to-duty-fighting-back-against-organised-harassment/> US[\[87\]](#bib-87)**
 >
 > -
 
@@ -563,7 +563,7 @@ Websites:
 >
 > - **US**
 >
-> - **<https://educate-yourself.org/mc/>[\[89\]](#bib-89) International**
+> - **<https://educate-yourself.org/mc/> International[\[89\]](#bib-89)**
 >
 > -
 
@@ -571,7 +571,7 @@ Websites:
 >
 > - **US**
 >
-> - **<https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime>[\[91\]](#bib-91) US**
+> - **<https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime> US[\[91\]](#bib-91)**
 >
 > -
 
@@ -611,57 +611,57 @@ Websites:
 >
 > - **<https://www.drlwilson.com/Articles/PSYCHOTRONIC.htm>[\[98\]](#bib-98)**
 >
-> - <http://njtisupportgroup.blogspot.com>[\[99\]](#bib-99) New Jersey
+> - <http://njtisupportgroup.blogspot.com> New Jersey[\[99\]](#bib-99)
 >
-> - <https://green-liberty.org/jtip/>[\[100\]](#bib-100) US
+> - <https://green-liberty.org/jtip/> US[\[100\]](#bib-100)
 >
-> - <https://thevinesisters.com/home>[\[101\]](#bib-101) US
+> - <https://thevinesisters.com/home> US[\[101\]](#bib-101)
 
 ##### **Facebook**
 
 Searching for “Targeted Individuals & Gangstalking Victims International Support Group” on Facebook, yields a large quantity of results. There are hundreds of groups each with thousands of members related to this search alone. Here is just a small sample of them:
 
-> **Facebook: Targeted Individuals Community (1.1k members)<https://www.facebook.com/groups/484474675758656/>[\[102\]](#bib-102)**
+> **Facebook: Targeted Individuals Community (1.1k members)[\[102\]](#bib-102)<https://www.facebook.com/groups/484474675758656/>**
 >
-> **Targeted Individuals - Gangstalking - Psychological Torture (6.5k members)<https://www.facebook.com/groups/550194910682803>[\[103\]](#bib-103)**
+> **Targeted Individuals - Gangstalking - Psychological Torture (6.5k members)[\[103\]](#bib-103)<https://www.facebook.com/groups/550194910682803>**
 >
-> **Gang Stalking Awareness (16.5k members)<https://www.facebook.com/groups/2036619546605019>[\[104\]](#bib-104)**
+> **Gang Stalking Awareness (16.5k members)[\[104\]](#bib-104)<https://www.facebook.com/groups/2036619546605019>**
 >
-> **Targeted Individuals, gang stalking and V2K (4.5k members)<https://www.facebook.com/groups/529839465990974>[\[105\]](#bib-105)**
+> **Targeted Individuals, gang stalking and V2K (4.5k members)[\[105\]](#bib-105)<https://www.facebook.com/groups/529839465990974>**
 >
-> **Remote Neural Monitoring (3.1k members)<https://www.facebook.com/groups/remoteneuralmonitoring>[\[106\]](#bib-106)**
+> **Remote Neural Monitoring (3.1k members)[\[106\]](#bib-106)<https://www.facebook.com/groups/remoteneuralmonitoring>**
 >
-> **Targeted Individuals - Victims of Gangstalking Program Crimes (8.1k members)<https://www.facebook.com/groups/455676116753883>[\[107\]](#bib-107)**
+> **Targeted Individuals - Victims of Gangstalking Program Crimes (8.1k members)[\[107\]](#bib-107)<https://www.facebook.com/groups/455676116753883>**
 >
 > **The Gang Stalking and The Targeted Individuals Group (23k members)<https://www.facebook.com/groups/483653602078021>[\[108\]](#bib-108)**
 >
-> **Support and Guidance for Targeted Individuals and Gangstalking Victims (8.5k members)<https://www.facebook.com/groups/2081153875302707>[\[109\]](#bib-109)**
+> **Support and Guidance for Targeted Individuals and Gangstalking Victims (8.5k members)[\[109\]](#bib-109)<https://www.facebook.com/groups/2081153875302707>**
 >
-> **Gang Stalking Awareness (16.5k members)<https://www.facebook.com/groups/2036619546605019>[\[104\]](#bib-104)**
+> **Gang Stalking Awareness (16.5k members)[\[104\]](#bib-104)<https://www.facebook.com/groups/2036619546605019>**
 >
-> **TARGETED INDIVIDUALS - OFFICIAL SUPPORT GROUP (15.3k members)<https://www.facebook.com/groups/477193365693899>[\[110\]](#bib-110)**
+> **TARGETED INDIVIDUALS - OFFICIAL SUPPORT GROUP (15.3k members)[\[110\]](#bib-110)<https://www.facebook.com/groups/477193365693899>**
 
 ##### **Reddit - (weekly visitors counted as of 10/29/25)**
 
-> **[r/gangstalking](https://www.reddit.com/r/Gangstalking/)[\[111\]](#bib-111) (34k weekly visitors)**
+> **[r/gangstalking](https://www.reddit.com/r/Gangstalking/) (34k weekly visitors)[\[111\]](#bib-111)**
 >
 > **[r/V2KTruth](https://www.reddit.com/r/V2KTRUTH/) (1.1k weekly visitors)[\[112\]](#bib-112)**
 >
-> **[r/ElectronicSlavery](https://www.reddit.com/r/ElectronicSlavery/)[\[113\]](#bib-113) (12k weekly visitors)**
+> **[r/ElectronicSlavery](https://www.reddit.com/r/ElectronicSlavery/) (12k weekly visitors)[\[113\]](#bib-113)**
 >
-> **[r/TargetedSolutions](https://www.reddit.com/r/TargetedSolutions/)[\[114\]](#bib-114) (3k weekly visitors)**
+> **[r/TargetedSolutions](https://www.reddit.com/r/TargetedSolutions/) (3k weekly visitors)[\[114\]](#bib-114)**
 >
-> **[/r/OTIR](https://www.reddit.com/r/OTIR/)[\[115\]](#bib-115) (102 weekly visitors)**
+> **[/r/OTIR](https://www.reddit.com/r/OTIR/) (102 weekly visitors)[\[115\]](#bib-115)**
 >
-> **[/r/TargetedCommons](https://www.reddit.com/r/TargetedCommons/)[\[116\]](#bib-116) (31 weekly visitors)**
+> **[/r/TargetedCommons](https://www.reddit.com/r/TargetedCommons/) (31 weekly visitors)[\[116\]](#bib-116)**
 >
-> **[/r/Electronic\_Harassment](https://www.reddit.com/r/Electronic_Harassment/)[\[117\]](#bib-117) (33 weekly visitors)**
+> **[/r/Electronic\_Harassment](https://www.reddit.com/r/Electronic_Harassment/) (33 weekly visitors)[\[117\]](#bib-117)**
 >
-> **[/r/SurveillanceStalking](https://www.reddit.com/r/SurveillanceStalking/)[\[118\]](#bib-118) (305 weekly visitors)**
+> **[/r/SurveillanceStalking](https://www.reddit.com/r/SurveillanceStalking/) (305 weekly visitors)[\[118\]](#bib-118)**
 >
-> **[/r/PositiveTI](https://www.reddit.com/r/PositiveTI/)[\[119\]](#bib-119) (740 weekly visitors)**
+> **[/r/PositiveTI](https://www.reddit.com/r/PositiveTI/) (740 weekly visitors)[\[119\]](#bib-119)**
 >
-> **[/r/TargetedIndividuals](https://www.reddit.com/r/TargetedIndividuals/)[\[120\]](#bib-120) (380 weekly visitors)**
+> **[/r/TargetedIndividuals](https://www.reddit.com/r/TargetedIndividuals/) (380 weekly visitors)[\[120\]](#bib-120)**
 
 ##### Other online communities
 
@@ -707,7 +707,7 @@ This section comprises a short list of the petitions worldwide that have attempt
 >
 > Ban Electronic Waterboarding
 >
-> “Havana Syndrome is caused by electronic devices used to modify, cower or intimidate a victim. Pulsed electromagnetic energy assaults are a type of torture that the unscrupulous can use against their victims to achieve an aim the Law would otherwise not grant them. Such devices should be banned.” <https://petition.parliament.uk/archived/petitions/619749>[\[124\]](#bib-124)
+> “Havana Syndrome is caused by electronic devices used to modify, cower or intimidate a victim. Pulsed electromagnetic energy assaults are a type of torture that the unscrupulous can use against their victims to achieve an aim the Law would otherwise not grant them. Such devices should be banned.” [\[124\]](#bib-124)<https://petition.parliament.uk/archived/petitions/619749>
 >
 > UK Government and Parliament
 >
@@ -1812,7 +1812,7 @@ As to remote neural monitoring and voice to skull technology, there are United S
 
 > “Is Mind Control Possible? Absolutely. There is a mountain of evidence... Today we know there are technologies that can induce sound into the brain at a distance, can monitor and alter brainwaves at a distance, can alter behavior at a distance, can induce images into the brain at a distance, can target individual organs at a distance. Can disrupt the calcium ions binding on individual cell surfaces at a distance, creating pain and other effects anywhere in the body. Mind control technology exists, without a question.”
 
-In an earlier report, in 1972 American scientists had established at the University Research level that remote brain monitoring and remote brain stimulation was possible via implants. Consider these excerpts from the paper by [Barton L. Ingraham and Gerald W. titled “The Use of Electronics in the Observation and Control of Human Behavior and Its Possible Use in Rehabilitation and Parole” released in Issues in Criminology volume 7](https://www.jstor.org/stable/42909755)[\[307\]](#bib-307):
+In an earlier report, in 1972 American scientists had established at the University Research level that remote brain monitoring and remote brain stimulation was possible via implants. Consider these excerpts from the paper by [\[307\]](#bib-307)[Barton L. Ingraham and Gerald W. titled “The Use of Electronics in the Observation and Control of Human Behavior and Its Possible Use in Rehabilitation and Parole” released in Issues in Criminology volume 7](https://www.jstor.org/stable/42909755):
 
 > “One of the leaders in the field of internal radio-telemetry devices is Mackay (1961). He has developed devices which he calls “endoradiosondes.” These are tiny transmitters that can be swallowed or implanted internally in man or animal. They have been designed in order to measure and transmit such physiological variables as gastrointestinal pressure, blood pressure, body temperature, bioelectrical potentials (voltage accompanying the functioning of the brain, the heart and other muscles), oxygen levels, acidity and radiation intensity (Mackay, 1965). In fact, in many cases for the purposes of biomedical and physiological research, internal telemetry is the only way of obtaining the desired data. In the case where the body functions do not emit electrical energy (as the brain, heart and other neuromuscular structures do), these devices have been ingeniously modified in order to measure changes in pressure, acidity, etc., and to transmit electrical signals reflecting these changes to receivers outside the body. In this case the transmitters are called “transducers.” Both “active” and “passive” transmitters have been developed, “active” transmitters containing a battery powering an oscillator, and “passive” transmitters not containing an internal power source, but having instead tuned circuits modulated from an outside power source. Although “passive” systems enjoy the advantage of not being concerned with power failure or battery replacement, they do not put out as good a signal as an “active” system. Both transmitter systems, at present, have ranges of a few feet to a dozen- just enough to bring out the signal from inside the body (Mackay, 1965). Thus, it is generally necessary for the subject to carry a small booster transmitter in order to receive the weak signal from inside the body and increase its strength for rebroadcasting to a remote laboratory or data collection point.point. However, with the development of integrated circuits, both transmitters and boosters can be miniaturized to a fantastic degree.
 
@@ -1864,7 +1864,7 @@ These experiences involved a number of discrete phenomena:
 * “Any device that invades a persons mind, either through induction of “evoked potentials” through electromagnetic means or through the various “crazy-making” tactics employed in both information warfare and psychological operations is a violation of human rights and cognitive liberty.” 
 ```
 
-- **From a study done by the[RAND institute titled “Chinese Next-Generation Psychological Warfare The Military Applications of Emerging Technologies and Implications for the United States”](https://www.rand.org/pubs/research_reports/RRA853-1.html)[\[33\]](#bib-33):**
+- **From a study done by the[RAND institute titled “Chinese Next-Generation Psychological Warfare The Military Applications of Emerging Technologies and Implications for the United States”](https://www.rand.org/pubs/research_reports/RRA853-1.html):[\[33\]](#bib-33)**
 
   - **pg 49:** “A 2019 article by two researchers at the PLA’s Third Military Medical University proposed the concept of psycho-virus (心灵病毒), which argues that military adoption of brain-computer interfaces (BCIs) provides an opportunity for (and risk of) hacking or otherwise using the computer to influence, or even control, the user’s brain.
 
@@ -1910,9 +1910,9 @@ With the Moscow Embassy attacks of 1953, the Havana Syndrome attacks of the past
 
 - **Direct Energy Weapons (DEWs) exist**
 
-  - [1953 Embassy Attacks](https://www.govinfo.gov/content/pkg/CHRG-118hhrg58217/html/CHRG-118hhrg58217.htm)[\[15\]](#bib-15): Confirmed
+  - [1953 Embassy Attacks](https://www.govinfo.gov/content/pkg/CHRG-118hhrg58217/html/CHRG-118hhrg58217.htm): Confirmed[\[15\]](#bib-15)
 
-  - [Havana Syndrome](https://www.govinfo.gov/content/pkg/CHRG-118hhrg58217/html/CHRG-118hhrg58217.htm)[\[15\]](#bib-15): Most Plausible Explanation
+  - [Havana Syndrome](https://www.govinfo.gov/content/pkg/CHRG-118hhrg58217/html/CHRG-118hhrg58217.htm): Most Plausible Explanation[\[15\]](#bib-15)
 
   - [The Mind Has No Firewall](https://press.armywarcollege.edu/cgi/viewcontent.cgi?article=1871\&context=parameters) by Timothy L. Thomas states the US and Russia were developing these technologies as of the 90s.[\[309\]](#bib-309)
 
@@ -1920,9 +1920,9 @@ With the Moscow Embassy attacks of 1953, the Havana Syndrome attacks of the past
 
   - [US Electromagnetic Weapons and Human Rights: A Study of the History of US Intelligence Community Human Rights Violations and Continuing Research in Electromagnetic Weapons By Peter Phillips, Lew Brown and Bridget Thornton](https://www.projectcensored.org/wp-content/uploads/2010/05/ElectromegnaticWeapons.pdf) pg. 27 discusses numerous forms that existed as of 2006.[\[308\]](#bib-308)
 
-  - [Dr. Eldon Byrd](https://www.youtube.com/watch?v=aqPIdYRZkKE)[\[306\]](#bib-306) stated the technology existed without question
+  - [Dr. Eldon Byrd](https://www.youtube.com/watch?v=aqPIdYRZkKE) stated the technology existed without question[\[306\]](#bib-306)
 
-  - Large Body of US and world civilians claim this is being used on them, see section “\[The Public’s Battle with Psychological Weapons]\(<http://The>[\[310\]](#bib-310) Public’s Battle With Psychological Weapons)”
+  - Large Body of US and world civilians claim this is being used on them, see section “\[The Public’s Battle with Psychological Weapons]\(<http://The> Public’s Battle With Psychological Weapons)”[\[310\]](#bib-310)
 
   - Whistleblower testimony from ex CIA, ex NSA, ex FBI, ex Navy see section Who is perpetrating the use of this technology? below.
 
@@ -1992,7 +1992,7 @@ From Targeted Massachusetts:
 
 This is further evidenced by the list of lawsuit defendants mentioned in the “\[The Public’s Battle with Psychological Weapons]\(<http://The> Public’s Battle With Psychological Weapons)” section above. That US intelligence or law enforcement agencies are perpetrating these crimes against US civilians certainly is a possibility that people going through this have to consider. After all, with operations like [\[310\]](#bib-310)[CointelPro by the FBI](https://www.britannica.com/topic/COINTELPRO), [MKUltra by the CIA](https://www.britannica.com/topic/MK-ULTRA), the [Church Hearings](https://en.wikipedia.org/wiki/Church_Committee), and the [National Intelligence Council’s recent actions of withholding information from the public around the Havana Syndrome attacks,](https://intelligence.house.gov/news/documentsingle.aspx?DocumentID=1486) it’s not unreasonable for civilians to think that our government agencies may be involved in these operations. Additionally, the aforementioned paper [\[31\]](#bib-31)[\[311\]](#bib-311)[\[312\]](#bib-312)[\[313\]](#bib-313)[“The Use of Electronics in the Observation and Control of Human Behavior and Its Possible Use in Rehabilitation and Parole”](https://www.jstor.org/stable/42909755) directly states that remote neural monitoring implants should be used in the United States for law enforcement purposes.[\[307\]](#bib-307)
 
-This notion is substantiated by numerous whistleblower reports; consider Ted Gunderson who in [1977 was appointed head of the Los Angeles FBI](https://www.latimes.com/archives/la-xpm-1986-02-22-me-10623-story.html). Here is [\[314\]](#bib-314)[his personal testimony in a lawsuit involving a man named Kieth Labella against the FBI alleging gang stalking](https://archive.org/details/ted-gunderson-affidavit_202407/mode/2up)[\[315\]](#bib-315):
+This notion is substantiated by numerous whistleblower reports; consider Ted Gunderson who in [1977 was appointed head of the Los Angeles FBI](https://www.latimes.com/archives/la-xpm-1986-02-22-me-10623-story.html). Here is [\[314\]](#bib-314)[\[315\]](#bib-315)[his personal testimony in a lawsuit involving a man named Kieth Labella against the FBI alleging gang stalking](https://archive.org/details/ted-gunderson-affidavit_202407/mode/2up):
 
 > “I have read the Complaint in the current action of Mr. Keith Labella against F.B.I. and D.O.J. It is my professional opinion, based on information, knowledge and belief that the information sought by Mr. Labella in this F.O.I.A. suit regarding “gang stalking”, “gang stalking groups” and “gang stalking methods” reasonably describes an ongoing, active, covert nationwide program that is in effect today, and, based on my investigations and experience, has been operational since at least the early 1980’s. Since the 1980’s gang stalking has increased in scope, intensity and sophistication by adapting to new communications and surveillance technology. These programs are using the codenames Echelon Program, Carnivore System, and Tempest Systems. The Echelon Program is administered by the N.S.A. out of Fort Meade, Maryland, and monitors all email and phone calls in the world. Carnivore System is administered by the N.S.A. out of Fort Meade, Maryland, and can download any computer system without being traced or otherwise known to the owner. Tempest Systems can decipher what is on any computer screen up to a quarter of mile away. These programs are negatively impacting, thousands of Americans and severely abusing their civil rights on a daily basis.”
 
@@ -2020,7 +2020,7 @@ Here are their statements:
 
 > “The military applications were quite transparent. I worked on the AI (artificial intelligence) natural language responses. They are broadly called “chatter-bots”. They are useful in occupation of the target mind for disablement, NLP (neural linguistic programming), and interrogation....The CIA formerly used mostly LSD and other substances that would perform similar functions....A weapon more powerful than the atomic bomb for influencing populations is quite sought after by many countries. It is another arms race. When weapons are “field tested” they need to be very secretive. The database for the probability matrices of the efficacy on each culture and language needs to be done for improvements, development,and evolution of the AI system. Doing it world-wide is necessary for other reasons too.”
 
-- **Dr. James Giordiano, Military Neuroscientist, Head of European Union Human Brain Project, Georgetown University Professor, from Dr. Eric Karlstrom’s article, “Appendix 58: Dr. James Giordano (2017)- Weaponized Brain Science and Technology: Battlespace/Organized Stalking Applications of Neuroweapons (youtube, pdf, and my notes)” – <https://911nwo.com/?p=6464>[\[317\]](#bib-317)**
+- **Dr. James Giordiano, Military Neuroscientist, Head of European Union Human Brain Project, Georgetown University Professor, from Dr. Eric Karlstrom’s article, “Appendix 58: Dr. James Giordano (2017)- Weaponized Brain Science and Technology: Battlespace/Organized Stalking Applications of Neuroweapons (youtube, pdf, and my notes)” – [\[317\]](#bib-317)<https://911nwo.com/?p=6464>**
 
 > “The brain is the next battlespace…. We are targeting the brain…. Like (in) any race, the morbidity and mortality, going at this speed, with this level of integrity and this level of momentum, is real. We are tracking neurological or brain signatures of key targeted individuals that are thought to represent whole groups....I can utilize neuro-pharmacologics and various forms of brain stimulation to extract information from key intelligence targets....TITAN (Tiered-integrated Tracking and Access Networks) utilizes biologically-implantable chips to track key individuals and provide information about the way brains work to create narratives and behaviors....In Europe, the Nutfield Council of Bioethics said we are getting very close to weaponizing the brain sciences and in a year it would be ready for use. In 2014, the NAS reconvened and made the announcement that the brain sciences are now ready and are currently being used in such endeavors in the US and worldwide. So we are moving into the operational space. I.e., it is being used....High-output sensory stimulators (can be administered by UAVs (unmanned aerial vehicles), drones, or insect borne, or by large vehicles; cars, or tanks). These use sensory mobilizing agents that use high electromagnetic pulse energy that may also use high levels of sound and light energy and they disrupt neuro sensory functions. These are being used.”
 
@@ -2166,7 +2166,7 @@ If such a program were proven to exist, the responsible officials and agencies c
 
 If this were true, the rights of United States civilians have been violated in a multitude of ways and the legal protections that are supposed to have been afforded to them by the US Justice system and constitution have been ignored. Given the above evidence, the historical precedent of the United States conducting illegal experimentation and social interruption programs on its civilians and the testimony from members of the CIA, FBI, Navy, and countless experts, this possibility cannot be immediately denied.
 
-Here is a supporting quote from the \*\*[US Electromagnetic Weapons and Human Rights 2006](https://www.projectcensored.org/wp-content/uploads/2010/05/ElectromegnaticWeapons.pdf)[\[308\]](#bib-308) \*\*paper mentioned above:
+Here is a supporting quote from the \*\*[US Electromagnetic Weapons and Human Rights 2006](https://www.projectcensored.org/wp-content/uploads/2010/05/ElectromegnaticWeapons.pdf) \*\*paper mentioned above:[\[308\]](#bib-308)
 
 > “For the US Government to unilaterally declare that our country will not comply with international human rights laws, nor uphold the core values of our nation’s foundation is an indication of extremism that supersedes the values and beliefs of the American people. When such extremism exists we need to take seriously the founders’ declaration that, “ to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, — That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying its foundation on such principles and organizing its powers in such form, as to them shall seem most likely to effect their Safety and Happiness.” (Declaration of Independence 1776) ”
 
@@ -2198,7 +2198,7 @@ Another aspect of the victimization of those who believe they are experiencing t
 >
 > “Delusional disorder in the DSM-5 is described as an inaccurate interpretation of external reality despite evidence on the contrary; the belief is incongruent with one’s culture or subculture.”
 
-Additionally, per [Greg Edgreen’s testimony](https://www.congress.gov/118/meeting/house/117249/witnesses/HHRG-118-HM05-Wstate-EdgreenG-20240508.pdf)[\[24\]](#bib-24) at the House Havana Attack Hearing the victims of the discussed Moscow Embassy attacks that occurred from the 1950’s to the 1970’s were accused of being delusional as well:
+Additionally, per [Greg Edgreen’s testimony](https://www.congress.gov/118/meeting/house/117249/witnesses/HHRG-118-HM05-Wstate-EdgreenG-20240508.pdf) at the House Havana Attack Hearing the victims of the discussed Moscow Embassy attacks that occurred from the 1950’s to the 1970’s were accused of being delusional as well:[\[24\]](#bib-24)
 
 > “Again, the survivors were accused of mass hysteria and told nothing about the causes of their symptoms, until the government finally informed the staff in 1976 at a confidential meeting.”
 
@@ -2206,11 +2206,11 @@ It has often been the case throughout recent history that people undergoing cove
 
 #### The CIA’s MKUltra Experiments
 
-Consider the victims of the MKUltra experiments by the CIA. Here is MKUltra described by Lucas J. Meier in his discussion paper ‘[Mind Control: Past and Future](https://www.hks.harvard.edu/sites/default/files/2025-01/24_Meier_02.pdf)[\[324\]](#bib-324)’:
+Consider the victims of the MKUltra experiments by the CIA. Here is MKUltra described by Lucas J. Meier in his discussion paper ‘[\[324\]](#bib-324)[Mind Control: Past and Future](https://www.hks.harvard.edu/sites/default/files/2025-01/24_Meier_02.pdf)’:
 
 > “During the Cold-War-era, intelligence agencies in both the Eastern and Western blocs set up secret experiments to devise methods of mind control and brainwashing in order to gain an advantage over the enemy. The most notorious of these endeavours was the Central Intelligence Agency’s (CIA) illegal MKUltra program, which ran from 1953 to 1973. In its quest for a truth serum that could be employed to force confessions from subjects who are not cooperating and the desire to be able to manipulate people’s behaviour, the CIA experimented on thousands of subjects – partly without their knowledge or consent, and often with disastrous consequences.
 
-From [Brittanica’s page on MK-ULTRA](https://www.britannica.com/topic/MK-ULTRA)[\[312\]](#bib-312) on the experimentation of LSD:
+From [Brittanica’s page on MK-ULTRA](https://www.britannica.com/topic/MK-ULTRA) on the experimentation of LSD:[\[312\]](#bib-312)
 
 > “It was also used heavily on prisoners, mentally ill people, and people experiencing addiction—“people who could not fight back,” as one CIA officer put it.”
 
@@ -2230,15 +2230,15 @@ Frank Olson, as a result of being experimented on, exhibited symptoms of paranoi
 
 #### Zersetzung
 
-In another instance, consider a government psychological repression program titled Zersetzung operated by the East Germany secret police, or Stasi, from the 1960’s to the 1980’s. [The Stasi’s objective](https://www.historyhit.com/the-stasi-the-most-terrifying-secret-police-in-history/) was as follows: “the aim \[was] keeping the government informed and being able to quash any discontent before it became a threat”. However, this involved severe tactics. Zersetzung,[\[327\]](#bib-327)[ literally meaning ‘decomposition’](https://www.zersetzung.info/), was designed to secretly and psychologically sabotage people’s lives without a trace. Here’s a description of Zersetzung by [\[328\]](#bib-328)[the German University Hospital Jena](https://www.uniklinikum-jena.de/sedgesundheitsfolgen/en/Glossary/Decomposition%2Bof%2Bpersonalities.html)[\[329\]](#bib-329):
+In another instance, consider a government psychological repression program titled Zersetzung operated by the East Germany secret police, or Stasi, from the 1960’s to the 1980’s. [The Stasi’s objective](https://www.historyhit.com/the-stasi-the-most-terrifying-secret-police-in-history/) was as follows: “the aim \[was] keeping the government informed and being able to quash any discontent before it became a threat”. However, this involved severe tactics. Zersetzung,[\[327\]](#bib-327)[ literally meaning ‘decomposition’](https://www.zersetzung.info/), was designed to secretly and psychologically sabotage people’s lives without a trace. Here’s a description of Zersetzung by [\[328\]](#bib-328)[\[329\]](#bib-329)[the German University Hospital Jena](https://www.uniklinikum-jena.de/sedgesundheitsfolgen/en/Glossary/Decomposition%2Bof%2Bpersonalities.html):
 
 > ‘the “systematic discrediting of public reputation, reputation and prestige on the basis of interconnected true, verifiable discrediting as well as untrue, credible, irrefutable and thus also discrediting information” or the “systematic organization of professional and social failures to undermine self-confidence”.’
 
-In the paper ‘[From Hohenschönhausen to Guantanamo Bay: Psychology’s role in the secret services of the GDR and the United States’ by Moritz Michels and Martin Weiser](https://www.researchgate.net/publication/321856284_From_Hohenschonhausen_to_Guantanamo_Bay_Psychology%27s_role_in_the_secret_services_of_the_GDR_and_the_United_States)[\[330\]](#bib-330) published in the ‘Journal of the History of Behavioral Sciences’ is the following description on how this operation was intentionally crafted by expert psychologists to take advantage of and manipulate the human mind:
+In the paper ‘[From Hohenschönhausen to Guantanamo Bay: Psychology’s role in the secret services of the GDR and the United States’ by Moritz Michels and Martin Weiser](https://www.researchgate.net/publication/321856284_From_Hohenschonhausen_to_Guantanamo_Bay_Psychology%27s_role_in_the_secret_services_of_the_GDR_and_the_United_States) published in the ‘Journal of the History of Behavioral Sciences’ is the following description on how this operation was intentionally crafted by expert psychologists to take advantage of and manipulate the human mind:[\[330\]](#bib-330)
 
 > ‘In 1965, at an institution that officially never existed, a Chair was established that only the secret service was supposed to know about. At the Juridical Academy in Potsdam near Berlin, “Operative Psychology” (OP) was taught for almost 25 years to over 13,300 trainees of the Secret Service (Stasi) in East Germany. An increasing number of academically trained psychologists taught concepts and techniques of OP, designed to systematize and support intelligence work: Starting out with only four members, the number of employees working at the institute for OP continually grew until it peaked at 10 in 1989. Besides holding lectures and seminars, members of the institute provided an extensive corpus of teaching material and training documents and supervised more than 200 diploma and doctoral theses.Their research focused on how to apply “silent” psychological techniques of persuasion and repression (e.g., how to urge citizens to cooperate and give private information to the secret service), how to interrogate dissidents without leaving physical marks, and how to “disintegrate” opposition groups and dissidents .’
 
-As detailed below the ultimate goal was psychological degradation of the target by ruining social, professional, and personal connections, while simultaneously making the target doubt their own sanity. The use of false rumors, fabricated photographs, and discrediting information was spread to targets’ connections discretely. Physical actions like break-ins to the target’s house, deflating the targets tires on bikes and cars were also used. Consider the following examples from Mario Bekes’ article: [‘From Berlin to the Digital Age: STASI’s Zersetzung and the Modern Battle of Psychological Warfare’](https://www.mariobekes.com.au/from-berlin-to-the-digital-age-stasis-zersetzung-and-the-modern-battle-of-psychological-warfare/)[\[331\]](#bib-331):
+As detailed below the ultimate goal was psychological degradation of the target by ruining social, professional, and personal connections, while simultaneously making the target doubt their own sanity. The use of false rumors, fabricated photographs, and discrediting information was spread to targets’ connections discretely. Physical actions like break-ins to the target’s house, deflating the targets tires on bikes and cars were also used. Consider the following examples from Mario Bekes’ article: [\[331\]](#bib-331)[‘From Berlin to the Digital Age: STASI’s Zersetzung and the Modern Battle of Psychological Warfare’](https://www.mariobekes.com.au/from-berlin-to-the-digital-age-stasis-zersetzung-and-the-modern-battle-of-psychological-warfare/):
 
 > “Another characteristic of Zersetzung was gaslighting, a type of psychological manipulation that led the subject to question their own memory, perception, and sanity.
 
