@@ -205,22 +205,29 @@ function createReferenceNode(number: number, anchorId: string): Link {
 }
 
 function findSentenceEnd(parent: Parent, startIndex: number): number {
-  // Look ahead to find the end of the sentence (period, exclamation, question mark)
-  // Return the index of the text node containing the punctuation
+  // Look ahead from startIndex to find the sentence-ending punctuation
+  // We want to find the LAST text node before punctuation that ends the sentence
+  let lastNodeBeforePunctuation = startIndex
+  
   for (let i = startIndex + 1; i < parent.children.length; i++) {
     const node = parent.children[i]
     if (node.type === 'text') {
       const text = (node as Text).value
       // Check if this text node contains sentence-ending punctuation
-      const sentenceEndMatch = text.match(/[.!?]/)
-      if (sentenceEndMatch) {
-        // Found punctuation in this text node, return this index
+      if (/[.!?]/.test(text)) {
+        // Found punctuation - return this index (the text node with the punctuation)
         return i
       }
     }
+    // Keep track of the last non-text/non-reference node we've seen
+    // Skip bibliography reference links when looking for sentence end
+    if (node.type !== 'html' && !(node.type === 'link' && (node as Link).url?.startsWith('#bib-'))) {
+      lastNodeBeforePunctuation = i
+    }
   }
-  // No sentence end found, place after the link
-  return startIndex
+  
+  // No sentence end found, return the last significant node index
+  return lastNodeBeforePunctuation
 }
 
 function extractHeadings(root: Root): { title: string; headings: ProcessedMarkdown['headings'] } {
