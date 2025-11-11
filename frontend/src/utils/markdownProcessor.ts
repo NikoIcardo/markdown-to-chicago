@@ -206,7 +206,7 @@ function createReferenceNode(number: number, anchorId: string): Link {
 
 function findSentenceEnd(parent: Parent, startIndex: number): number {
   // Look ahead to find the end of the sentence (period, exclamation, question mark)
-  // or end of paragraph if no punctuation is found
+  // Return the index of the text node containing the punctuation
   for (let i = startIndex + 1; i < parent.children.length; i++) {
     const node = parent.children[i]
     if (node.type === 'text') {
@@ -217,11 +217,6 @@ function findSentenceEnd(parent: Parent, startIndex: number): number {
         // Found punctuation in this text node, return this index
         return i
       }
-    }
-    // If we encounter another link or other non-text node before finding punctuation,
-    // we should place the reference after the current link
-    if (node.type === 'link') {
-      return startIndex
     }
   }
   // No sentence end found, place after the link
@@ -579,8 +574,9 @@ export async function processMarkdown(
     numberToEntry.set(number, entry)
   })
 
-  // Group occurrences by parent and position to batch process references at sentence endings
-  const referencesByLocation = new Map<string, { parent: Parent; index: number; references: Array<{ number: number; anchorId: string }> }>()
+  // Group occurrences by parent and find sentence boundaries
+  // We need to process each parent separately and group references by sentence
+  const parentToOccurrences = new Map<Parent, Array<{ linkIndex: number; entry: ExistingEntryInfo }>>()
   
   urlOccurrences.forEach((occurrences, url) => {
     const entry = urlToExistingNumber.get(url)
@@ -589,52 +585,51 @@ export async function processMarkdown(
     }
     occurrences.forEach((occurrence) => {
       if (occurrence.type === 'link') {
-        // Find where to place the reference (at sentence end if possible)
-        const sentenceEndIndex = findSentenceEnd(occurrence.parent, occurrence.index)
-        const locationKey = `${occurrence.parent}:${sentenceEndIndex}`
-        
-        let location = referencesByLocation.get(locationKey)
-        if (!location) {
-          location = { 
-            parent: occurrence.parent, 
-            index: sentenceEndIndex, 
-            references: [] 
-          }
-          referencesByLocation.set(locationKey, location)
-        }
-        location.references.push({ number: entry.number, anchorId: entry.anchorId })
+        const list = parentToOccurrences.get(occurrence.parent) || []
+        list.push({ linkIndex: occurrence.index, entry })
+        parentToOccurrences.set(occurrence.parent, list)
       }
     })
   })
   
-  // Sort locations by index (descending) so we can insert from end to beginning
-  const locations = Array.from(referencesByLocation.values()).sort((a, b) => {
-    if (a.parent !== b.parent) return 0
-    return b.index - a.index
-  })
-  
-  // Insert references at their locations
-  locations.forEach(({ parent, index, references }) => {
-    // Sort references by number to ensure consistent ordering
-    references.sort((a, b) => a.number - b.number)
+  // Process each parent's occurrences
+  parentToOccurrences.forEach((occurrences, parent) => {
+    // Sort by link index
+    occurrences.sort((a, b) => a.linkIndex - b.linkIndex)
     
-    let insertIndex = index + 1
+    // Group by sentence end position
+    const sentenceGroups = new Map<number, Array<{ number: number; anchorId: string }>>()
+    occurrences.forEach(({ linkIndex, entry }) => {
+      const sentenceEndIndex = findSentenceEnd(parent, linkIndex)
+      const group = sentenceGroups.get(sentenceEndIndex) || []
+      group.push({ number: entry.number, anchorId: entry.anchorId })
+      sentenceGroups.set(sentenceEndIndex, group)
+    })
     
-    // Skip past any existing references
-    while (insertIndex < parent.children.length) {
-      const node = parent.children[insertIndex]
-      if (node.type === 'link' && node.url?.startsWith('#bib-')) {
-        insertIndex++
-      } else {
-        break
+    // Insert references at sentence ends, processing from end to start to maintain indices
+    const positions = Array.from(sentenceGroups.entries()).sort((a, b) => b[0] - a[0])
+    positions.forEach(([sentenceEndIndex, references]) => {
+      // Sort references by number for consistent ordering
+      references.sort((a, b) => a.number - b.number)
+      
+      let insertIndex = sentenceEndIndex + 1
+      
+      // Skip past any existing references at this position
+      while (insertIndex < parent.children.length) {
+        const node = parent.children[insertIndex]
+        if (node.type === 'link' && (node as Link).url?.startsWith('#bib-')) {
+          insertIndex++
+        } else {
+          break
+        }
       }
-    }
-    
-    // Insert all references for this location
-    const refNodes = references.map(({ number, anchorId }) => 
-      createReferenceNode(number, anchorId)
-    )
-    parent.children.splice(insertIndex, 0, ...refNodes)
+      
+      // Insert all references for this sentence
+      const refNodes = references.map(({ number, anchorId }) => 
+        createReferenceNode(number, anchorId)
+      )
+      parent.children.splice(insertIndex, 0, ...refNodes)
+    })
   })
 
   bareTextOccurrences.forEach(({ node, parent, matches }) => {
