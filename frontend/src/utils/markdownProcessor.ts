@@ -579,31 +579,29 @@ export async function processMarkdown(
     occurrences.sort((a, b) => a.linkIndex - b.linkIndex)
     
     // Find all sentence boundaries in this paragraph
-    const sentenceBoundaries: number[] = []
+    const sentenceBoundaries: Array<{ index: number; punctuationPos: number }> = []
     for (let i = 0; i < parent.children.length; i++) {
       const node = parent.children[i]
       if (node.type === 'text') {
         const text = (node as Text).value
-        if (/[.!?]/.test(text)) {
-          sentenceBoundaries.push(i)
+        const match = text.match(/[.!?]/)
+        if (match && match.index !== undefined) {
+          sentenceBoundaries.push({ index: i, punctuationPos: match.index })
         }
       }
     }
     
     // If no boundaries found, use end of paragraph
     if (sentenceBoundaries.length === 0) {
-      sentenceBoundaries.push(parent.children.length - 1)
+      sentenceBoundaries.push({ index: parent.children.length - 1, punctuationPos: -1 })
     }
     
     // Group links by their nearest sentence boundary (looking forward)
     const sentenceGroups = new Map<number, Array<{ linkIndex: number; number: number; anchorId: string }>>()
     occurrences.forEach(({ linkIndex, entry }) => {
-      // Find the first sentence boundary at or after this link
-      let sentenceEndIndex = sentenceBoundaries.find(boundary => boundary > linkIndex)
-      if (sentenceEndIndex === undefined) {
-        // If no boundary found after, use the last one or end of paragraph
-        sentenceEndIndex = sentenceBoundaries[sentenceBoundaries.length - 1]
-      }
+      // Find the first sentence boundary that comes after this link
+      const boundary = sentenceBoundaries.find(b => b.index > linkIndex)
+      const sentenceEndIndex = boundary ? boundary.index : sentenceBoundaries[sentenceBoundaries.length - 1].index
       
       const group = sentenceGroups.get(sentenceEndIndex) || []
       group.push({ linkIndex, number: entry.number, anchorId: entry.anchorId })
@@ -621,25 +619,33 @@ export async function processMarkdown(
       // Sort references by number for consistent ordering
       uniqueRefs.sort((a, b) => a.number - b.number)
       
-      // Find the insertion point: after the sentence boundary text node
-      // We need to skip past any content between the boundary and where we want to insert
-      let insertIndex = sentenceEndIndex + 1
-      
-      // Skip past any existing references at this position
-      while (insertIndex < parent.children.length) {
-        const node = parent.children[insertIndex]
-        if (node.type === 'link' && (node as Link).url?.startsWith('#bib-')) {
-          insertIndex++
-        } else {
-          break
-        }
-      }
-      
-      // Insert all references for this sentence
+      // Create reference nodes
       const refNodes = uniqueRefs.map(({ number, anchorId }) => 
         createReferenceNode(number, anchorId)
       )
-      parent.children.splice(insertIndex, 0, ...refNodes)
+      
+      // Find the boundary info for this sentence end
+      const boundaryInfo = sentenceBoundaries.find(b => b.index === sentenceEndIndex)
+      
+      if (boundaryInfo && boundaryInfo.punctuationPos >= 0) {
+        // Split the text node at the punctuation mark
+        const textNode = parent.children[sentenceEndIndex] as Text
+        const beforePunct = textNode.value.substring(0, boundaryInfo.punctuationPos)
+        const punctAndAfter = textNode.value.substring(boundaryInfo.punctuationPos)
+        
+        // Replace the text node with: text before punct + references + punct and after
+        const newNodes: Content[] = []
+        if (beforePunct) {
+          newNodes.push({ type: 'text', value: beforePunct } as Text)
+        }
+        newNodes.push(...refNodes)
+        newNodes.push({ type: 'text', value: punctAndAfter } as Text)
+        
+        parent.children.splice(sentenceEndIndex, 1, ...newNodes)
+      } else {
+        // No punctuation found, just append at the end
+        parent.children.splice(sentenceEndIndex + 1, 0, ...refNodes)
+      }
     })
   })
 
