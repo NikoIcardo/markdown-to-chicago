@@ -11,6 +11,29 @@ import { processMarkdown } from './utils/markdownProcessor'
 import { generatePdf } from './pdf/generatePdf'
 import { generateDocx } from './doc/generateDocx'
 
+// Helper function to save files to repo root in dev mode
+async function saveFileToRepo(blob: Blob, filename: string) {
+  try {
+    // Create a form data to send the file
+    const formData = new FormData()
+    formData.append('file', blob, filename)
+    
+    // Try to save to a local endpoint (this would need a simple dev server endpoint)
+    const response = await fetch('/api/save-file', {
+      method: 'POST',
+      body: formData,
+    })
+    
+    if (!response.ok) {
+      console.warn('Could not save file to repo root (no /api/save-file endpoint)')
+    } else {
+      console.log(`Saved ${filename} to repo root`)
+    }
+  } catch (error) {
+    console.warn('Could not save file to repo root:', error)
+  }
+}
+
 type SectionKey = 'upload' | 'diagnostics' | 'bibliography' | 'preview'
 
 interface AccordionSectionProps {
@@ -188,11 +211,17 @@ function App() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = fileName ? fileName.replace(/\.md$/i, '-processed.md') : 'processed.md'
+    const downloadFileName = fileName ? fileName.replace(/\.md$/i, '-processed.md') : 'processed.md'
+    link.download = downloadFileName
     document.body.appendChild(link)
     link.click()
     link.remove()
     URL.revokeObjectURL(url)
+    
+    // In dev mode, also save to repo root for reference
+    if (import.meta.env.DEV) {
+      saveFileToRepo(blob, downloadFileName)
+    }
   }, [processed, fileName])
 
   const handleDownloadPdf = useCallback(async () => {
@@ -203,11 +232,17 @@ function App() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = fileName ? fileName.replace(/\.md$/i, '.pdf') : 'document.pdf'
+      const downloadFileName = fileName ? fileName.replace(/\.md$/i, '.pdf') : 'document.pdf'
+      link.download = downloadFileName
       document.body.appendChild(link)
       link.click()
       link.remove()
       URL.revokeObjectURL(url)
+      
+      // In dev mode, also save to repo root for reference
+      if (import.meta.env.DEV) {
+        saveFileToRepo(blob, downloadFileName)
+      }
     } catch (error) {
       console.error(error)
       setErrorMessage(
@@ -226,11 +261,17 @@ function App() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = fileName ? fileName.replace(/\.md$/i, '.docx') : 'document.docx'
+      const downloadFileName = fileName ? fileName.replace(/\.md$/i, '.docx') : 'document.docx'
+      link.download = downloadFileName
       document.body.appendChild(link)
       link.click()
       link.remove()
       URL.revokeObjectURL(url)
+      
+      // In dev mode, also save to repo root for reference
+      if (import.meta.env.DEV) {
+        saveFileToRepo(blob, downloadFileName)
+      }
     } catch (error) {
       console.error(error)
       setErrorMessage(
