@@ -45,11 +45,14 @@ type UrlOccurrence =
 
 type ExistingEntryInfo = {
   number: number
-  url?: string
+  normalizedUrl?: string
   listItem: ListItem
   anchorId: string
   sourceType: 'existing' | 'fetched' | 'manual'
   metadata?: SourceMetadata
+  firstOccurrence: number
+  originalIndex: number
+  isNew: boolean
 }
 
 const excludedAncestorTypes = new Set(['code', 'inlineCode', 'definition'])
@@ -145,15 +148,18 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
     return
   }
 
-  const hasAnchor = firstParagraph.children.some(
-    (child) => child.type === 'html' && (child as Html).value.includes(anchorId),
+  const existingAnchorIndex = firstParagraph.children.findIndex(
+    (child) => child.type === 'html' && /<a id="[^"]*"><\/a>/i.test((child as Html).value),
   )
+  const anchorNode: Html = {
+    type: 'html',
+    value: `<a id="${anchorId}"></a>`,
+  }
 
-  if (!hasAnchor) {
-    firstParagraph.children.unshift({
-      type: 'html',
-      value: `<a id="${anchorId}"></a>`,
-    } as Html)
+  if (existingAnchorIndex >= 0) {
+    firstParagraph.children.splice(existingAnchorIndex, 1, anchorNode)
+  } else {
+    firstParagraph.children.unshift(anchorNode)
   }
 }
 
@@ -311,6 +317,7 @@ export async function processMarkdown(
 
   const urlToExistingNumber = new Map<string, ExistingEntryInfo>()
   const numberToEntry = new Map<number, ExistingEntryInfo>()
+  const allEntries: ExistingEntryInfo[] = []
 
   bibliographyList.children.forEach((listItem, idx) => {
     const number = (bibliographyList!.start ?? 1) + idx
@@ -321,18 +328,25 @@ export async function processMarkdown(
     const normalised = urlMatch ? normalizeUrl(urlMatch[0]) : undefined
     const entry: ExistingEntryInfo = {
       number,
-      url: normalised,
+      normalizedUrl: normalised,
       listItem,
       anchorId,
       sourceType: 'existing',
+      metadata: undefined,
+      firstOccurrence: Number.POSITIVE_INFINITY,
+      originalIndex: idx,
+      isNew: false,
     }
     if (normalised && !urlToExistingNumber.has(normalised)) {
       urlToExistingNumber.set(normalised, entry)
     }
     numberToEntry.set(number, entry)
+    allEntries.push(entry)
   })
 
   const urlOccurrences = new Map<string, UrlOccurrence[]>()
+  const urlFirstOccurrence = new Map<string, number>()
+  let occurrenceCounter = 0
   const bareTextOccurrences: Array<{
     node: Text
     parent: Parent
@@ -354,6 +368,10 @@ export async function processMarkdown(
       }
 
       const normalised = normalizeUrl(url)
+      const position = occurrenceCounter++
+      if (!urlFirstOccurrence.has(normalised)) {
+        urlFirstOccurrence.set(normalised, position)
+      }
       const parent = ancestors[ancestors.length - 1] as Parent
       const index = parent.children.indexOf(node as Content)
       if (index === -1) {
@@ -397,6 +415,10 @@ export async function processMarkdown(
           const perUrlMatches = new Map<string, Array<{ start: number; end: number }>>()
           matches.forEach((m) => {
             const normalised = normalizeUrl(m.url)
+            const position = occurrenceCounter++
+            if (!urlFirstOccurrence.has(normalised)) {
+              urlFirstOccurrence.set(normalised, position)
+            }
             const list = perUrlMatches.get(normalised) || []
             list.push({ start: m.start, end: m.end })
             perUrlMatches.set(normalised, list)
@@ -425,12 +447,10 @@ export async function processMarkdown(
     }
   })
 
-  const newEntryAnchors = new Set<string>()
-
   if (newUrls.length) {
-    const metadataRecords: Array<{ metadata: SourceMetadata; normalizedUrl: string }> = []
+    const metadataRecords: Array<{ metadata: SourceMetadata | null; normalizedUrl: string }> = []
 
-    for (const normalizedUrl of newUrls) {
+    newUrls.forEach((normalizedUrl) => {
       const manualOverride = manualMetadataMap.get(normalizedUrl)
       if (manualOverride) {
         const manualMetadata: SourceMetadata = {
@@ -443,33 +463,35 @@ export async function processMarkdown(
           sourceType: 'manual',
         }
         metadataRecords.push({ metadata: manualMetadata, normalizedUrl })
-        continue
+      } else {
+        metadataRecords.push({ metadata: null, normalizedUrl })
       }
+    })
 
-      const fetchedMetadata = await fetchSourceMetadata(normalizedUrl)
-      fetchedMetadata.sourceType = 'fetched'
-
-      if (fetchedMetadata.retrievalError) {
-        const issueMessage = fetchedMetadata.retrievalError
-        metadataIssues.push({
-          url: fetchedMetadata.url,
-          message: issueMessage,
-        })
-        diagnostics.warnings.push(
-          `Could not fully retrieve metadata for ${normalizedUrl}: ${issueMessage}`,
-        )
+    for (let i = 0; i < metadataRecords.length; i += 1) {
+      const record = metadataRecords[i]
+      if (!record.metadata) {
+        const fetchedMetadata = await fetchSourceMetadata(record.normalizedUrl)
+        record.metadata = fetchedMetadata
+        if (fetchedMetadata.retrievalError) {
+          const issueMessage = fetchedMetadata.retrievalError
+          metadataIssues.push({
+            url: fetchedMetadata.url,
+            message: issueMessage,
+          })
+          diagnostics.warnings.push(
+            `Could not fully retrieve metadata for ${record.normalizedUrl}: ${issueMessage}`,
+          )
+        }
+        record.metadata = fetchedMetadata
       }
-
-      metadataRecords.push({ metadata: fetchedMetadata, normalizedUrl })
     }
 
-    let nextNumber =
-      (bibliographyList.start ?? 1) + bibliographyList.children.length
-
-    metadataRecords.forEach(({ metadata, normalizedUrl }) => {
-      nextNumber += 1
-      const number = nextNumber
-      const anchorId = `bib-${number}`
+    const existingCount = allEntries.length
+    metadataRecords.forEach(({ metadata, normalizedUrl }, idx) => {
+      if (!metadata) {
+        return
+      }
       const citation = formatCitation(metadata)
       const listItem: ListItem = {
         type: 'listItem',
@@ -478,26 +500,59 @@ export async function processMarkdown(
           {
             type: 'paragraph',
             children: [
-              { type: 'html', value: `<a id="${anchorId}"></a>` } as Html,
+              { type: 'html', value: '<a id=""></a>' } as Html,
               { type: 'text', value: citation } as Text,
             ],
           },
         ],
       }
-      bibliographyList.children.push(listItem)
       const entryInfo: ExistingEntryInfo = {
-        number,
-        url: normalizedUrl,
+        number: 0,
+        normalizedUrl,
         listItem,
-        anchorId,
+        anchorId: '',
         sourceType: metadata.sourceType === 'manual' ? 'manual' : 'fetched',
         metadata,
+        firstOccurrence: urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY,
+        originalIndex: existingCount + idx,
+        isNew: true,
       }
-      newEntryAnchors.add(anchorId)
-      urlToExistingNumber.set(normalizedUrl, entryInfo)
-      numberToEntry.set(number, entryInfo)
+      allEntries.push(entryInfo)
     })
   }
+
+  allEntries.forEach((entry) => {
+    if (entry.normalizedUrl) {
+      const occurrence = urlFirstOccurrence.get(entry.normalizedUrl)
+      if (occurrence !== undefined) {
+        entry.firstOccurrence = occurrence
+      }
+    }
+  })
+
+  allEntries.sort((a, b) => {
+    if (a.firstOccurrence !== b.firstOccurrence) {
+      return a.firstOccurrence - b.firstOccurrence
+    }
+    return a.originalIndex - b.originalIndex
+  })
+
+  bibliographyList.children = []
+  bibliographyList.start = 1
+  urlToExistingNumber.clear()
+  numberToEntry.clear()
+
+  allEntries.forEach((entry, idx) => {
+    const number = (bibliographyList.start ?? 1) + idx
+    entry.number = number
+    entry.anchorId = `bib-${number}`
+    ensureListItemAnchor(entry.listItem, entry.anchorId)
+    bibliographyList.children.push(entry.listItem)
+    if (entry.normalizedUrl) {
+      urlToExistingNumber.set(entry.normalizedUrl, entry)
+    }
+    numberToEntry.set(number, entry)
+  })
 
   urlOccurrences.forEach((occurrences, url) => {
     const entry = urlToExistingNumber.get(url)
@@ -507,7 +562,16 @@ export async function processMarkdown(
     occurrences.forEach((occurrence) => {
       if (occurrence.type === 'link') {
         const supNode = createSuperscriptNode(entry.number, entry.anchorId)
-        occurrence.parent.children.splice(occurrence.index + 1, 0, supNode)
+        const nextNode = occurrence.parent.children[occurrence.index + 1]
+        if (
+          nextNode &&
+          nextNode.type === 'html' &&
+          (nextNode as Html).value.includes(`href="#${entry.anchorId}"`)
+        ) {
+          occurrence.parent.children.splice(occurrence.index + 1, 1, supNode)
+        } else {
+          occurrence.parent.children.splice(occurrence.index + 1, 0, supNode)
+        }
       }
     })
   })
@@ -570,19 +634,17 @@ export async function processMarkdown(
     const anchorId = `bib-${number}`
     ensureListItemAnchor(listItem, anchorId)
     const textValue = toString(listItem).trim()
-    const urlMatch = textValue.match(/https?:\/\/[^\s)]+/i)
     const entryInfo = numberToEntry.get(number)
     const resolvedUrl =
       entryInfo?.metadata?.url ||
-      urlMatch?.[0] ||
-      entryInfo?.url ||
+      entryInfo?.normalizedUrl ||
       ''
     return {
       number,
       url: resolvedUrl,
       citation: textValue,
       anchorId,
-      isNew: newEntryAnchors.has(anchorId),
+      isNew: entryInfo?.isNew ?? false,
       sourceType: entryInfo?.sourceType ?? 'existing',
     }
   })
