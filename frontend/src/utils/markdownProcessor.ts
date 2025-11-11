@@ -18,7 +18,7 @@ import type {
   SourceMetadata,
 } from './types'
 
-const MARKDOWN_URL_REGEX = /(https?:\/\/[^\s<>\]\)"}]+)/gi
+const MARKDOWN_URL_REGEX = /(https?:\/\/[^\s<>\]")"}]+)/gi
 
 const processor = unified().use(remarkParse).use(remarkGfm)
 
@@ -196,11 +196,36 @@ function formatCitation(metadata: SourceMetadata): string {
   return parts.join(' ').replace(/\s+/g, ' ').trim()
 }
 
-function createSuperscriptNode(number: number, anchorId: string): Html {
+function createReferenceNode(number: number, anchorId: string): Link {
   return {
-    type: 'html',
-    value: `<sup><a href="#${anchorId}">[${number}]</a></sup>`,
+    type: 'link',
+    url: `#${anchorId}`,
+    children: [{ type: 'text', value: `[${number}]` }],
+  } as Link
+}
+
+function findSentenceEnd(parent: Parent, startIndex: number): number {
+  // Look ahead to find the end of the sentence (period, exclamation, question mark)
+  // or end of paragraph if no punctuation is found
+  for (let i = startIndex + 1; i < parent.children.length; i++) {
+    const node = parent.children[i]
+    if (node.type === 'text') {
+      const text = (node as Text).value
+      // Check if this text node contains sentence-ending punctuation
+      const sentenceEndMatch = text.match(/[.!?]/)
+      if (sentenceEndMatch) {
+        // Found punctuation in this text node, return this index
+        return i
+      }
+    }
+    // If we encounter another link or other non-text node before finding punctuation,
+    // we should place the reference after the current link
+    if (node.type === 'link') {
+      return startIndex
+    }
   }
+  // No sentence end found, place after the link
+  return startIndex
 }
 
 function extractHeadings(root: Root): { title: string; headings: ProcessedMarkdown['headings'] } {
@@ -554,6 +579,9 @@ export async function processMarkdown(
     numberToEntry.set(number, entry)
   })
 
+  // Group occurrences by parent and position to batch process references at sentence endings
+  const referencesByLocation = new Map<string, { parent: Parent; index: number; references: Array<{ number: number; anchorId: string }> }>()
+  
   urlOccurrences.forEach((occurrences, url) => {
     const entry = urlToExistingNumber.get(url)
     if (!entry) {
@@ -561,19 +589,52 @@ export async function processMarkdown(
     }
     occurrences.forEach((occurrence) => {
       if (occurrence.type === 'link') {
-        const supNode = createSuperscriptNode(entry.number, entry.anchorId)
-        const nextNode = occurrence.parent.children[occurrence.index + 1]
-        if (
-          nextNode &&
-          nextNode.type === 'html' &&
-          (nextNode as Html).value.includes(`href="#${entry.anchorId}"`)
-        ) {
-          occurrence.parent.children.splice(occurrence.index + 1, 1, supNode)
-        } else {
-          occurrence.parent.children.splice(occurrence.index + 1, 0, supNode)
+        // Find where to place the reference (at sentence end if possible)
+        const sentenceEndIndex = findSentenceEnd(occurrence.parent, occurrence.index)
+        const locationKey = `${occurrence.parent}:${sentenceEndIndex}`
+        
+        let location = referencesByLocation.get(locationKey)
+        if (!location) {
+          location = { 
+            parent: occurrence.parent, 
+            index: sentenceEndIndex, 
+            references: [] 
+          }
+          referencesByLocation.set(locationKey, location)
         }
+        location.references.push({ number: entry.number, anchorId: entry.anchorId })
       }
     })
+  })
+  
+  // Sort locations by index (descending) so we can insert from end to beginning
+  const locations = Array.from(referencesByLocation.values()).sort((a, b) => {
+    if (a.parent !== b.parent) return 0
+    return b.index - a.index
+  })
+  
+  // Insert references at their locations
+  locations.forEach(({ parent, index, references }) => {
+    // Sort references by number to ensure consistent ordering
+    references.sort((a, b) => a.number - b.number)
+    
+    let insertIndex = index + 1
+    
+    // Skip past any existing references
+    while (insertIndex < parent.children.length) {
+      const node = parent.children[insertIndex]
+      if (node.type === 'link' && node.url?.startsWith('#bib-')) {
+        insertIndex++
+      } else {
+        break
+      }
+    }
+    
+    // Insert all references for this location
+    const refNodes = references.map(({ number, anchorId }) => 
+      createReferenceNode(number, anchorId)
+    )
+    parent.children.splice(insertIndex, 0, ...refNodes)
   })
 
   bareTextOccurrences.forEach(({ node, parent, matches }) => {
@@ -598,7 +659,8 @@ export async function processMarkdown(
         }
       }
 
-      newNodes.push(createSuperscriptNode(entry.number, entry.anchorId))
+      // For bare URLs, we remove the URL and add the reference
+      newNodes.push(createReferenceNode(entry.number, entry.anchorId))
       cursor = match.end
     })
 

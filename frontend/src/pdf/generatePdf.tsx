@@ -270,6 +270,19 @@ function renderInline(node: InlineNode, key: string): React.ReactNode {
     case 'link': {
       const linkNode = node as MdLink
       const href = linkNode.url
+      
+      // Check if this is a bibliography reference link
+      if (href.startsWith('#bib-')) {
+        // Render as superscript reference
+        return (
+          <Text key={key} style={styles.superscript}>
+            <Link src={href} style={styles.link}>
+              {renderInlineChildren(linkNode.children as InlineNode[], key)}
+            </Link>
+          </Text>
+        )
+      }
+      
       return (
         <Link key={key} src={href} style={styles.link}>
           {renderInlineChildren(linkNode.children as InlineNode[], key)}
