@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent,
-} from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './App.css'
@@ -69,9 +62,7 @@ function App() {
   const [isGeneratingDocx, setIsGeneratingDocx] = useState(false)
   const [expandedSections, setExpandedSections] =
     useState<Record<SectionKey, boolean>>(initialSectionState)
-  const [manualMetadataPreference, setManualMetadataPreference] = useState<'ask' | 'skip' | null>(
-    null,
-  )
+  const [promptForManualMetadata, setPromptForManualMetadata] = useState(true)
   const manualMetadataOverridesRef = useRef<Record<string, ManualMetadataInput>>({})
   const [manualMetadataQueue, setManualMetadataQueue] = useState<MetadataIssue[]>([])
   const [currentManualIndex, setCurrentManualIndex] = useState(0)
@@ -172,22 +163,13 @@ function App() {
       const text = await file.text()
       setOriginalMarkdown(text)
 
-      let preference = manualMetadataPreference
-      if (preference === null) {
-        const wantsManual = window.confirm(
-          'If metadata retrieval fails for a source, would you like to provide the citation details manually?',
-        )
-        preference = wantsManual ? 'ask' : 'skip'
-        setManualMetadataPreference(preference)
-      }
-
       const result = await processMarkdown(text, {
         manualMetadata: manualMetadataOverridesRef.current,
       })
       setProcessed(result)
       setProcessingState('processed')
 
-      if (preference === 'ask' && result.metadataIssues.length) {
+      if (promptForManualMetadata && result.metadataIssues.length) {
         startManualMetadataCollection(result.metadataIssues, text)
       }
     } catch (error) {
@@ -197,7 +179,7 @@ function App() {
         error instanceof Error ? error.message : 'Unable to process the markdown file.',
       )
     }
-  }, [])
+  }, [promptForManualMetadata, startManualMetadataCollection])
 
   const handleDownloadMarkdown = useCallback(() => {
     if (!processed) return
@@ -288,6 +270,22 @@ function App() {
             <input type="file" accept=".md,.markdown,text/markdown" onChange={handleFileSelection} />
             <span>{fileName ?? 'Choose Markdown File'}</span>
           </label>
+          <div className="toggle">
+            <label className="toggle__control">
+              <input
+                type="checkbox"
+                checked={promptForManualMetadata}
+                onChange={(event) => setPromptForManualMetadata(event.target.checked)}
+              />
+              <span className="toggle__slider" aria-hidden="true" />
+            </label>
+            <div className="toggle__text">
+              <span className="toggle__title">Prompt for manual citation details</span>
+              <span className="toggle__description">
+                When enabled, you can fill in metadata if automatic retrieval fails.
+              </span>
+            </div>
+          </div>
           {processingState === 'processing' && (
             <div className="status status--processing">Processing markdown and fetching sources…</div>
           )}
