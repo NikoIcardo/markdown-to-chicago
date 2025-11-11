@@ -585,6 +585,7 @@ function App() {
                 className="modal__button"
                 onClick={async () => {
                   setShowSkipAllConfirmation(false)
+                  setManualMetadataModalOpen(false)
                   await finalizeManualMetadata()
                 }}
               >
