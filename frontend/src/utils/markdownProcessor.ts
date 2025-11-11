@@ -204,26 +204,6 @@ function createReferenceNode(number: number, anchorId: string): Link {
   } as Link
 }
 
-function findSentenceEnd(parent: Parent, startIndex: number): number {
-  // Look ahead from startIndex to find the sentence-ending punctuation
-  // Return the index of the text node that contains the punctuation
-  for (let i = startIndex + 1; i < parent.children.length; i++) {
-    const node = parent.children[i]
-    if (node.type === 'text') {
-      const text = (node as Text).value
-      // Check if this text node contains sentence-ending punctuation
-      if (/[.!?]/.test(text)) {
-        // Found punctuation - return this index
-        return i
-      }
-    }
-  }
-  
-  // No sentence end found - check if we're at the end of the paragraph
-  // In that case, return the last index
-  return parent.children.length - 1
-}
-
 function extractHeadings(root: Root): { title: string; headings: ProcessedMarkdown['headings'] } {
   const headings: ProcessedMarkdown['headings'] = []
   let title = ''
@@ -598,10 +578,33 @@ export async function processMarkdown(
     // Sort by link index
     occurrences.sort((a, b) => a.linkIndex - b.linkIndex)
     
-    // Group by sentence end position
+    // Find all sentence boundaries in this paragraph
+    const sentenceBoundaries: number[] = []
+    for (let i = 0; i < parent.children.length; i++) {
+      const node = parent.children[i]
+      if (node.type === 'text') {
+        const text = (node as Text).value
+        if (/[.!?]/.test(text)) {
+          sentenceBoundaries.push(i)
+        }
+      }
+    }
+    
+    // If no boundaries found, use end of paragraph
+    if (sentenceBoundaries.length === 0) {
+      sentenceBoundaries.push(parent.children.length - 1)
+    }
+    
+    // Group links by their nearest sentence boundary (looking forward)
     const sentenceGroups = new Map<number, Array<{ number: number; anchorId: string }>>()
     occurrences.forEach(({ linkIndex, entry }) => {
-      const sentenceEndIndex = findSentenceEnd(parent, linkIndex)
+      // Find the first sentence boundary at or after this link
+      let sentenceEndIndex = sentenceBoundaries.find(boundary => boundary >= linkIndex)
+      if (sentenceEndIndex === undefined) {
+        // If no boundary found after, use the last one or end of paragraph
+        sentenceEndIndex = sentenceBoundaries[sentenceBoundaries.length - 1]
+      }
+      
       const group = sentenceGroups.get(sentenceEndIndex) || []
       group.push({ number: entry.number, anchorId: entry.anchorId })
       sentenceGroups.set(sentenceEndIndex, group)
