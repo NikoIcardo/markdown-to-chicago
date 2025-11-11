@@ -596,26 +596,33 @@ export async function processMarkdown(
     }
     
     // Group links by their nearest sentence boundary (looking forward)
-    const sentenceGroups = new Map<number, Array<{ number: number; anchorId: string }>>()
+    const sentenceGroups = new Map<number, Array<{ linkIndex: number; number: number; anchorId: string }>>()
     occurrences.forEach(({ linkIndex, entry }) => {
       // Find the first sentence boundary at or after this link
-      let sentenceEndIndex = sentenceBoundaries.find(boundary => boundary >= linkIndex)
+      let sentenceEndIndex = sentenceBoundaries.find(boundary => boundary > linkIndex)
       if (sentenceEndIndex === undefined) {
         // If no boundary found after, use the last one or end of paragraph
         sentenceEndIndex = sentenceBoundaries[sentenceBoundaries.length - 1]
       }
       
       const group = sentenceGroups.get(sentenceEndIndex) || []
-      group.push({ number: entry.number, anchorId: entry.anchorId })
+      group.push({ linkIndex, number: entry.number, anchorId: entry.anchorId })
       sentenceGroups.set(sentenceEndIndex, group)
     })
     
     // Insert references at sentence ends, processing from end to start to maintain indices
     const positions = Array.from(sentenceGroups.entries()).sort((a, b) => b[0] - a[0])
     positions.forEach(([sentenceEndIndex, references]) => {
-      // Sort references by number for consistent ordering
-      references.sort((a, b) => a.number - b.number)
+      // Deduplicate references by number (same URL might be linked multiple times)
+      const uniqueRefs = Array.from(
+        new Map(references.map(ref => [ref.number, ref])).values()
+      )
       
+      // Sort references by number for consistent ordering
+      uniqueRefs.sort((a, b) => a.number - b.number)
+      
+      // Find the insertion point: after the sentence boundary text node
+      // We need to skip past any content between the boundary and where we want to insert
       let insertIndex = sentenceEndIndex + 1
       
       // Skip past any existing references at this position
@@ -629,7 +636,7 @@ export async function processMarkdown(
       }
       
       // Insert all references for this sentence
-      const refNodes = references.map(({ number, anchorId }) => 
+      const refNodes = uniqueRefs.map(({ number, anchorId }) => 
         createReferenceNode(number, anchorId)
       )
       parent.children.splice(insertIndex, 0, ...refNodes)
