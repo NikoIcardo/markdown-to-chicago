@@ -1,3 +1,4 @@
+import { format } from 'date-fns'
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkStringify from 'remark-stringify'
@@ -10,6 +11,8 @@ import type { Node } from 'unist'
 import { fetchSourceMetadata } from './metadataFetcher'
 import type {
   BibliographyEntry,
+  ManualMetadataInput,
+  MetadataIssue,
   ProcessedMarkdown,
   ProcessingDiagnostics,
   SourceMetadata,
@@ -45,6 +48,8 @@ type ExistingEntryInfo = {
   url?: string
   listItem: ListItem
   anchorId: string
+  sourceType: 'existing' | 'fetched' | 'manual'
+  metadata?: SourceMetadata
 }
 
 const excludedAncestorTypes = new Set(['code', 'inlineCode', 'definition'])
@@ -211,9 +216,29 @@ function extractHeadings(root: Root): { title: string; headings: ProcessedMarkdo
   return { title, headings }
 }
 
-export async function processMarkdown(markdown: string): Promise<ProcessedMarkdown> {
+interface ProcessMarkdownOptions {
+  manualMetadata?: Record<string, ManualMetadataInput>
+}
+
+export async function processMarkdown(
+  markdown: string,
+  options: ProcessMarkdownOptions = {},
+): Promise<ProcessedMarkdown> {
   const tree = processor.parse(markdown) as Root
   const diagnostics: ProcessingDiagnostics = { warnings: [], errors: [] }
+  const metadataIssues: MetadataIssue[] = []
+
+  const manualMetadataMap = new Map<string, ManualMetadataInput>()
+  if (options.manualMetadata) {
+    Object.values(options.manualMetadata).forEach((entry) => {
+      if (!entry) return
+      const key = normalizeUrl(entry.url)
+      manualMetadataMap.set(key, {
+        ...entry,
+        url: entry.url,
+      })
+    })
+  }
 
   let mainHeadingDepth = Infinity
   visit(tree, 'heading', (node: Heading) => {
@@ -285,6 +310,7 @@ export async function processMarkdown(markdown: string): Promise<ProcessedMarkdo
   bibliographyList.start = bibliographyList.start ?? 1
 
   const urlToExistingNumber = new Map<string, ExistingEntryInfo>()
+  const numberToEntry = new Map<number, ExistingEntryInfo>()
 
   bibliographyList.children.forEach((listItem, idx) => {
     const number = (bibliographyList!.start ?? 1) + idx
@@ -298,10 +324,12 @@ export async function processMarkdown(markdown: string): Promise<ProcessedMarkdo
       url: normalised,
       listItem,
       anchorId,
+      sourceType: 'existing',
     }
     if (normalised && !urlToExistingNumber.has(normalised)) {
       urlToExistingNumber.set(normalised, entry)
     }
+    numberToEntry.set(number, entry)
   })
 
   const urlOccurrences = new Map<string, UrlOccurrence[]>()
@@ -400,22 +428,45 @@ export async function processMarkdown(markdown: string): Promise<ProcessedMarkdo
   const newEntryAnchors = new Set<string>()
 
   if (newUrls.length) {
-    const metadataList = await Promise.all(
-      newUrls.map(async (url) => {
-        const metadata = await fetchSourceMetadata(url)
-        if (metadata.retrievalError) {
-          diagnostics.warnings.push(
-            `Could not fully retrieve metadata for ${url}: ${metadata.retrievalError}`,
-          )
+    const metadataRecords: Array<{ metadata: SourceMetadata; normalizedUrl: string }> = []
+
+    for (const normalizedUrl of newUrls) {
+      const manualOverride = manualMetadataMap.get(normalizedUrl)
+      if (manualOverride) {
+        const manualMetadata: SourceMetadata = {
+          url: manualOverride.url || normalizedUrl,
+          title: manualOverride.title || manualOverride.url || normalizedUrl,
+          authors: manualOverride.authors,
+          siteName: manualOverride.siteName,
+          isPdf: manualOverride.isPdf ?? false,
+          accessDate: manualOverride.accessDate ?? format(new Date(), 'MMMM d, yyyy'),
+          sourceType: 'manual',
         }
-        return metadata
-      }),
-    )
+        metadataRecords.push({ metadata: manualMetadata, normalizedUrl })
+        continue
+      }
+
+      const fetchedMetadata = await fetchSourceMetadata(normalizedUrl)
+      fetchedMetadata.sourceType = 'fetched'
+
+      if (fetchedMetadata.retrievalError) {
+        const issueMessage = fetchedMetadata.retrievalError
+        metadataIssues.push({
+          url: fetchedMetadata.url,
+          message: issueMessage,
+        })
+        diagnostics.warnings.push(
+          `Could not fully retrieve metadata for ${normalizedUrl}: ${issueMessage}`,
+        )
+      }
+
+      metadataRecords.push({ metadata: fetchedMetadata, normalizedUrl })
+    }
 
     let nextNumber =
       (bibliographyList.start ?? 1) + bibliographyList.children.length
 
-    metadataList.forEach((metadata) => {
+    metadataRecords.forEach(({ metadata, normalizedUrl }) => {
       nextNumber += 1
       const number = nextNumber
       const anchorId = `bib-${number}`
@@ -436,12 +487,15 @@ export async function processMarkdown(markdown: string): Promise<ProcessedMarkdo
       bibliographyList.children.push(listItem)
       const entryInfo: ExistingEntryInfo = {
         number,
-        url: normalizeUrl(metadata.url),
+        url: normalizedUrl,
         listItem,
         anchorId,
+        sourceType: metadata.sourceType === 'manual' ? 'manual' : 'fetched',
+        metadata,
       }
       newEntryAnchors.add(anchorId)
-      urlToExistingNumber.set(normalizeUrl(metadata.url), entryInfo)
+      urlToExistingNumber.set(normalizedUrl, entryInfo)
+      numberToEntry.set(number, entryInfo)
     })
   }
 
@@ -517,12 +571,19 @@ export async function processMarkdown(markdown: string): Promise<ProcessedMarkdo
     ensureListItemAnchor(listItem, anchorId)
     const textValue = toString(listItem).trim()
     const urlMatch = textValue.match(/https?:\/\/[^\s)]+/i)
+    const entryInfo = numberToEntry.get(number)
+    const resolvedUrl =
+      entryInfo?.metadata?.url ||
+      urlMatch?.[0] ||
+      entryInfo?.url ||
+      ''
     return {
       number,
-      url: urlMatch ? normalizeUrl(urlMatch[0]) : '',
+      url: resolvedUrl,
       citation: textValue,
       anchorId,
       isNew: newEntryAnchors.has(anchorId),
+      sourceType: entryInfo?.sourceType ?? 'existing',
     }
   })
 
@@ -534,5 +595,6 @@ export async function processMarkdown(markdown: string): Promise<ProcessedMarkdo
     headings,
     bibliographyEntries,
     diagnostics,
+    metadataIssues,
   }
 }

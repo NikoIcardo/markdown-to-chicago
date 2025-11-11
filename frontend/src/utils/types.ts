@@ -6,6 +6,21 @@ export interface SourceMetadata {
   isPdf: boolean
   accessDate: string
   retrievalError?: string
+  sourceType?: 'fetched' | 'manual' | 'existing'
+}
+
+export interface ManualMetadataInput {
+  url: string
+  title: string
+  authors: string[]
+  siteName?: string
+  isPdf?: boolean
+  accessDate?: string
+}
+
+export interface MetadataIssue {
+  url: string
+  message: string
 }
 
 export interface BibliographyEntry {
@@ -14,6 +29,7 @@ export interface BibliographyEntry {
   citation: string
   anchorId: string
   isNew: boolean
+  sourceType: 'existing' | 'fetched' | 'manual'
 }
 
 export interface ProcessingDiagnostics {
@@ -29,6 +45,7 @@ export interface ProcessedMarkdown {
   headings: HeadingInfo[]
   bibliographyEntries: BibliographyEntry[]
   diagnostics: ProcessingDiagnostics
+  metadataIssues: MetadataIssue[]
 }
 
 export interface HeadingInfo {

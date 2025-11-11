@@ -1,11 +1,13 @@
-import { pdf, Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer'
+import { pdf, Document, Page, Text, View, StyleSheet, Link, Image } from '@react-pdf/renderer'
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
+import { toString } from 'mdast-util-to-string'
 import type {
   Content,
   Heading,
   Html,
+  Image as MdImage,
   InlineCode,
   Link as MdLink,
   List,
@@ -79,36 +81,42 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     marginTop: 16,
     marginBottom: 8,
+    lineHeight: 1.3,
   },
   heading2: {
     fontSize: 20,
     fontWeight: 600,
     marginTop: 14,
     marginBottom: 6,
+    lineHeight: 1.3,
   },
   heading3: {
     fontSize: 18,
     fontWeight: 600,
     marginTop: 12,
     marginBottom: 6,
+    lineHeight: 1.3,
   },
   heading4: {
     fontSize: 16,
     fontWeight: 600,
     marginTop: 10,
     marginBottom: 4,
+    lineHeight: 1.3,
   },
   heading5: {
     fontSize: 14,
     fontWeight: 600,
     marginTop: 8,
     marginBottom: 4,
+    lineHeight: 1.3,
   },
   heading6: {
     fontSize: 13,
     fontWeight: 600,
     marginTop: 8,
     marginBottom: 4,
+    lineHeight: 1.3,
   },
   paragraphContainer: {
     marginBottom: 8,
@@ -171,6 +179,22 @@ const styles = StyleSheet.create({
   },
   anchorMarker: {
     height: 0.1,
+  },
+  imageContainer: {
+    marginVertical: 12,
+    alignItems: 'center',
+  },
+  image: {
+    maxWidth: '100%',
+    maxHeight: 320,
+    objectFit: 'contain',
+    marginBottom: 4,
+  },
+  imageCaption: {
+    fontSize: 10,
+    color: '#4b5563',
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
 })
 
@@ -370,10 +394,24 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
         const slug = headingInfo ? headingInfo.slug : slugify(textContent)
         headingIndex += 1
         return (
-          <View key={key} id={slug} wrap={false}>
+          <View key={key} id={slug}>
             <Text style={headingStyles[headingNode.depth] || styles.heading6}>
               {renderInlineChildren(headingNode.children as InlineNode[], key)}
             </Text>
+          </View>
+        )
+      }
+      case 'image': {
+        const imageNode = node as MdImage
+        if (!imageNode.url) {
+          return null
+        }
+        return (
+          <View key={key} style={styles.imageContainer}>
+            <Image src={imageNode.url} style={styles.image} />
+            {imageNode.alt ? (
+              <Text style={styles.imageCaption}>{imageNode.alt}</Text>
+            ) : null}
           </View>
         )
       }
@@ -421,9 +459,41 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
 
 const markdownParser = unified().use(remarkParse).use(remarkGfm)
 
+function removeTableOfContents(children: Root['children']): Root['children'] {
+  const result: Root['children'] = []
+  let skipping = false
+  let skipDepth = 0
+
+  children.forEach((node) => {
+    if (skipping) {
+      if (node.type === 'heading' && (node as Heading).depth <= skipDepth) {
+        skipping = false
+      } else {
+        return
+      }
+    }
+
+    if (node.type === 'heading') {
+      const headingText = toString(node as Heading).trim().toLowerCase()
+      if (headingText === 'table of contents') {
+        skipping = true
+        skipDepth = (node as Heading).depth
+        return
+      }
+    }
+
+    result.push(node)
+  })
+
+  return result
+}
+
 function buildContentElements(tree: Root, headings: ProcessedMarkdown['headings']) {
   const render = renderNodeFactory(headings)
-  return tree.children.map((node, index) => render(node as Content, `node-${index}`)).filter(Boolean)
+  const filteredChildren = removeTableOfContents(tree.children)
+  return filteredChildren
+    .map((node, index) => render(node as Content, `node-${index}`))
+    .filter(Boolean)
 }
 
 const PageNumber: React.FC = () => (
