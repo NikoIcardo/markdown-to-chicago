@@ -219,9 +219,18 @@ export async function generateDocx(processed: ProcessedMarkdown): Promise<Blob> 
       .trim()
       .replace(/\s+/g, '-')
     
+    // Determine bullet character based on depth
+    let bullet = '• '
+    if (heading.depth === 2) {
+      bullet = '◦ '
+    } else if (heading.depth >= 3) {
+      bullet = '▪ '
+    }
+    
     tocPage.push(
       new Paragraph({
         children: [
+          new TextRun({ text: bullet }),
           new InternalHyperlink({
             children: [new TextRun({ text: heading.text, style: 'Hyperlink' })],
             anchor: headingId,

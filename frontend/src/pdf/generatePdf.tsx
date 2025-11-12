@@ -74,12 +74,15 @@ const styles = StyleSheet.create({
   tocEntryIndent: {
     fontSize: 12,
     marginBottom: 8,
-    marginLeft: 20,
+    marginLeft: 30,
   },
   tocEntryDeepIndent: {
     fontSize: 12,
     marginBottom: 8,
-    marginLeft: 40,
+    marginLeft: 50,
+  },
+  tocBullet: {
+    marginRight: 8,
   },
   contentWrapper: {
     width: '100%',
@@ -557,16 +560,22 @@ export async function generatePdf(
         <Text style={styles.tocHeader}>Table of Contents</Text>
         {tocEntries.map((heading, idx) => {
           let entryStyle = styles.tocEntry
+          let bullet = '•'
           if (heading.depth === 2) {
             entryStyle = styles.tocEntryIndent
+            bullet = '◦'
           } else if (heading.depth >= 3) {
             entryStyle = styles.tocEntryDeepIndent
+            bullet = '▪'
           }
           
           return (
-            <Link key={`toc-${heading.slug}-${idx}`} src={`#${heading.slug}`} style={entryStyle}>
-              {heading.text}
-            </Link>
+            <View key={`toc-${heading.slug}-${idx}`} style={{ flexDirection: 'row', marginBottom: 8 }}>
+              <Text style={[entryStyle, styles.tocBullet]}>{bullet}</Text>
+              <Link src={`#${heading.slug}`} style={entryStyle}>
+                {heading.text}
+              </Link>
+            </View>
           )
         })}
       </Page>

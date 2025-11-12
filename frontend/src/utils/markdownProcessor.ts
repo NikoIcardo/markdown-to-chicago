@@ -584,7 +584,8 @@ export async function processMarkdown(
       const node = parent.children[i]
       if (node.type === 'text') {
         const text = (node as Text).value
-        const match = text.match(/[.!?]/)
+        // Match period, exclamation, question mark, colon, semicolon
+        const match = text.match(/[.!?:;]/)
         if (match && match.index !== undefined) {
           sentenceBoundaries.push({ index: i, punctuationPos: match.index })
         }
