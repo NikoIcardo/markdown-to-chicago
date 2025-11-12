@@ -1,4 +1,4 @@
-import { Document, ExternalHyperlink, HeadingLevel, InternalHyperlink, Packer, Paragraph, TextRun } from 'docx'
+import { Document, ExternalHyperlink, HeadingLevel, InternalHyperlink, Packer, Paragraph, TextRun, AlignmentType } from 'docx'
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
@@ -40,11 +40,11 @@ function convertInlineNodes(nodes: Content[]): (TextRun | ExternalHyperlink | In
       
       if (linkNode.url.startsWith('#')) {
         // Internal link (bibliography reference)
+        const anchorId = linkNode.url.substring(1) // Remove the #
         result.push(
-          new TextRun({
-            text: linkText,
-            superScript: true,
-            style: 'Hyperlink',
+          new InternalHyperlink({
+            children: [new TextRun({ text: linkText, superScript: true, style: 'Hyperlink' })],
+            anchor: anchorId,
           })
         )
       } else {
@@ -165,18 +165,93 @@ function convertNode(node: Content): Paragraph[] {
   }
 }
 
+function filterHeadingsForToc(headings: ProcessedMarkdown['headings']) {
+  return headings.filter(
+    (heading) =>
+      heading.text.toLowerCase() !== 'table of contents' &&
+      heading.text.toLowerCase() !== 'bibliography',
+  )
+}
+
 export async function generateDocx(processed: ProcessedMarkdown): Promise<Blob> {
   const ast = markdownParser.parse(processed.modified) as Root
-  const children: Paragraph[] = []
+  const title = processed.title || 'Untitled Document'
+  const tocHeadings = filterHeadingsForToc(processed.headings)
+  
+  // Title page
+  const titlePage: Paragraph[] = [
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: title,
+          size: 56, // 28pt
+          bold: true,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 4000, after: 400 },
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: '', break: 1 })],
+      pageBreakBefore: true,
+    }),
+  ]
+  
+  // Table of Contents page
+  const tocPage: Paragraph[] = [
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: 'Table of Contents',
+          size: 48, // 24pt
+          bold: true,
+        }),
+      ],
+      spacing: { after: 400 },
+    }),
+  ]
+  
+  tocHeadings.forEach((heading) => {
+    const indent = (heading.depth - 1) * 720 // 720 twips = 0.5 inch
+    const headingId = heading.text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+    
+    tocPage.push(
+      new Paragraph({
+        children: [
+          new InternalHyperlink({
+            children: [new TextRun({ text: heading.text, style: 'Hyperlink' })],
+            anchor: headingId,
+          }),
+        ],
+        indent: { left: indent },
+        spacing: { after: 120 },
+      })
+    )
+  })
+  
+  // Add page break after TOC
+  tocPage.push(
+    new Paragraph({
+      children: [new TextRun({ text: '', break: 1 })],
+      pageBreakBefore: true,
+    })
+  )
+  
+  // Content pages
+  const contentPages: Paragraph[] = []
   ast.children.forEach((child) => {
-    children.push(...convertNode(child as Content))
+    contentPages.push(...convertNode(child as Content))
   })
 
   const doc = new Document({
     sections: [
       {
         properties: {},
-        children: children.length ? children : [new Paragraph('')],
+        children: [...titlePage, ...tocPage, ...contentPages],
       },
     ],
   })
