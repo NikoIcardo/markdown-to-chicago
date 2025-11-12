@@ -2,6 +2,7 @@ import { Document, ExternalHyperlink, HeadingLevel, InternalHyperlink, Packer, P
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
+import remarkFrontmatter from 'remark-frontmatter'
 import type {
   Content,
   Heading,
@@ -17,7 +18,7 @@ import type {
 import { toString } from 'mdast-util-to-string'
 import type { ProcessedMarkdown } from '../utils/types'
 
-const markdownParser = unified().use(remarkParse).use(remarkGfm)
+const markdownParser = unified().use(remarkParse).use(remarkGfm).use(remarkFrontmatter)
 
 const headingLevelMap = {
   1: HeadingLevel.HEADING_1,
@@ -175,7 +176,12 @@ function filterHeadingsForToc(headings: ProcessedMarkdown['headings']) {
 
 export async function generateDocx(processed: ProcessedMarkdown): Promise<Blob> {
   const ast = markdownParser.parse(processed.modified) as Root
+  
+  // Remove YAML frontmatter from AST before building content
+  ast.children = ast.children.filter((node) => node.type !== 'yaml')
+  
   const title = processed.title || 'Untitled Document'
+  const subtitle = processed.subtitle
   const tocHeadings = filterHeadingsForToc(processed.headings)
   
   // Title page
@@ -191,11 +197,31 @@ export async function generateDocx(processed: ProcessedMarkdown): Promise<Blob> 
       alignment: AlignmentType.CENTER,
       spacing: { before: 4000, after: 400 },
     }),
+  ]
+  
+  // Add subtitle if available
+  if (subtitle) {
+    titlePage.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: subtitle,
+            size: 32, // 16pt
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 400 },
+      })
+    )
+  }
+  
+  // Add page break after title page
+  titlePage.push(
     new Paragraph({
       children: [new TextRun({ text: '', break: 1 })],
       pageBreakBefore: true,
-    }),
-  ]
+    })
+  )
   
   // Table of Contents page
   const tocPage: Paragraph[] = [

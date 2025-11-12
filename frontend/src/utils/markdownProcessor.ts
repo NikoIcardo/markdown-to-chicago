@@ -3,9 +3,11 @@ import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkStringify from 'remark-stringify'
 import remarkGfm from 'remark-gfm'
+import remarkFrontmatter from 'remark-frontmatter'
 import { visit } from 'unist-util-visit'
 import { visitParents } from 'unist-util-visit-parents'
 import { toString } from 'mdast-util-to-string'
+import yaml from 'js-yaml'
 import type { Content, Heading, Html, Link, List, ListItem, Parent, Paragraph, Root, Text } from 'mdast'
 import type { Node } from 'unist'
 import { fetchSourceMetadata } from './metadataFetcher'
@@ -20,7 +22,7 @@ import type {
 
 const MARKDOWN_URL_REGEX = /(https?:\/\/[^\s<>\]")"}]+)/gi
 
-const processor = unified().use(remarkParse).use(remarkGfm)
+const processor = unified().use(remarkParse).use(remarkGfm).use(remarkFrontmatter)
 
 type SectionRange = {
   startIndex: number
@@ -204,13 +206,34 @@ function createReferenceNode(number: number, anchorId: string): Link {
   } as Link
 }
 
-function extractHeadings(root: Root): { title: string; headings: ProcessedMarkdown['headings'] } {
+function extractHeadings(root: Root): { title: string; subtitle: string; headings: ProcessedMarkdown['headings'] } {
   const headings: ProcessedMarkdown['headings'] = []
   let title = ''
+  let subtitle = ''
+  let frontmatterData: any = null
 
+  // First, try to extract title and subtitle from YAML frontmatter
+  visit(root, 'yaml', (node: any) => {
+    try {
+      frontmatterData = yaml.load(node.value)
+      if (frontmatterData) {
+        if (frontmatterData.title) {
+          title = frontmatterData.title
+        }
+        if (frontmatterData.subtitle && frontmatterData.subtitle.toLowerCase() !== 'table of contents') {
+          subtitle = frontmatterData.subtitle
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to parse YAML frontmatter:', error)
+    }
+  })
+
+  // Extract headings (but not as fallback title)
   visit(root, 'heading', (node: Heading) => {
     const text = toString(node).trim()
-    if (!title) {
+    // Only use first H1 as fallback title if no frontmatter title
+    if (!title && node.depth === 1) {
       title = text
     }
     headings.push({
@@ -220,7 +243,7 @@ function extractHeadings(root: Root): { title: string; headings: ProcessedMarkdo
     })
   })
 
-  return { title, headings }
+  return { title, subtitle, headings }
 }
 
 interface ProcessMarkdownOptions {
@@ -702,7 +725,7 @@ export async function processMarkdown(
     })
     .stringify(tree)
 
-  const { title, headings } = extractHeadings(tree)
+  const { title, subtitle, headings } = extractHeadings(tree)
 
   const bibliographyEntries: BibliographyEntry[] = bibliographyList.children.map((listItem, idx) => {
     const number = (bibliographyList.start ?? 1) + idx
@@ -728,6 +751,7 @@ export async function processMarkdown(
     original: markdown,
     modified: stringified,
     title,
+    subtitle,
     mainHeadingDepth,
     headings,
     bibliographyEntries,

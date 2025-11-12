@@ -540,9 +540,14 @@ export async function generatePdf(
   options?: { originalFileName?: string },
 ): Promise<Blob> {
   const ast = markdownParser.parse(processed.modified) as Root
+  
+  // Remove YAML frontmatter from AST before building content
+  ast.children = ast.children.filter((node) => node.type !== 'yaml')
+  
   const contentElements = buildContentElements(ast, processed.headings)
   const tocEntries = filterHeadingsForToc(processed.headings)
   const title = processed.title || options?.originalFileName || 'Untitled Document'
+  const subtitle = processed.subtitle
 
   const doc = (
     <Document>
@@ -550,8 +555,8 @@ export async function generatePdf(
         <PageNumber />
         <View style={styles.titlePage}>
           <Text style={styles.titleText}>{title}</Text>
-          {options?.originalFileName ? (
-            <Text style={styles.subtitleText}>{options.originalFileName}</Text>
+          {subtitle ? (
+            <Text style={styles.subtitleText}>{subtitle}</Text>
           ) : null}
         </View>
       </Page>

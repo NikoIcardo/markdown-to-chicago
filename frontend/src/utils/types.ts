@@ -41,6 +41,7 @@ export interface ProcessedMarkdown {
   original: string
   modified: string
   title: string
+  subtitle?: string
   mainHeadingDepth: number
   headings: HeadingInfo[]
   bibliographyEntries: BibliographyEntry[]
