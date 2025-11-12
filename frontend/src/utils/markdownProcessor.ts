@@ -901,6 +901,10 @@ export async function processMarkdown(
     }
   })
 
+  const { title, subtitle, headings } = extractHeadings(tree)
+
+  tree.children = tree.children.filter((node) => node.type !== 'yaml')
+
   const stringified = unified()
     .use(remarkStringify, {
       bullet: '-',
@@ -909,8 +913,6 @@ export async function processMarkdown(
     })
     .use(remarkFrontmatter)
     .stringify(tree)
-
-  const { title, subtitle, headings } = extractHeadings(tree)
 
   const bibliographyEntries: BibliographyEntry[] = bibliographyList.children.map((listItem, idx) => {
     const number = (bibliographyList.start ?? 1) + idx
