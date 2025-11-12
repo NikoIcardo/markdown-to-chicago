@@ -364,7 +364,7 @@ function renderListItem(
   node: ListItem,
   key: string,
   options: { ordered: boolean; index: number; start: number; depth: number },
-  render: (node: Content, key: string, depth?: number) => React.ReactNode,
+  render: (node: Content, key: string, depth?: number, insideList?: boolean) => React.ReactNode,
 ) {
   const marker = options.ordered ? `${options.start + options.index}.` : '•'
 
@@ -372,7 +372,7 @@ function renderListItem(
     <View key={key} style={styles.listItem}>
       <Text style={styles.listMarker}>{marker}</Text>
       <View style={styles.listContent}>
-        {node.children.map((child, idx) => render(child as Content, `${key}-${idx}`, options.depth + 1))}
+        {node.children.map((child, idx) => render(child as Content, `${key}-${idx}`, options.depth + 1, true))}
       </View>
     </View>
   )
@@ -381,7 +381,7 @@ function renderListItem(
 function renderList(
   node: List,
   key: string,
-  render: (node: Content, key: string, depth?: number) => React.ReactNode,
+  render: (node: Content, key: string, depth?: number, insideList?: boolean) => React.ReactNode,
   depth: number = 0,
 ) {
   const isOrdered = Boolean(node.ordered)
@@ -414,7 +414,7 @@ function renderList(
 function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
   let headingIndex = 0
 
-  const render = (node: Content, key: string, depth: number = 0): React.ReactNode => {
+  const render = (node: Content, key: string, depth: number = 0, insideList: boolean = false): React.ReactNode => {
     switch (node.type) {
       case 'paragraph':
         return renderParagraph(node as Paragraph, key)
@@ -454,11 +454,15 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
         return (
           <View key={key} style={styles.blockquote}>
             {((node as Parent).children as Content[]).map((child, idx) =>
-              render(child as Content, `${key}-${idx}`),
+              render(child as Content, `${key}-${idx}`, depth, insideList),
             )}
           </View>
         )
       case 'code':
+        // Skip code blocks that appear inside list items (they're likely improperly parsed nested lists)
+        if (insideList) {
+          return null
+        }
         return (
           <View key={key} style={styles.codeBlock}>
             <Text>{(node as any).value}</Text>
@@ -478,7 +482,7 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
           return (
             <View key={key}>
               {(node as Parent).children.map((child, idx) =>
-                render(child as Content, `${key}-${idx}`),
+                render(child as Content, `${key}-${idx}`, depth, insideList),
               )}
             </View>
           )
