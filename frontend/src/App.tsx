@@ -99,18 +99,18 @@ function App() {
     accessDate: '',
   })
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
+  const [showDiagnosticsNotice, setShowDiagnosticsNotice] = useState(false)
+  const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
 
   useEffect(() => {
-    if (processed && expandedSections.upload) {
-      // Only expand once when processing completes, and only if upload is still open
-      setExpandedSections((prev) => ({
-        ...prev,
-        diagnostics: true,
-        bibliography: true,
-        preview: true,
-      }))
+    if (processed) {
+      setShowDiagnosticsNotice(true)
+      setShowBibliographyNotice(true)
+    } else {
+      setShowDiagnosticsNotice(false)
+      setShowBibliographyNotice(false)
     }
-  }, [processed?.modified]) // Only re-run when the processed markdown content actually changes
+  }, [processed])
 
   useEffect(() => {
     if (manualMetadataModalOpen && manualMetadataQueue[currentManualIndex]) {
@@ -126,10 +126,21 @@ function App() {
   }, [manualMetadataModalOpen, manualMetadataQueue, currentManualIndex])
 
   const toggleSection = useCallback((section: SectionKey) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }))
+    setExpandedSections((prev) => {
+      const newValue = !prev[section]
+      const next = {
+        ...prev,
+        [section]: newValue,
+      }
+      if (newValue) {
+        if (section === 'diagnostics') {
+          setShowDiagnosticsNotice(false)
+        } else if (section === 'bibliography') {
+          setShowBibliographyNotice(false)
+        }
+      }
+      return next
+    })
   }, [])
 
   const startManualMetadataCollection = useCallback(
@@ -184,6 +195,8 @@ function App() {
       setErrorMessage(null)
       setProcessed(null)
       setFileName(file.name)
+      setShowDiagnosticsNotice(false)
+      setShowBibliographyNotice(false)
 
       const text = await file.text()
       setOriginalMarkdown(text)
@@ -338,6 +351,16 @@ function App() {
           {processingState === 'processed' && processed && (
             <div className="status status--success">Document processed successfully.</div>
           )}
+          {processed && showDiagnosticsNotice && !expandedSections.diagnostics ? (
+            <div className="status status--info">
+              Diagnostics are ready. Expand “2. Diagnostics” to review processing notes.
+            </div>
+          ) : null}
+          {processed && showBibliographyNotice && !expandedSections.bibliography ? (
+            <div className="status status--info">
+              Bibliography entries are ready. Expand “3. Bibliography Summary” to view them.
+            </div>
+          ) : null}
         </AccordionSection>
 
         <AccordionSection

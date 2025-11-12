@@ -299,6 +299,30 @@ function createListItemFromParagraph(paragraph: Paragraph): ListItem | null {
   }
 }
 
+function removeInitialHeadingMatchingTitle(tree: Root, title?: string | null): boolean {
+  if (!title) {
+    return false
+  }
+  const normalizedTitle = title.trim().toLowerCase()
+  if (!normalizedTitle) {
+    return false
+  }
+
+  for (let i = 0; i < tree.children.length; i += 1) {
+    const node = tree.children[i]
+    if (
+      node.type === 'heading' &&
+      (node as Heading).depth === 1 &&
+      toString(node as Heading).trim().toLowerCase() === normalizedTitle
+    ) {
+      tree.children.splice(i, 1)
+      return true
+    }
+  }
+
+  return false
+}
+
 function addSubtreeToSet(node: Node, set: WeakSet<Node>) {
   const stack: Node[] = [node]
 
@@ -905,6 +929,21 @@ export async function processMarkdown(
 
   tree.children = tree.children.filter((node) => node.type !== 'yaml')
 
+  const removedTitleHeading = removeInitialHeadingMatchingTitle(tree, title)
+
+  let sanitizedHeadings = headings
+  if (removedTitleHeading && title) {
+    const normalizedTitle = title.trim().toLowerCase()
+    sanitizedHeadings = headings.filter(
+      (heading, index) =>
+        !(
+          heading.depth === 1 &&
+          heading.text.trim().toLowerCase() === normalizedTitle &&
+          index === 0
+        ),
+    )
+  }
+
   const stringified = unified()
     .use(remarkStringify, {
       bullet: '-',
@@ -940,7 +979,7 @@ export async function processMarkdown(
     title,
     subtitle,
     mainHeadingDepth,
-    headings,
+    headings: sanitizedHeadings,
     bibliographyEntries,
     diagnostics,
     metadataIssues,
