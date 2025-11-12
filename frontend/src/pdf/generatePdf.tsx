@@ -2,7 +2,6 @@ import { pdf, Document, Page, Text, View, StyleSheet, Link, Image } from '@react
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
-import { toString } from 'mdast-util-to-string'
 import type {
   Content,
   Heading,
