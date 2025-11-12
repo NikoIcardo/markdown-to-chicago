@@ -11,6 +11,29 @@ import { processMarkdown } from './utils/markdownProcessor'
 import { generatePdf } from './pdf/generatePdf'
 import { generateDocx } from './doc/generateDocx'
 
+// Helper function to save files to repo root in dev mode
+async function saveFileToRepo(blob: Blob, filename: string) {
+  try {
+    // Create a form data to send the file
+    const formData = new FormData()
+    formData.append('file', blob, filename)
+    
+    // Try to save to a local endpoint (this would need a simple dev server endpoint)
+    const response = await fetch('/api/save-file', {
+      method: 'POST',
+      body: formData,
+    })
+    
+    if (!response.ok) {
+      console.warn('Could not save file to repo root (no /api/save-file endpoint)')
+    } else {
+      console.log(`Saved ${filename} to repo root`)
+    }
+  } catch (error) {
+    console.warn('Could not save file to repo root:', error)
+  }
+}
+
 type SectionKey = 'upload' | 'diagnostics' | 'bibliography' | 'preview'
 
 interface AccordionSectionProps {
@@ -67,6 +90,7 @@ function App() {
   const [manualMetadataQueue, setManualMetadataQueue] = useState<MetadataIssue[]>([])
   const [currentManualIndex, setCurrentManualIndex] = useState(0)
   const [manualMetadataModalOpen, setManualMetadataModalOpen] = useState(false)
+  const [showSkipAllConfirmation, setShowSkipAllConfirmation] = useState(false)
   const [manualFormState, setManualFormState] = useState({
     url: '',
     title: '',
@@ -77,7 +101,8 @@ function App() {
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
 
   useEffect(() => {
-    if (processed) {
+    if (processed && expandedSections.upload) {
+      // Only expand once when processing completes, and only if upload is still open
       setExpandedSections((prev) => ({
         ...prev,
         diagnostics: true,
@@ -85,7 +110,7 @@ function App() {
         preview: true,
       }))
     }
-  }, [processed])
+  }, [processed?.modified]) // Only re-run when the processed markdown content actually changes
 
   useEffect(() => {
     if (manualMetadataModalOpen && manualMetadataQueue[currentManualIndex]) {
@@ -187,11 +212,17 @@ function App() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = fileName ? fileName.replace(/\.md$/i, '-processed.md') : 'processed.md'
+    const downloadFileName = fileName ? fileName.replace(/\.md$/i, '-processed.md') : 'processed.md'
+    link.download = downloadFileName
     document.body.appendChild(link)
     link.click()
     link.remove()
     URL.revokeObjectURL(url)
+    
+    // In dev mode, also save to repo root for reference
+    if (import.meta.env.DEV) {
+      saveFileToRepo(blob, downloadFileName)
+    }
   }, [processed, fileName])
 
   const handleDownloadPdf = useCallback(async () => {
@@ -202,11 +233,17 @@ function App() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = fileName ? fileName.replace(/\.md$/i, '.pdf') : 'document.pdf'
+      const downloadFileName = fileName ? fileName.replace(/\.md$/i, '.pdf') : 'document.pdf'
+      link.download = downloadFileName
       document.body.appendChild(link)
       link.click()
       link.remove()
       URL.revokeObjectURL(url)
+      
+      // In dev mode, also save to repo root for reference
+      if (import.meta.env.DEV) {
+        saveFileToRepo(blob, downloadFileName)
+      }
     } catch (error) {
       console.error(error)
       setErrorMessage(
@@ -225,11 +262,17 @@ function App() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = fileName ? fileName.replace(/\.md$/i, '.docx') : 'document.docx'
+      const downloadFileName = fileName ? fileName.replace(/\.md$/i, '.docx') : 'document.docx'
+      link.download = downloadFileName
       document.body.appendChild(link)
       link.click()
       link.remove()
       URL.revokeObjectURL(url)
+      
+      // In dev mode, also save to repo root for reference
+      if (import.meta.env.DEV) {
+        saveFileToRepo(blob, downloadFileName)
+      }
     } catch (error) {
       console.error(error)
       setErrorMessage(
@@ -503,11 +546,53 @@ function App() {
                 >
                   Skip
                 </button>
+                <button
+                  type="button"
+                  className="modal__button modal__button--secondary"
+                  onClick={() => setShowSkipAllConfirmation(true)}
+                >
+                  Skip All
+                </button>
                 <button type="submit" className="modal__button">
                   Save Details
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      ) : null}
+      
+      {showSkipAllConfirmation ? (
+        <div className="modal">
+          <div className="modal__backdrop" />
+          <div className="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="skip-all-modal-title">
+            <h3 id="skip-all-modal-title">Skip All Reference Editing?</h3>
+            <p>
+              Are you sure you want to skip editing metadata for all remaining {manualMetadataQueue.length - currentManualIndex} source{manualMetadataQueue.length - currentManualIndex !== 1 ? 's' : ''}?
+            </p>
+            <p className="modal__hint">
+              Sources without metadata will use their URL as the citation.
+            </p>
+            <div className="modal__actions">
+              <button
+                type="button"
+                className="modal__button modal__button--secondary"
+                onClick={() => setShowSkipAllConfirmation(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="modal__button"
+                onClick={async () => {
+                  setShowSkipAllConfirmation(false)
+                  setManualMetadataModalOpen(false)
+                  await finalizeManualMetadata()
+                }}
+              >
+                Skip All
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

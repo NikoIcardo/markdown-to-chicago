@@ -3,9 +3,11 @@ import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkStringify from 'remark-stringify'
 import remarkGfm from 'remark-gfm'
+import remarkFrontmatter from 'remark-frontmatter'
 import { visit } from 'unist-util-visit'
 import { visitParents } from 'unist-util-visit-parents'
 import { toString } from 'mdast-util-to-string'
+import yaml from 'js-yaml'
 import type { Content, Heading, Html, Link, List, ListItem, Parent, Paragraph, Root, Text } from 'mdast'
 import type { Node } from 'unist'
 import { fetchSourceMetadata } from './metadataFetcher'
@@ -18,9 +20,9 @@ import type {
   SourceMetadata,
 } from './types'
 
-const MARKDOWN_URL_REGEX = /(https?:\/\/[^\s<>\]\)"}]+)/gi
+const MARKDOWN_URL_REGEX = /(https?:\/\/[^\s<>\]")"}]+)/gi
 
-const processor = unified().use(remarkParse).use(remarkGfm)
+const processor = unified().use(remarkParse).use(remarkGfm).use(remarkFrontmatter)
 
 type SectionRange = {
   startIndex: number
@@ -196,20 +198,42 @@ function formatCitation(metadata: SourceMetadata): string {
   return parts.join(' ').replace(/\s+/g, ' ').trim()
 }
 
-function createSuperscriptNode(number: number, anchorId: string): Html {
+function createReferenceNode(number: number, anchorId: string): Link {
   return {
-    type: 'html',
-    value: `<sup><a href="#${anchorId}">[${number}]</a></sup>`,
-  }
+    type: 'link',
+    url: `#${anchorId}`,
+    children: [{ type: 'text', value: `[${number}]` }],
+  } as Link
 }
 
-function extractHeadings(root: Root): { title: string; headings: ProcessedMarkdown['headings'] } {
+function extractHeadings(root: Root): { title: string; subtitle: string; headings: ProcessedMarkdown['headings'] } {
   const headings: ProcessedMarkdown['headings'] = []
   let title = ''
+  let subtitle = ''
+  let frontmatterData: any = null
 
+  // First, try to extract title and subtitle from YAML frontmatter
+  visit(root, 'yaml', (node: any) => {
+    try {
+      frontmatterData = yaml.load(node.value)
+      if (frontmatterData) {
+        if (frontmatterData.title) {
+          title = frontmatterData.title
+        }
+        if (frontmatterData.subtitle && frontmatterData.subtitle.toLowerCase() !== 'table of contents') {
+          subtitle = frontmatterData.subtitle
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to parse YAML frontmatter:', error)
+    }
+  })
+
+  // Extract headings (but not as fallback title)
   visit(root, 'heading', (node: Heading) => {
     const text = toString(node).trim()
-    if (!title) {
+    // Only use first H1 as fallback title if no frontmatter title
+    if (!title && node.depth === 1) {
       title = text
     }
     headings.push({
@@ -219,7 +243,7 @@ function extractHeadings(root: Root): { title: string; headings: ProcessedMarkdo
     })
   })
 
-  return { title, headings }
+  return { title, subtitle, headings }
 }
 
 interface ProcessMarkdownOptions {
@@ -554,6 +578,10 @@ export async function processMarkdown(
     numberToEntry.set(number, entry)
   })
 
+  // Group occurrences by parent and find sentence boundaries
+  // We need to process each parent separately and group references by sentence
+  const parentToOccurrences = new Map<Parent, Array<{ linkIndex: number; entry: ExistingEntryInfo }>>()
+  
   urlOccurrences.forEach((occurrences, url) => {
     const entry = urlToExistingNumber.get(url)
     if (!entry) {
@@ -561,17 +589,86 @@ export async function processMarkdown(
     }
     occurrences.forEach((occurrence) => {
       if (occurrence.type === 'link') {
-        const supNode = createSuperscriptNode(entry.number, entry.anchorId)
-        const nextNode = occurrence.parent.children[occurrence.index + 1]
-        if (
-          nextNode &&
-          nextNode.type === 'html' &&
-          (nextNode as Html).value.includes(`href="#${entry.anchorId}"`)
-        ) {
-          occurrence.parent.children.splice(occurrence.index + 1, 1, supNode)
-        } else {
-          occurrence.parent.children.splice(occurrence.index + 1, 0, supNode)
+        const list = parentToOccurrences.get(occurrence.parent) || []
+        list.push({ linkIndex: occurrence.index, entry })
+        parentToOccurrences.set(occurrence.parent, list)
+      }
+    })
+  })
+  
+  // Process each parent's occurrences
+  parentToOccurrences.forEach((occurrences, parent) => {
+    // Sort by link index
+    occurrences.sort((a, b) => a.linkIndex - b.linkIndex)
+    
+    // Find all sentence boundaries in this paragraph
+    const sentenceBoundaries: Array<{ index: number; punctuationPos: number }> = []
+    for (let i = 0; i < parent.children.length; i++) {
+      const node = parent.children[i]
+      if (node.type === 'text') {
+        const text = (node as Text).value
+        // Match period, exclamation, question mark, colon, semicolon
+        const match = text.match(/[.!?:;]/)
+        if (match && match.index !== undefined) {
+          sentenceBoundaries.push({ index: i, punctuationPos: match.index })
         }
+      }
+    }
+    
+    // If no boundaries found, use end of paragraph
+    if (sentenceBoundaries.length === 0) {
+      sentenceBoundaries.push({ index: parent.children.length - 1, punctuationPos: -1 })
+    }
+    
+    // Group links by their nearest sentence boundary (looking forward)
+    const sentenceGroups = new Map<number, Array<{ linkIndex: number; number: number; anchorId: string }>>()
+    occurrences.forEach(({ linkIndex, entry }) => {
+      // Find the first sentence boundary that comes after this link
+      const boundary = sentenceBoundaries.find(b => b.index > linkIndex)
+      const sentenceEndIndex = boundary ? boundary.index : sentenceBoundaries[sentenceBoundaries.length - 1].index
+      
+      const group = sentenceGroups.get(sentenceEndIndex) || []
+      group.push({ linkIndex, number: entry.number, anchorId: entry.anchorId })
+      sentenceGroups.set(sentenceEndIndex, group)
+    })
+    
+    // Insert references at sentence ends, processing from end to start to maintain indices
+    const positions = Array.from(sentenceGroups.entries()).sort((a, b) => b[0] - a[0])
+    positions.forEach(([sentenceEndIndex, references]) => {
+      // Deduplicate references by number (same URL might be linked multiple times)
+      const uniqueRefs = Array.from(
+        new Map(references.map(ref => [ref.number, ref])).values()
+      )
+      
+      // Sort references by number for consistent ordering
+      uniqueRefs.sort((a, b) => a.number - b.number)
+      
+      // Create reference nodes
+      const refNodes = uniqueRefs.map(({ number, anchorId }) => 
+        createReferenceNode(number, anchorId)
+      )
+      
+      // Find the boundary info for this sentence end
+      const boundaryInfo = sentenceBoundaries.find(b => b.index === sentenceEndIndex)
+      
+      if (boundaryInfo && boundaryInfo.punctuationPos >= 0) {
+        // Split the text node at the punctuation mark
+        const textNode = parent.children[sentenceEndIndex] as Text
+        const beforePunct = textNode.value.substring(0, boundaryInfo.punctuationPos)
+        const punctAndAfter = textNode.value.substring(boundaryInfo.punctuationPos)
+        
+        // Replace the text node with: text before punct + references + punct and after
+        const newNodes: Content[] = []
+        if (beforePunct) {
+          newNodes.push({ type: 'text', value: beforePunct } as Text)
+        }
+        newNodes.push(...refNodes)
+        newNodes.push({ type: 'text', value: punctAndAfter } as Text)
+        
+        parent.children.splice(sentenceEndIndex, 1, ...newNodes)
+      } else {
+        // No punctuation found, just append at the end
+        parent.children.splice(sentenceEndIndex + 1, 0, ...refNodes)
       }
     })
   })
@@ -598,7 +695,8 @@ export async function processMarkdown(
         }
       }
 
-      newNodes.push(createSuperscriptNode(entry.number, entry.anchorId))
+      // For bare URLs, we remove the URL and add the reference
+      newNodes.push(createReferenceNode(entry.number, entry.anchorId))
       cursor = match.end
     })
 
@@ -625,9 +723,10 @@ export async function processMarkdown(
       fences: true,
       listItemIndent: 'one',
     })
+    .use(remarkFrontmatter)
     .stringify(tree)
 
-  const { title, headings } = extractHeadings(tree)
+  const { title, subtitle, headings } = extractHeadings(tree)
 
   const bibliographyEntries: BibliographyEntry[] = bibliographyList.children.map((listItem, idx) => {
     const number = (bibliographyList.start ?? 1) + idx
@@ -653,6 +752,7 @@ export async function processMarkdown(
     original: markdown,
     modified: stringified,
     title,
+    subtitle,
     mainHeadingDepth,
     headings,
     bibliographyEntries,

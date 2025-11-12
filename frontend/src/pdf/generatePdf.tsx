@@ -51,10 +51,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   titleText: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: 600,
     textAlign: 'center',
     marginBottom: 24,
+    paddingHorizontal: 40,
   },
   subtitleText: {
     fontSize: 14,
@@ -71,7 +72,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tocEntryIndent: {
-    marginLeft: 12,
+    fontSize: 12,
+    marginBottom: 8,
+    marginLeft: 30,
+  },
+  tocEntryDeepIndent: {
+    fontSize: 12,
+    marginBottom: 8,
+    marginLeft: 50,
+  },
+  tocBullet: {
+    marginRight: 8,
   },
   contentWrapper: {
     width: '100%',
@@ -144,6 +155,10 @@ const styles = StyleSheet.create({
   },
   unorderedList: {
     marginBottom: 8,
+  },
+  nestedList: {
+    marginLeft: 20,
+    marginTop: 4,
   },
   listItem: {
     flexDirection: 'row',
@@ -270,6 +285,19 @@ function renderInline(node: InlineNode, key: string): React.ReactNode {
     case 'link': {
       const linkNode = node as MdLink
       const href = linkNode.url
+      
+      // Check if this is a bibliography reference link
+      if (href.startsWith('#bib-')) {
+        // Render as superscript reference
+        return (
+          <Text key={key} style={styles.superscript}>
+            <Link src={href} style={styles.link}>
+              {renderInlineChildren(linkNode.children as InlineNode[], key)}
+            </Link>
+          </Text>
+        )
+      }
+      
       return (
         <Link key={key} src={href} style={styles.link}>
           {renderInlineChildren(linkNode.children as InlineNode[], key)}
@@ -335,8 +363,8 @@ function renderParagraph(node: Paragraph, key: string) {
 function renderListItem(
   node: ListItem,
   key: string,
-  options: { ordered: boolean; index: number; start: number },
-  render: (node: Content, key: string) => React.ReactNode,
+  options: { ordered: boolean; index: number; start: number; depth: number },
+  render: (node: Content, key: string, depth?: number, insideList?: boolean) => React.ReactNode,
 ) {
   const marker = options.ordered ? `${options.start + options.index}.` : '•'
 
@@ -344,7 +372,7 @@ function renderListItem(
     <View key={key} style={styles.listItem}>
       <Text style={styles.listMarker}>{marker}</Text>
       <View style={styles.listContent}>
-        {node.children.map((child, idx) => render(child as Content, `${key}-${idx}`))}
+        {node.children.map((child, idx) => render(child as Content, `${key}-${idx}`, options.depth + 1, true))}
       </View>
     </View>
   )
@@ -353,14 +381,18 @@ function renderListItem(
 function renderList(
   node: List,
   key: string,
-  render: (node: Content, key: string) => React.ReactNode,
+  render: (node: Content, key: string, depth?: number, insideList?: boolean) => React.ReactNode,
+  depth: number = 0,
 ) {
   const isOrdered = Boolean(node.ordered)
   const start = node.start ?? 1
+  const baseStyle = isOrdered ? styles.orderedList : styles.unorderedList
+  const listStyle = depth > 0 ? [baseStyle, styles.nestedList] : baseStyle
+  
   return (
     <View
       key={key}
-      style={isOrdered ? styles.orderedList : styles.unorderedList}
+      style={listStyle}
     >
       {node.children.map((child, idx) =>
         renderListItem(
@@ -370,6 +402,7 @@ function renderList(
             ordered: isOrdered,
             index: idx,
             start,
+            depth,
           },
           render,
         ),
@@ -381,7 +414,7 @@ function renderList(
 function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
   let headingIndex = 0
 
-  const render = (node: Content, key: string): React.ReactNode => {
+  const render = (node: Content, key: string, depth: number = 0, insideList: boolean = false): React.ReactNode => {
     switch (node.type) {
       case 'paragraph':
         return renderParagraph(node as Paragraph, key)
@@ -416,16 +449,20 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
         )
       }
       case 'list':
-        return renderList(node as List, key, render)
+        return renderList(node as List, key, render, depth)
       case 'blockquote':
         return (
           <View key={key} style={styles.blockquote}>
             {((node as Parent).children as Content[]).map((child, idx) =>
-              render(child as Content, `${key}-${idx}`),
+              render(child as Content, `${key}-${idx}`, depth, insideList),
             )}
           </View>
         )
       case 'code':
+        // Skip code blocks that appear inside list items (they're likely improperly parsed nested lists)
+        if (insideList) {
+          return null
+        }
         return (
           <View key={key} style={styles.codeBlock}>
             <Text>{(node as any).value}</Text>
@@ -445,7 +482,7 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
           return (
             <View key={key}>
               {(node as Parent).children.map((child, idx) =>
-                render(child as Content, `${key}-${idx}`),
+                render(child as Content, `${key}-${idx}`, depth, insideList),
               )}
             </View>
           )
@@ -459,39 +496,9 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
 
 const markdownParser = unified().use(remarkParse).use(remarkGfm)
 
-function removeTableOfContents(children: Root['children']): Root['children'] {
-  const result: Root['children'] = []
-  let skipping = false
-  let skipDepth = 0
-
-  children.forEach((node) => {
-    if (skipping) {
-      if (node.type === 'heading' && (node as Heading).depth <= skipDepth) {
-        skipping = false
-      } else {
-        return
-      }
-    }
-
-    if (node.type === 'heading') {
-      const headingText = toString(node as Heading).trim().toLowerCase()
-      if (headingText === 'table of contents') {
-        skipping = true
-        skipDepth = (node as Heading).depth
-        return
-      }
-    }
-
-    result.push(node)
-  })
-
-  return result
-}
-
 function buildContentElements(tree: Root, headings: ProcessedMarkdown['headings']) {
   const render = renderNodeFactory(headings)
-  const filteredChildren = removeTableOfContents(tree.children)
-  return filteredChildren
+  return tree.children
     .map((node, index) => render(node as Content, `node-${index}`))
     .filter(Boolean)
 }
@@ -499,26 +506,23 @@ function buildContentElements(tree: Root, headings: ProcessedMarkdown['headings'
 const PageNumber: React.FC = () => (
   <Text
     style={styles.pageNumber}
-    render={({ pageNumber }) => (pageNumber > 2 ? `${pageNumber - 2}` : '')}
+    render={({ pageNumber }) => (pageNumber > 1 ? `${pageNumber - 1}` : '')}
     fixed
   />
 )
-
-const filterHeadingsForToc = (headings: ProcessedMarkdown['headings']) =>
-  headings.filter(
-    (heading) =>
-      heading.text.toLowerCase() !== 'table of contents' &&
-      heading.text.toLowerCase() !== 'bibliography',
-  )
 
 export async function generatePdf(
   processed: ProcessedMarkdown,
   options?: { originalFileName?: string },
 ): Promise<Blob> {
   const ast = markdownParser.parse(processed.modified) as Root
+  
+  // Remove YAML frontmatter from AST before building content
+  ast.children = ast.children.filter((node) => node.type !== 'yaml')
+  
   const contentElements = buildContentElements(ast, processed.headings)
-  const tocEntries = filterHeadingsForToc(processed.headings)
   const title = processed.title || options?.originalFileName || 'Untitled Document'
+  const subtitle = processed.subtitle
 
   const doc = (
     <Document>
@@ -526,26 +530,10 @@ export async function generatePdf(
         <PageNumber />
         <View style={styles.titlePage}>
           <Text style={styles.titleText}>{title}</Text>
-          {options?.originalFileName ? (
-            <Text style={styles.subtitleText}>{options.originalFileName}</Text>
+          {subtitle ? (
+            <Text style={styles.subtitleText}>{subtitle}</Text>
           ) : null}
         </View>
-      </Page>
-      <Page size="A4" style={styles.page}>
-        <PageNumber />
-        <Text style={styles.tocHeader}>Table of Contents</Text>
-        {tocEntries.map((heading, idx) => (
-          <Text
-            key={`toc-${heading.slug}-${idx}`}
-            style={
-              heading.depth > 1
-                ? [styles.tocEntry, styles.tocEntryIndent]
-                : styles.tocEntry
-            }
-          >
-            {heading.text}
-          </Text>
-        ))}
       </Page>
       <Page size="A4" style={styles.page} wrap>
         <PageNumber />

@@ -1,20 +1,24 @@
-import { Document, HeadingLevel, Packer, Paragraph, TextRun } from 'docx'
+import { Document, ExternalHyperlink, HeadingLevel, InternalHyperlink, Packer, Paragraph, TextRun, AlignmentType } from 'docx'
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
+import remarkFrontmatter from 'remark-frontmatter'
 import type {
   Content,
   Heading,
   Image as MdImage,
+  Link,
   List,
   ListItem,
   Parent,
+  Paragraph as MdParagraph,
   Root,
+  Text,
 } from 'mdast'
 import { toString } from 'mdast-util-to-string'
 import type { ProcessedMarkdown } from '../utils/types'
 
-const markdownParser = unified().use(remarkParse).use(remarkGfm)
+const markdownParser = unified().use(remarkParse).use(remarkGfm).use(remarkFrontmatter)
 
 const headingLevelMap = {
   1: HeadingLevel.HEADING_1,
@@ -25,27 +29,108 @@ const headingLevelMap = {
   6: HeadingLevel.HEADING_6,
 }
 
+function convertInlineNodes(nodes: Content[]): (TextRun | ExternalHyperlink | InternalHyperlink)[] {
+  const result: (TextRun | ExternalHyperlink | InternalHyperlink)[] = []
+  
+  nodes.forEach((node) => {
+    if (node.type === 'text') {
+      result.push(new TextRun((node as Text).value))
+    } else if (node.type === 'link') {
+      const linkNode = node as Link
+      const linkText = toString(linkNode)
+      
+      if (linkNode.url.startsWith('#')) {
+        // Internal link (bibliography reference)
+        const anchorId = linkNode.url.substring(1) // Remove the #
+        result.push(
+          new InternalHyperlink({
+            children: [new TextRun({ text: linkText, superScript: true, style: 'Hyperlink' })],
+            anchor: anchorId,
+          })
+        )
+      } else {
+        // External link
+        result.push(
+          new ExternalHyperlink({
+            children: [new TextRun({ text: linkText, style: 'Hyperlink' })],
+            link: linkNode.url,
+          })
+        )
+      }
+    } else if (node.type === 'strong') {
+      const strongText = toString(node)
+      result.push(new TextRun({ text: strongText, bold: true }))
+    } else if (node.type === 'emphasis') {
+      const emphasisText = toString(node)
+      result.push(new TextRun({ text: emphasisText, italics: true }))
+    } else if (node.type === 'inlineCode') {
+      result.push(
+        new TextRun({
+          text: (node as any).value,
+          font: 'Courier New',
+        })
+      )
+    } else if ('children' in node) {
+      result.push(...convertInlineNodes((node as Parent).children as Content[]))
+    }
+  })
+  
+  return result
+}
+
 function convertHeading(node: Heading): Paragraph {
   return new Paragraph({
-    text: toString(node),
+    children: convertInlineNodes(node.children as Content[]),
     heading: headingLevelMap[node.depth] ?? HeadingLevel.HEADING_6,
   })
 }
 
-function convertParagraph(node: Content): Paragraph {
+function convertParagraph(node: MdParagraph): Paragraph {
   return new Paragraph({
-    text: toString(node),
+    children: convertInlineNodes(node.children as Content[]),
   })
 }
 
-function convertList(list: List): Paragraph[] {
-  return list.children.map((item, index) => {
+function convertList(list: List, depth: number = 0): Paragraph[] {
+  const paragraphs: Paragraph[] = []
+  
+  list.children.forEach((item, index) => {
     const listItem = item as ListItem
     const prefix = list.ordered ? `${(list.start ?? 1) + index}. ` : '• '
-    return new Paragraph({
-      text: `${prefix}${toString(listItem)}`,
+    
+    // Get inline content and nested lists from the list item
+    const inlineContent: (TextRun | ExternalHyperlink | InternalHyperlink)[] = []
+    listItem.children.forEach((child) => {
+      if (child.type === 'paragraph') {
+        inlineContent.push(...convertInlineNodes((child as MdParagraph).children as Content[]))
+      } else if (child.type === 'list') {
+        // Handle nested list - will be added after the main list item
+        const nestedListParagraphs = convertList(child as List, depth + 1)
+        paragraphs.push(
+          new Paragraph({
+            children: [new TextRun(prefix), ...inlineContent],
+            indent: { left: 720 * depth },
+          }),
+          ...nestedListParagraphs
+        )
+        return // Skip adding this item again below
+      } else {
+        inlineContent.push(new TextRun(toString(child)))
+      }
     })
+    
+    // Add the main list item if we haven't already (no nested list case)
+    if (listItem.children.every((child) => child.type !== 'list')) {
+      paragraphs.push(
+        new Paragraph({
+          children: [new TextRun(prefix), ...inlineContent],
+          indent: { left: 720 * depth },
+        })
+      )
+    }
   })
+  
+  return paragraphs
 }
 
 function convertBlockquote(node: Parent): Paragraph[] {
@@ -71,7 +156,7 @@ function convertNode(node: Content): Paragraph[] {
     case 'heading':
       return [convertHeading(node as Heading)]
     case 'paragraph':
-      return [convertParagraph(node)]
+      return [convertParagraph(node as MdParagraph)]
     case 'list':
       return convertList(node as List)
     case 'blockquote':
@@ -88,7 +173,8 @@ function convertNode(node: Content): Paragraph[] {
         }),
       ]
     case 'html':
-      return [convertParagraph(node)]
+      // Skip HTML nodes as they're handled inline
+      return []
     case 'image':
       return convertImage(node as MdImage)
     case 'thematicBreak':
@@ -103,16 +189,63 @@ function convertNode(node: Content): Paragraph[] {
 
 export async function generateDocx(processed: ProcessedMarkdown): Promise<Blob> {
   const ast = markdownParser.parse(processed.modified) as Root
-  const children: Paragraph[] = []
+  
+  // Remove YAML frontmatter from AST before building content
+  ast.children = ast.children.filter((node) => node.type !== 'yaml')
+  
+  const title = processed.title || 'Untitled Document'
+  const subtitle = processed.subtitle
+  
+  // Title page
+  const titlePage: Paragraph[] = [
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: title,
+          size: 56, // 28pt
+          bold: true,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 4000, after: 400 },
+    }),
+  ]
+  
+  // Add subtitle if available
+  if (subtitle) {
+    titlePage.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: subtitle,
+            size: 32, // 16pt
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 400 },
+      })
+    )
+  }
+  
+  // Add page break after title page
+  titlePage.push(
+    new Paragraph({
+      children: [new TextRun({ text: '', break: 1 })],
+      pageBreakBefore: true,
+    })
+  )
+  
+  // Content pages
+  const contentPages: Paragraph[] = []
   ast.children.forEach((child) => {
-    children.push(...convertNode(child as Content))
+    contentPages.push(...convertNode(child as Content))
   })
 
   const doc = new Document({
     sections: [
       {
         properties: {},
-        children: children.length ? children : [new Paragraph('')],
+        children: [...titlePage, ...contentPages],
       },
     ],
   })
