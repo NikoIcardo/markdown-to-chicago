@@ -156,6 +156,10 @@ const styles = StyleSheet.create({
   unorderedList: {
     marginBottom: 8,
   },
+  nestedList: {
+    marginLeft: 20,
+    marginTop: 4,
+  },
   listItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -359,8 +363,8 @@ function renderParagraph(node: Paragraph, key: string) {
 function renderListItem(
   node: ListItem,
   key: string,
-  options: { ordered: boolean; index: number; start: number },
-  render: (node: Content, key: string) => React.ReactNode,
+  options: { ordered: boolean; index: number; start: number; depth: number },
+  render: (node: Content, key: string, depth?: number) => React.ReactNode,
 ) {
   const marker = options.ordered ? `${options.start + options.index}.` : '•'
 
@@ -368,7 +372,7 @@ function renderListItem(
     <View key={key} style={styles.listItem}>
       <Text style={styles.listMarker}>{marker}</Text>
       <View style={styles.listContent}>
-        {node.children.map((child, idx) => render(child as Content, `${key}-${idx}`))}
+        {node.children.map((child, idx) => render(child as Content, `${key}-${idx}`, options.depth + 1))}
       </View>
     </View>
   )
@@ -377,14 +381,18 @@ function renderListItem(
 function renderList(
   node: List,
   key: string,
-  render: (node: Content, key: string) => React.ReactNode,
+  render: (node: Content, key: string, depth?: number) => React.ReactNode,
+  depth: number = 0,
 ) {
   const isOrdered = Boolean(node.ordered)
   const start = node.start ?? 1
+  const baseStyle = isOrdered ? styles.orderedList : styles.unorderedList
+  const listStyle = depth > 0 ? [baseStyle, styles.nestedList] : baseStyle
+  
   return (
     <View
       key={key}
-      style={isOrdered ? styles.orderedList : styles.unorderedList}
+      style={listStyle}
     >
       {node.children.map((child, idx) =>
         renderListItem(
@@ -394,6 +402,7 @@ function renderList(
             ordered: isOrdered,
             index: idx,
             start,
+            depth,
           },
           render,
         ),
@@ -405,7 +414,7 @@ function renderList(
 function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
   let headingIndex = 0
 
-  const render = (node: Content, key: string): React.ReactNode => {
+  const render = (node: Content, key: string, depth: number = 0): React.ReactNode => {
     switch (node.type) {
       case 'paragraph':
         return renderParagraph(node as Paragraph, key)
@@ -440,7 +449,7 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
         )
       }
       case 'list':
-        return renderList(node as List, key, render)
+        return renderList(node as List, key, render, depth)
       case 'blockquote':
         return (
           <View key={key} style={styles.blockquote}>

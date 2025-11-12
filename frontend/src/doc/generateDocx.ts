@@ -91,25 +91,46 @@ function convertParagraph(node: MdParagraph): Paragraph {
   })
 }
 
-function convertList(list: List): Paragraph[] {
-  return list.children.map((item, index) => {
+function convertList(list: List, depth: number = 0): Paragraph[] {
+  const paragraphs: Paragraph[] = []
+  
+  list.children.forEach((item, index) => {
     const listItem = item as ListItem
     const prefix = list.ordered ? `${(list.start ?? 1) + index}. ` : '• '
     
-    // Get inline content from the list item
+    // Get inline content and nested lists from the list item
     const inlineContent: (TextRun | ExternalHyperlink | InternalHyperlink)[] = []
     listItem.children.forEach((child) => {
       if (child.type === 'paragraph') {
         inlineContent.push(...convertInlineNodes((child as MdParagraph).children as Content[]))
+      } else if (child.type === 'list') {
+        // Handle nested list - will be added after the main list item
+        const nestedListParagraphs = convertList(child as List, depth + 1)
+        paragraphs.push(
+          new Paragraph({
+            children: [new TextRun(prefix), ...inlineContent],
+            indent: { left: 720 * depth },
+          }),
+          ...nestedListParagraphs
+        )
+        return // Skip adding this item again below
       } else {
         inlineContent.push(new TextRun(toString(child)))
       }
     })
     
-    return new Paragraph({
-      children: [new TextRun(prefix), ...inlineContent],
-    })
+    // Add the main list item if we haven't already (no nested list case)
+    if (listItem.children.every((child) => child.type !== 'list')) {
+      paragraphs.push(
+        new Paragraph({
+          children: [new TextRun(prefix), ...inlineContent],
+          indent: { left: 720 * depth },
+        })
+      )
+    }
   })
+  
+  return paragraphs
 }
 
 function convertBlockquote(node: Parent): Paragraph[] {
