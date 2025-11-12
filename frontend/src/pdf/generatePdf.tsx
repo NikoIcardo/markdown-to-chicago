@@ -523,17 +523,10 @@ function buildContentElements(tree: Root, headings: ProcessedMarkdown['headings'
 const PageNumber: React.FC = () => (
   <Text
     style={styles.pageNumber}
-    render={({ pageNumber }) => (pageNumber > 2 ? `${pageNumber - 2}` : '')}
+    render={({ pageNumber }) => (pageNumber > 1 ? `${pageNumber - 1}` : '')}
     fixed
   />
 )
-
-const filterHeadingsForToc = (headings: ProcessedMarkdown['headings']) =>
-  headings.filter(
-    (heading) =>
-      heading.text.toLowerCase() !== 'table of contents' &&
-      heading.text.toLowerCase() !== 'bibliography',
-  )
 
 export async function generatePdf(
   processed: ProcessedMarkdown,
@@ -545,7 +538,6 @@ export async function generatePdf(
   ast.children = ast.children.filter((node) => node.type !== 'yaml')
   
   const contentElements = buildContentElements(ast, processed.headings)
-  const tocEntries = filterHeadingsForToc(processed.headings)
   const title = processed.title || options?.originalFileName || 'Untitled Document'
   const subtitle = processed.subtitle
 
@@ -559,35 +551,6 @@ export async function generatePdf(
             <Text style={styles.subtitleText}>{subtitle}</Text>
           ) : null}
         </View>
-      </Page>
-      <Page size="A4" style={styles.page}>
-        <PageNumber />
-        <Text style={styles.tocHeader}>Table of Contents</Text>
-        {tocEntries.map((heading, idx) => {
-          // Adjust depth for TOC display:
-          // In main-content.md, Introduction is H3 (depth 3) but should be top-level in TOC
-          // Russian Political Interference is H4 (depth 4) but should be second-level
-          const adjustedDepth = heading.depth >= 3 ? heading.depth - 2 : heading.depth
-          
-          let entryStyle = styles.tocEntry
-          let bullet = '•'
-          if (adjustedDepth === 2) {
-            entryStyle = styles.tocEntryIndent
-            bullet = '◦'
-          } else if (adjustedDepth >= 3) {
-            entryStyle = styles.tocEntryDeepIndent
-            bullet = '▪'
-          }
-          
-          return (
-            <View key={`toc-${heading.slug}-${idx}`} style={{ flexDirection: 'row', marginBottom: 8 }}>
-              <Text style={[entryStyle, styles.tocBullet]}>{bullet}</Text>
-              <Link src={`#${heading.slug}`} style={entryStyle}>
-                {heading.text}
-              </Link>
-            </View>
-          )
-        })}
       </Page>
       <Page size="A4" style={styles.page} wrap>
         <PageNumber />

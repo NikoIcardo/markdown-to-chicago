@@ -166,14 +166,6 @@ function convertNode(node: Content): Paragraph[] {
   }
 }
 
-function filterHeadingsForToc(headings: ProcessedMarkdown['headings']) {
-  return headings.filter(
-    (heading) =>
-      heading.text.toLowerCase() !== 'table of contents' &&
-      heading.text.toLowerCase() !== 'bibliography',
-  )
-}
-
 export async function generateDocx(processed: ProcessedMarkdown): Promise<Blob> {
   const ast = markdownParser.parse(processed.modified) as Root
   
@@ -182,7 +174,6 @@ export async function generateDocx(processed: ProcessedMarkdown): Promise<Blob> 
   
   const title = processed.title || 'Untitled Document'
   const subtitle = processed.subtitle
-  const tocHeadings = filterHeadingsForToc(processed.headings)
   
   // Title page
   const titlePage: Paragraph[] = [
@@ -223,63 +214,6 @@ export async function generateDocx(processed: ProcessedMarkdown): Promise<Blob> 
     })
   )
   
-  // Table of Contents page
-  const tocPage: Paragraph[] = [
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: 'Table of Contents',
-          size: 48, // 24pt
-          bold: true,
-        }),
-      ],
-      spacing: { after: 400 },
-    }),
-  ]
-  
-  tocHeadings.forEach((heading) => {
-    // Adjust depth for TOC display:
-    // In main-content.md, Introduction is H3 (depth 3) but should be top-level in TOC
-    // Russian Political Interference is H4 (depth 4) but should be second-level
-    const adjustedDepth = heading.depth >= 3 ? heading.depth - 2 : heading.depth
-    const indent = (adjustedDepth - 1) * 720 // 720 twips = 0.5 inch
-    const headingId = heading.text
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .trim()
-      .replace(/\s+/g, '-')
-    
-    // Determine bullet character based on adjusted depth
-    let bullet = '• '
-    if (adjustedDepth === 2) {
-      bullet = '◦ '
-    } else if (adjustedDepth >= 3) {
-      bullet = '▪ '
-    }
-    
-    tocPage.push(
-      new Paragraph({
-        children: [
-          new TextRun({ text: bullet }),
-          new InternalHyperlink({
-            children: [new TextRun({ text: heading.text, style: 'Hyperlink' })],
-            anchor: headingId,
-          }),
-        ],
-        indent: { left: indent },
-        spacing: { after: 120 },
-      })
-    )
-  })
-  
-  // Add page break after TOC
-  tocPage.push(
-    new Paragraph({
-      children: [new TextRun({ text: '', break: 1 })],
-      pageBreakBefore: true,
-    })
-  )
-  
   // Content pages
   const contentPages: Paragraph[] = []
   ast.children.forEach((child) => {
@@ -290,7 +224,7 @@ export async function generateDocx(processed: ProcessedMarkdown): Promise<Blob> 
     sections: [
       {
         properties: {},
-        children: [...titlePage, ...tocPage, ...contentPages],
+        children: [...titlePage, ...contentPages],
       },
     ],
   })
