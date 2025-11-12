@@ -51,11 +51,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   titleText: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 600,
     textAlign: 'center',
     marginBottom: 24,
-    maxWidth: '80%',
+    paddingHorizontal: 40,
   },
   subtitleText: {
     fontSize: 14,
@@ -70,12 +70,15 @@ const styles = StyleSheet.create({
   tocEntry: {
     fontSize: 12,
     marginBottom: 8,
-    flexDirection: 'row',
   },
   tocEntryIndent: {
+    fontSize: 12,
+    marginBottom: 8,
     marginLeft: 20,
   },
   tocEntryDeepIndent: {
+    fontSize: 12,
+    marginBottom: 8,
     marginLeft: 40,
   },
   contentWrapper: {
@@ -553,15 +556,15 @@ export async function generatePdf(
         <PageNumber />
         <Text style={styles.tocHeader}>Table of Contents</Text>
         {tocEntries.map((heading, idx) => {
-          const entryStyles: any[] = [styles.tocEntry]
+          let entryStyle = styles.tocEntry
           if (heading.depth === 2) {
-            entryStyles.push(styles.tocEntryIndent)
+            entryStyle = styles.tocEntryIndent
           } else if (heading.depth >= 3) {
-            entryStyles.push(styles.tocEntryDeepIndent)
+            entryStyle = styles.tocEntryDeepIndent
           }
           
           return (
-            <Link key={`toc-${heading.slug}-${idx}`} src={`#${heading.slug}`} style={entryStyles}>
+            <Link key={`toc-${heading.slug}-${idx}`} src={`#${heading.slug}`} style={entryStyle}>
               {heading.text}
             </Link>
           )
