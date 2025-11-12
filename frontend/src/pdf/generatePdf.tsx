@@ -483,39 +483,9 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
 
 const markdownParser = unified().use(remarkParse).use(remarkGfm)
 
-function removeTableOfContents(children: Root['children']): Root['children'] {
-  const result: Root['children'] = []
-  let skipping = false
-  let skipDepth = 0
-
-  children.forEach((node) => {
-    if (skipping) {
-      if (node.type === 'heading' && (node as Heading).depth <= skipDepth) {
-        skipping = false
-      } else {
-        return
-      }
-    }
-
-    if (node.type === 'heading') {
-      const headingText = toString(node as Heading).trim().toLowerCase()
-      if (headingText === 'table of contents') {
-        skipping = true
-        skipDepth = (node as Heading).depth
-        return
-      }
-    }
-
-    result.push(node)
-  })
-
-  return result
-}
-
 function buildContentElements(tree: Root, headings: ProcessedMarkdown['headings']) {
   const render = renderNodeFactory(headings)
-  const filteredChildren = removeTableOfContents(tree.children)
-  return filteredChildren
+  return tree.children
     .map((node, index) => render(node as Content, `node-${index}`))
     .filter(Boolean)
 }
