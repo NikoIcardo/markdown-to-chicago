@@ -212,18 +212,22 @@ export async function generateDocx(processed: ProcessedMarkdown): Promise<Blob> 
   ]
   
   tocHeadings.forEach((heading) => {
-    const indent = (heading.depth - 1) * 720 // 720 twips = 0.5 inch
+    // Adjust depth for TOC display:
+    // In main-content.md, Introduction is H3 (depth 3) but should be top-level in TOC
+    // Russian Political Interference is H4 (depth 4) but should be second-level
+    const adjustedDepth = heading.depth >= 3 ? heading.depth - 2 : heading.depth
+    const indent = (adjustedDepth - 1) * 720 // 720 twips = 0.5 inch
     const headingId = heading.text
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .trim()
       .replace(/\s+/g, '-')
     
-    // Determine bullet character based on depth
+    // Determine bullet character based on adjusted depth
     let bullet = '• '
-    if (heading.depth === 2) {
+    if (adjustedDepth === 2) {
       bullet = '◦ '
-    } else if (heading.depth >= 3) {
+    } else if (adjustedDepth >= 3) {
       bullet = '▪ '
     }
     

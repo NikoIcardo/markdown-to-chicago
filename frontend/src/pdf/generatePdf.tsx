@@ -559,12 +559,17 @@ export async function generatePdf(
         <PageNumber />
         <Text style={styles.tocHeader}>Table of Contents</Text>
         {tocEntries.map((heading, idx) => {
+          // Adjust depth for TOC display:
+          // In main-content.md, Introduction is H3 (depth 3) but should be top-level in TOC
+          // Russian Political Interference is H4 (depth 4) but should be second-level
+          const adjustedDepth = heading.depth >= 3 ? heading.depth - 2 : heading.depth
+          
           let entryStyle = styles.tocEntry
           let bullet = '•'
-          if (heading.depth === 2) {
+          if (adjustedDepth === 2) {
             entryStyle = styles.tocEntryIndent
             bullet = '◦'
-          } else if (heading.depth >= 3) {
+          } else if (adjustedDepth >= 3) {
             entryStyle = styles.tocEntryDeepIndent
             bullet = '▪'
           }

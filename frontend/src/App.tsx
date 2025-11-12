@@ -101,7 +101,8 @@ function App() {
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
 
   useEffect(() => {
-    if (processed) {
+    if (processed && expandedSections.upload) {
+      // Only expand once when processing completes, and only if upload is still open
       setExpandedSections((prev) => ({
         ...prev,
         diagnostics: true,
@@ -109,7 +110,7 @@ function App() {
         preview: true,
       }))
     }
-  }, [processed])
+  }, [processed?.modified]) // Only re-run when the processed markdown content actually changes
 
   useEffect(() => {
     if (manualMetadataModalOpen && manualMetadataQueue[currentManualIndex]) {
