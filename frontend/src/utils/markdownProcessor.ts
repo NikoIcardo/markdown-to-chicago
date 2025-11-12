@@ -723,6 +723,7 @@ export async function processMarkdown(
       fences: true,
       listItemIndent: 'one',
     })
+    .use(remarkFrontmatter)
     .stringify(tree)
 
   const { title, subtitle, headings } = extractHeadings(tree)
