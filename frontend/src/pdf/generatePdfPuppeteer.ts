@@ -75,31 +75,8 @@ export async function generatePdfWithPuppeteer(
         font-size: 20px;
         max-width: 6.5in;
       }
-      .title-page__meta {
-        font-size: 14px;
-        color: #4b5563;
-      }
-      .toc-page {
-        page-break-after: always;
-        page: toc;
-      }
-      .toc-page h2,
-      .toc-page h3,
-      .toc-page h4 {
-        margin-top: 0;
-        text-align: left;
-      }
-      .toc-list,
-      .toc-list ol {
-        list-style: decimal;
-        padding-left: 1.25rem;
-      }
-      .toc-list > li {
-        margin-bottom: 0.35rem;
-      }
       .document-body {
         padding: 0;
-        page: content;
       }
       .document-body > *:first-child {
         margin-top: 0;
@@ -116,6 +93,14 @@ export async function generatePdfWithPuppeteer(
       }
       h4 {
         font-size: 20px;
+      }
+      .toc-break {
+        page-break-after: always;
+      }
+      .main-heading,
+      .first-main-heading {
+        page-break-before: always;
+        margin-top: 0;
       }
       a {
         color: #1a56db;
@@ -138,19 +123,6 @@ export async function generatePdfWithPuppeteer(
       @page title {
         margin: 1in;
         @bottom-center { content: none; }
-      }
-      @page toc {
-        margin: 1in;
-        @bottom-center { content: none; }
-      }
-      @page content {
-        margin: 1in;
-        @bottom-center {
-          content: counter(page);
-          font-family: 'Times New Roman', serif;
-          font-size: 12px;
-          color: #4b5563;
-        }
       }
       @media print {
         a[href^="#"]::after { content: ""; }
@@ -177,7 +149,28 @@ export async function generatePdfWithPuppeteer(
     const page = await browser.newPage()
     await page.setContent(html, { waitUntil: 'networkidle0' })
 
-    await page.evaluate((headings) => {
+    await page.evaluate((headings, mainHeadingDepth) => {
+      const slugify = (value) =>
+        value
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .trim()
+          .replace(/\s+/g, '-')
+
+      const slugLookup = new Map()
+      ;(headings ?? []).forEach((item) => {
+        if (!item || !item.slug) {
+          return
+        }
+        const key = slugify(item.text ?? '')
+        if (!key) {
+          return
+        }
+        if (!slugLookup.has(key)) {
+          slugLookup.set(key, item.slug)
+        }
+      })
+
       const tocHeading =
         document.querySelector('h1#table-of-contents') ||
         document.querySelector('h2#table-of-contents') ||
@@ -186,83 +179,49 @@ export async function generatePdfWithPuppeteer(
         document.querySelector('h5#table-of-contents') ||
         document.querySelector('h6#table-of-contents')
 
-      const buildTocList = (items) => {
-        const minDepth = items.length ? Math.min(...items.map((item) => item.depth)) : 1
-        const root = document.createElement('ol')
-        root.className = 'toc-list'
-        const stack = [{ depth: minDepth, list: root }]
+      if (tocHeading) {
+        const tocListCandidate = tocHeading.nextElementSibling
+        if (tocListCandidate && ['OL', 'UL'].includes(tocListCandidate.tagName)) {
+          tocListCandidate.classList.add('toc-break')
+        }
 
-        items.forEach((item) => {
-          if (!item.slug || !item.text) {
-            return
+        const tocNodes = []
+        let node = tocHeading.nextSibling
+        while (node) {
+          if (node.nodeType === Node.ELEMENT_NODE && /^H[1-6]$/i.test((node as HTMLElement).tagName)) {
+            break
           }
-          if (item.slug === 'table-of-contents') {
-            return
-          }
+          tocNodes.push(node)
+          node = node.nextSibling
+        }
 
-          let currentDepth = item.depth
-          if (currentDepth < stack[stack.length - 1].depth) {
-            while (stack.length && currentDepth < stack[stack.length - 1].depth) {
-              stack.pop()
-            }
-          } else if (currentDepth > stack[stack.length - 1].depth) {
-            while (currentDepth > stack[stack.length - 1].depth) {
-              const parentLi = stack[stack.length - 1].list.lastElementChild
-              if (!parentLi) {
-                break
-              }
-              const sublist = document.createElement('ol')
-              parentLi.appendChild(sublist)
-              stack.push({ depth: stack[stack.length - 1].depth + 1, list: sublist })
-            }
+        const tocLinks = []
+        tocNodes.forEach((tocNode) => {
+          if (tocNode.nodeType === Node.ELEMENT_NODE) {
+            tocLinks.push(...(tocNode as HTMLElement).querySelectorAll('a'))
           }
-
-          const list = stack[stack.length - 1].list
-          const li = document.createElement('li')
-          const link = document.createElement('a')
-          link.href = `#${item.slug}`
-          link.textContent = item.text
-          li.appendChild(link)
-          list.appendChild(li)
         })
 
-        return root
-      }
-
-      if (tocHeading) {
-        const tocSection = document.createElement('section')
-        tocSection.className = 'toc-page'
-        tocHeading.parentNode.insertBefore(tocSection, tocHeading)
-        tocSection.appendChild(tocHeading)
-
-        let sibling = tocHeading.nextSibling
-        while (sibling) {
-          const next = sibling.nextSibling
-          const isHeading =
-            sibling.nodeType === Node.ELEMENT_NODE &&
-            /^H[1-6]$/i.test((sibling as HTMLElement).tagName)
-          if (isHeading) {
-            break
+        tocLinks.forEach((link) => {
+          const text = (link.textContent ?? '').trim()
+          if (!text) {
+            return
           }
-          sibling.parentNode?.removeChild(sibling)
-          sibling = next
-        }
-
-        const generatedList = buildTocList(headings ?? [])
-        tocSection.appendChild(generatedList)
-
-        let sectionSibling = tocSection.nextSibling
-        while (sectionSibling) {
-          const next = sectionSibling.nextSibling
-          const isHeading =
-            sectionSibling.nodeType === Node.ELEMENT_NODE &&
-            /^H[1-6]$/i.test((sectionSibling as HTMLElement).tagName)
-          if (isHeading) {
-            break
+          const normalized = slugify(text)
+          if (!normalized) {
+            return
           }
-          sectionSibling.parentNode?.removeChild(sectionSibling)
-          sectionSibling = next
-        }
+          let targetSlug: string | undefined = slugLookup.get(normalized)
+          if (!targetSlug) {
+            const fallback = Array.from(slugLookup.entries()).find(([key]) =>
+              key.startsWith(normalized) || normalized.startsWith(key),
+            )
+            targetSlug = fallback?.[1]
+          }
+          if (targetSlug) {
+            link.setAttribute('href', `#${targetSlug}`)
+          }
+        })
       }
 
       const listItems = Array.from(document.querySelectorAll('li'))
@@ -299,7 +258,98 @@ export async function generatePdfWithPuppeteer(
         }
       })
 
-      const internalLinks = Array.from(document.querySelectorAll('a[href^="#"]')) as HTMLAnchorElement[]
+      const sectionsToExclude = [
+        'websites-and-online-communities',
+        'petitionsfund-raisers',
+        'court-cases',
+      ]
+      const urlsToExclude = new Set()
+
+      const collectSectionUrls = (slug) => {
+        const heading = document.getElementById(slug)
+        if (!heading) {
+          return
+        }
+        const depth = Number((heading.tagName || '').replace(/[^\d]/g, '')) || 6
+        let cursor = heading.nextSibling
+        while (cursor) {
+          if (cursor.nodeType === Node.ELEMENT_NODE && /^H[1-6]$/i.test((cursor as HTMLElement).tagName)) {
+            const nodeDepth = Number(((cursor as HTMLElement).tagName || '').replace(/[^\d]/g, '')) || 6
+            if (nodeDepth <= depth) {
+              break
+            }
+          }
+
+          if (cursor.nodeType === Node.ELEMENT_NODE) {
+            ;(cursor as HTMLElement)
+              .querySelectorAll('a[href]')
+              .forEach((anchor) => {
+                const href = anchor.getAttribute('href')
+                if (href) {
+                  urlsToExclude.add(href)
+                }
+              })
+          }
+
+          cursor = cursor.nextSibling
+        }
+      }
+
+      sectionsToExclude.forEach(collectSectionUrls)
+
+      const bibliographyHeading = document.getElementById('bibliography')
+      if (bibliographyHeading) {
+        let cursor = bibliographyHeading.nextSibling
+        let bibliographyList = null
+        while (cursor) {
+          if (cursor.nodeType === Node.ELEMENT_NODE && (cursor as HTMLElement).tagName === 'OL') {
+            bibliographyList = cursor as HTMLElement
+            break
+          }
+          cursor = cursor.nextSibling
+        }
+
+        if (bibliographyList) {
+          bibliographyList.querySelectorAll('li').forEach((item) => {
+            const itemLinks = Array.from(item.querySelectorAll('a[href]')).map((anchor) =>
+              anchor.getAttribute('href'),
+            )
+            if (itemLinks.some((href) => href && urlsToExclude.has(href))) {
+              item.remove()
+            }
+          })
+        }
+      }
+
+      const desiredDepth = Number(mainHeadingDepth)
+      const headingDepths = (headings ?? [])
+        .filter((item) => item && item.text && item.slug !== 'table-of-contents')
+        .map((item) => Number(item.depth) || 6)
+      let fallbackDepth = headingDepths.length > 0 ? Math.min(...headingDepths) : 2
+      if (tocHeading) {
+        let probe = tocHeading.nextSibling
+        while (probe) {
+          if (probe.nodeType === Node.ELEMENT_NODE && /^H[1-6]$/i.test((probe as HTMLElement).tagName)) {
+            fallbackDepth = Number(((probe as HTMLElement).tagName || '').replace(/[^\d]/g, '')) || fallbackDepth
+            break
+          }
+          probe = probe.nextSibling
+        }
+      }
+      const mainDepth = Number.isFinite(desiredDepth) && desiredDepth > 1 ? desiredDepth : fallbackDepth
+      const mainHeadingSelector = `h${mainDepth}`
+      const mainHeadingNodes = Array.from(document.querySelectorAll(mainHeadingSelector)).filter(
+        (heading) => heading.id !== 'table-of-contents' && !heading.closest('.title-page'),
+      )
+      mainHeadingNodes.forEach((heading, index) => {
+        if (index === 0) {
+          heading.classList.add('first-main-heading')
+        } else {
+          heading.classList.add('main-heading')
+        }
+      })
+
+      const internalLinks = Array.from(document.querySelectorAll('a[href^="#"]'))
       internalLinks.forEach((link) => {
         const rawHref = link.getAttribute('href') ?? ''
         const targetId = rawHref.replace(/^#/, '')
@@ -324,7 +374,7 @@ export async function generatePdfWithPuppeteer(
           container.appendChild(target)
         }
       })
-    }, processed.headings)
+    }, processed.headings, processed.mainHeadingDepth)
 
     await page.evaluate(() => {
       const anchorTargets = Array.from(
@@ -398,22 +448,22 @@ export async function generatePdfWithPuppeteer(
     const finalHtml = await page.content()
     await fs.writeFile(debugHtmlPath, finalHtml, 'utf8')
 
-    const footerTemplate = `
+    const headerTemplate = `
     <style>
-      .pdf-footer {
+      .pdf-header {
         width: 100%;
         font-size: 11px;
         font-family: 'Times New Roman', serif;
         color: #4b5563;
-        text-align: center;
-        padding: 0.25in 0;
+        text-align: right;
+        padding: 0.2in 0.25in 0;
       }
-      .pdf-footer[data-page-number="1"],
-      .pdf-footer[data-page-number="2"] {
+      .pdf-header[data-page-number="1"],
+      .pdf-header[data-page-number="2"] {
         display: none;
       }
     </style>
-    <div class="pdf-footer"><span class="pageNumber"></span></div>
+    <div class="pdf-header"><span class="pageNumber"></span></div>
     `
 
     const pdfBuffer = await page.pdf({
@@ -422,8 +472,8 @@ export async function generatePdfWithPuppeteer(
       printBackground: true,
       preferCSSPageSize: true,
       displayHeaderFooter: true,
-      headerTemplate: '<span></span>',
-      footerTemplate,
+      headerTemplate,
+      footerTemplate: '<span></span>',
       margin: {
         top: '1in',
         bottom: '1in',

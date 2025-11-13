@@ -30,31 +30,8 @@
         font-size: 20px;
         max-width: 6.5in;
       }
-      .title-page__meta {
-        font-size: 14px;
-        color: #4b5563;
-      }
-      .toc-page {
-        page-break-after: always;
-        page: toc;
-      }
-      .toc-page h2,
-      .toc-page h3,
-      .toc-page h4 {
-        margin-top: 0;
-        text-align: left;
-      }
-      .toc-list,
-      .toc-list ol {
-        list-style: decimal;
-        padding-left: 1.25rem;
-      }
-      .toc-list > li {
-        margin-bottom: 0.35rem;
-      }
       .document-body {
         padding: 0;
-        page: content;
       }
       .document-body > *:first-child {
         margin-top: 0;
@@ -71,6 +48,14 @@
       }
       h4 {
         font-size: 20px;
+      }
+      .toc-break {
+        page-break-after: always;
+      }
+      .main-heading,
+      .first-main-heading {
+        page-break-before: always;
+        margin-top: 0;
       }
       a {
         color: #1a56db;
@@ -94,19 +79,6 @@
         margin: 1in;
         @bottom-center { content: none; }
       }
-      @page toc {
-        margin: 1in;
-        @bottom-center { content: none; }
-      }
-      @page content {
-        margin: 1in;
-        @bottom-center {
-          content: counter(page);
-          font-family: 'Times New Roman', serif;
-          font-size: 12px;
-          color: #4b5563;
-        }
-      }
       @media print {
         a[href^="#"]::after { content: ""; }
       }
@@ -118,7 +90,55 @@
       
     </section>
     <main class="document-body">
-      <section class="toc-page"><h3 id="table-of-contents">Table of Contents<a href="#table-of-contents" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3><ol class="toc-list"><li><a href="#introduction">Introduction</a><ol><li><a href="#modern-day-psychological-attacks-on-americans">Modern Day Psychological Attacks on Americans</a><ol><li><a href="#russian-political-interference">Russian Political Interference</a><ol><li><a href="#anomalous-health-incidents">Anomalous Health Incidents</a></li></ol></li><li><a href="#attacking-the-mind">Attacking the Mind</a><ol><li><a href="#the-mind-has-no-firewall">The Mind Has No Firewall</a></li><li><a href="#human-network-attacks">Human Network Attacks</a></li><li><a href="#voices-and-violence">Voices and Violence</a></li><li><a href="#why-someone-might-hear-voices">Why someone might hear voices</a></li></ol></li><li><a href="#the-publics-battle-with-psychological-weapons">The Public’s Battle With Psychological Weapons</a><ol><li><a href="#reddit-reports">Reddit Reports</a></li><li><a href="#scope-of-the-issue">Scope of the Issue</a></li><li><a href="#websites-and-online-communities">Websites and Online Communities</a><ol><li><a href="#facebook">Facebook</a></li><li><a href="#reddit---weekly-visitors-counted-as-of-102925">Reddit - (weekly visitors counted as of 10/29/25)</a></li><li><a href="#other-online-communities">Other online communities</a></li></ol></li><li><a href="#petitionsfund-raisers">Petitions/Fund Raisers</a></li><li><a href="#court-cases">Court Cases</a></li><li><a href="#books">Books</a></li><li><a href="#legislation">Legislation:</a></li><li><a href="#freedom-of-information-requests-information-requests-and-police-reports">Freedom of Information Requests, Information Requests, and Police Reports:</a></li><li><a href="#crimes">Crimes:</a></li></ol></li><li><a href="#discussion-on-credibility">Discussion on Credibility</a><ol><li><a href="#is-it-feasible-for-these-technologies-to-actually-exist">Is it feasible for these technologies to actually exist?</a><ol><li><a href="#additional-evidence">Additional Evidence</a></li></ol></li><li><a href="#who-is-perpetrating-the-use-of-this-technology">Who is perpetrating the use of this technology?</a></li></ol></li><li><a href="#1-us-constitutional-violations">1. U.S. Constitutional Violations</a><ol><li><span id="fourth-amendment-protection-from-unreasonable-searches-and-seizures" class="anchor-target"></span><a href="#fourth-amendment-protection-from-unreasonable-searches-and-seizures">Fourth Amendment – Protection from Unreasonable Searches and Seizures</a></li><li><span id="fifth-amendment-due-process-self-incrimination" class="anchor-target"></span><a href="#fifth-amendment-due-process-self-incrimination">Fifth Amendment – Due Process &amp; Self-Incrimination</a></li><li><span id="eighth-amendment-cruel-and-unusual-punishment" class="anchor-target"></span><a href="#eighth-amendment-cruel-and-unusual-punishment">Eighth Amendment – Cruel and Unusual Punishment</a></li><li><span id="first-amendment-freedom-of-thought-and-expression" class="anchor-target"></span><a href="#first-amendment-freedom-of-thought-and-expression">First Amendment – Freedom of Thought and Expression</a></li><li><span id="fourteenth-amendment-equal-protection-and-due-process" class="anchor-target"></span><a href="#fourteenth-amendment-equal-protection-and-due-process">Fourteenth Amendment – Equal Protection and Due Process</a></li></ol></li><li><a href="#2-federal-statutes-violated">2. Federal Statutes Violated</a><ol><li><span id="18-usc-23402340a-torture-act" class="anchor-target"></span><a href="#18-usc-23402340a-torture-act">18 U.S.C. § 2340–2340A – Torture Act</a></li><li><span id="18-usc-241-242-conspiracy-against-rights-deprivation-of-rights-under-color-of-law" class="anchor-target"></span><a href="#18-usc-241-242-conspiracy-against-rights-deprivation-of-rights-under-color-of-law">18 U.S.C. § 241 &amp; § 242 – Conspiracy Against Rights / Deprivation of Rights Under Color of Law</a></li><li><span id="45-cfr-46-federal-policy-for-the-protection-of-human-subjects-the-common-rule" class="anchor-target"></span><a href="#45-cfr-46-federal-policy-for-the-protection-of-human-subjects-the-common-rule">45 CFR 46 – Federal Policy for the Protection of Human Subjects (“The Common Rule”)</a></li><li><span id="42-usc-1983-civil-action-for-deprivation-of-rights" class="anchor-target"></span><a href="#42-usc-1983-civil-action-for-deprivation-of-rights">42 U.S.C. § 1983 – Civil Action for Deprivation of Rights</a></li><li><span id="18-usc-2261a-stalking" class="anchor-target"></span><a href="#18-usc-2261a-stalking">18 U.S.C. § 2261A – Stalking</a></li></ol></li><li><a href="#3-international-law-and-human-rights-violations">3. International Law and Human Rights Violations</a><ol><li><a href="#united-nations-convention-against-torture-cat">United Nations Convention Against Torture (CAT)</a></li><li><a href="#nuremberg-code-1947">Nuremberg Code (1947)</a></li><li><a href="#international-covenant-on-civil-and-political-rights-iccpr">International Covenant on Civil and Political Rights (ICCPR)</a></li></ol></li><li><a href="#4-ethical-and-medical-violations">4. Ethical and Medical Violations</a><ol><li><span id="belmont-report-1979-ethical-principles-for-human-research" class="anchor-target"></span><a href="#belmont-report-1979-ethical-principles-for-human-research">Belmont Report (1979) – Ethical Principles for Human Research</a></li><li><a href="#american-psychological-association-apa-and-ama-codes">American Psychological Association (APA) and AMA Codes</a></li></ol></li><li><a href="#5-legal-consequences-if-proven-true">5. Legal Consequences (If Proven True)</a></li><li><a href="#medical-victimization-of-individuals-experiencing-these-attacks">Medical Victimization of Individuals Experiencing these Attacks</a><ol><li><a href="#anomalous-health-incidents-and-the-moscow-embassy-attacks">Anomalous Health Incidents and the Moscow Embassy Attacks</a></li><li><a href="#the-cias-mkultra-experiments">The CIA’s MKUltra Experiments</a></li><li><a href="#zersetzung">Zersetzung</a></li><li><a href="#medical-misdiagnoses-of-modern-psychological-weapon-victims">Medical Misdiagnoses of Modern Psychological Weapon Victims</a></li></ol></li><li><a href="#summary">Summary</a></li><li><a href="#notes">Notes</a></li></ol></li></ol></li><li><a href="#bibliography">Bibliography</a></li></ol></section><h3 id="introduction"><strong>Introduction</strong><a href="#introduction" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+      <h3 id="table-of-contents">Table of Contents<a href="#table-of-contents" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<ol class="toc-break">
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#modern-day-psychological-attacks-on-americans">Modern Day Psychological Attacks on Americans</a>
+<ol>
+<li><a href="https://concernedcitizen1953.substack.com/i/177690685/russian-election-interferencehttps://concernedcitizen1953.substack.com/i/177690685/russian-election-interference">Russian Election Interference</a></li>
+<li><a href="#anomalous-health-incidents">Anomalous Health Incidents</a></li>
+</ol>
+</li>
+<li><a href="#attacking-the-mind">Attacking the Mind</a>
+<ol>
+<li><a href="#the-mind-has-no-firewall">The Mind Has No Firewall</a></li>
+<li><a href="#human-network-attacks">Human Network Attacks</a></li>
+<li><a href="#voices-and-violence">Voices and Violence</a></li>
+<li><a href="#why-someone-might-hear-voices">Why someone might hear voices</a></li>
+</ol>
+</li>
+<li><a href="#the-publics-battle-with-psychological-weapons">The Public’s Battle With Psychological Weapons</a>
+<ol>
+<li><a href="#reddit-reports">Reddit Reports</a></li>
+<li><a href="#scope-of-the-issue">Scope of the Issue</a></li>
+<li><a href="#websites-and-online-communities">Websites and Online Communities</a></li>
+<li><a href="#petitionsfund-raisers">Petitions/Fund Raisers</a></li>
+<li><a href="#court-cases">Court Cases</a></li>
+<li><a href="#books">Books</a></li>
+<li><a href="#legislation">Legislation</a></li>
+<li><a href="#freedom-of-information-requests-information-requests-and-police-reports">Freedom of Information Requests, Information Requests, and Police Reports</a></li>
+<li><a href="#crimes">Crimes</a></li>
+</ol>
+</li>
+<li><a href="#discussion-on-credibility">Discussion on Credibility</a>
+<ol>
+<li><a href="#is-it-feasible-for-these-technologies-to-actually-exist">Is it feasible for these technologies to actually exist?</a></li>
+<li><a href="#who-is-perpetrating-the-use-of-this-technology">Who is perpetrating the use of this technology?</a></li>
+</ol>
+</li>
+<li><a href="#medical-victimization-of-individuals-experiencing-these-attacks">Medical Victimization of Individuals Experiencing these Attacks</a>
+<ol>
+<li><a href="#anomalous-health-incidents-and-the-moscow-embassy-attacks">Anomalous Health Incidents and the Moscow Embassy Attacks</a></li>
+<li><a href="#the-cias-mkultra-experiments">The CIA’s MKUltra Experiments</a></li>
+<li><a href="#zersetzung">Zersetzung</a></li>
+<li><a href="#medical-misdiagnoses-of-modern-psychological-weapon-victims">Medical Misdiagnoses of Modern Psychological Weapon Victims</a></li>
+</ol>
+</li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#notes">Notes</a></li>
+</ol>
+<hr>
+<h3 id="introduction" class="first-main-heading"><strong>Introduction</strong><a href="#introduction" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <hr>
 <p>Psychological warfare has been a staple of military engagement for centuries. It has long been demonstrated that weakening the morale and wellbeing of soldiers and civilians contributes to victory in battle and the demise of nations. Its use has been a prevalent component of conflict in nearly all recent history. Consider this excerpt about <a href="https://info.publicintelligence.net/GermanPropagandaLeaflets.pdf">Psychological Warfare in World War 2</a><a href="#bib-1">[1]</a>:</p>
 <blockquote>
@@ -136,7 +156,7 @@
 </blockquote>
 <p>Given the historical precedent of psychological warfare, the increasing prevalence of its use in recent conflicts, and the enablement of advancing tactics as technological innovations continue to emerge, the growing risks of psychological warfare in the modern day cannot be over-stated. Its increasing potential and diversifying techniques is substantiated by recent aggressions and peace-time attacks on the US by our foreign adversaries.</p>
 <hr>
-<h3 id="modern-day-psychological-attacks-on-americans"><strong>Modern Day Psychological Attacks on Americans</strong><a href="#modern-day-psychological-attacks-on-americans" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="modern-day-psychological-attacks-on-americans" class="main-heading"><strong>Modern Day Psychological Attacks on Americans</strong><a href="#modern-day-psychological-attacks-on-americans" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <hr>
 <h4 id="russian-political-interference">Russian Political Interference<a href="#russian-political-interference" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h4>
 <p><a href="https://www.gmfus.org/news/target-usa-key-takeaways-kremlins-project-lakhta">The 2016 Russian election interference campaigns </a>were deliberate misinformation and psychological missions aimed at warping public perception<a href="#bib-9">[9]</a>. Bot farms and fake social media accounts were created en masse to engage in deceptive political dialogue, drive radicalism, further divide, and politically fracture the United States. These are part of ongoing effort known as <a href="https://www.gmfus.org/news/target-usa-key-takeaways-kremlins-project-lakhta">Project Lakhta</a><a href="#bib-9">[9]</a>:</p>
@@ -183,7 +203,7 @@
 </blockquote>
 <p>Havana Syndrome demonstrates an evolving class of psychological warfare technology and methodology: the use of advanced energy weapons to disrupt, confuse, and incapacitate military and political personnel. The proposed effects of direct energy weapons however are not restricted to those reported in the Havana Syndrome cases. They are a subset of many possible applications of a developing class known as psychotronic weapons. The next section examines military reports from the late 90’s detailing the wide range of these weapons’ potential uses.</p>
 <hr>
-<h3 id="attacking-the-mind"><strong>Attacking the Mind</strong><a href="#attacking-the-mind" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="attacking-the-mind" class="main-heading"><strong>Attacking the Mind</strong><a href="#attacking-the-mind" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <hr>
 <h4 id="the-mind-has-no-firewall">The Mind Has No Firewall<a href="#the-mind-has-no-firewall" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h4>
 <p>Timothy L. Thomas, a current senior analyst at the Foreign Military Studies Office at Ft. Leavenworth, KS, wrote a <a href="https://www.armywarcollege.edu/">US Army War College</a> Report in 1998 titled <a href="https://press.armywarcollege.edu/parameters/vol28/iss1/12/">‘The Mind Has No Firewall’</a><a href="#bib-27">[27]</a><a href="#bib-28">[28]</a>. The article was intended to draw attention to the Russians development of new concept psychological weapons. Examine this excerpt:</p>
@@ -362,7 +382,7 @@
 <p>An aspect as to why we may not be recognizing the attacks of these sorts of psychotronic weapons is that they could be hidden behind the perception that they are resultant of one of the medical issues mentioned above. With recent confirmations of psychotronic weapon developments and use, and technological objectives for psychotronic weapons set forth by US foreign adversaries, this possibility cannot be readily denied. Especially given that there is a substantial number of US civilians that have been claiming to be attacked with these weapons for decades.</p>
 <p>In the following section is an overview of the attempts US and world civilians have made to argue that the weapons mentioned in Thomas’s report exist and are being used on the public.</p>
 <hr>
-<h3 id="the-publics-battle-with-psychological-weapons"><strong>The Public’s Battle With Psychological Weapons</strong><a href="#the-publics-battle-with-psychological-weapons" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="the-publics-battle-with-psychological-weapons" class="main-heading"><strong>The Public’s Battle With Psychological Weapons</strong><a href="#the-publics-battle-with-psychological-weapons" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <hr>
 <p>There have been millions of reports of people claiming they are being targeted with advanced psychological weapons for decades. Its phenomenon has grown into an entire sub-culture marked by terminology and ideas. These people have collectively started to refer to one another as <a href="https://www.ohchr.org/sites/default/files/Documents/Issues/Torture/Call/Individuals/Militarygrade.pdf">Targeted Individuals or TI’s</a> and often refer to the symptoms of psychological weapon attacks as a form of <a href="https://www.ohchr.org/sites/default/files/Documents/Issues/Torture/Call/Individuals/Militarygrade.pdf">‘Gang Stalking’</a> as its often believed that its perpetrated by a group of individuals<a href="#bib-51">[51]</a>. These people report the experience of these weapons to be akin to pure psychological torture. The communities discuss a variety of technologies that are being used on them and have collectively <a href="https://www.ohchr.org/sites/default/files/Documents/Issues/Torture/Call/Individuals/Militarygrade.pdf">classified them into a few categories</a><a href="#bib-51">[51]</a>:</p>
 <ul>
@@ -392,7 +412,7 @@
 <p>Websites:</p>
 
 <blockquote>
-<p><a href="https://mindjustice.org/">https://mindjustice.org/</a><a href="#bib-63">[63]</a></p>
+<p><span id="bib-63" class="anchor-target"></span><a href="https://mindjustice.org/">https://mindjustice.org/</a><a href="#bib-63">[63]</a></p>
 <ul>
 <li>
 <p><strong>US - Cheryl Welsh</strong></p>
@@ -401,7 +421,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://www.targetedjustice.com/">https://www.targetedjustice.com/</a><a href="#bib-64">[64]</a></p>
+<p><span id="bib-64" class="anchor-target"></span><a href="https://www.targetedjustice.com/">https://www.targetedjustice.com/</a><a href="#bib-64">[64]</a></p>
 <ul>
 <li>
 <p><strong>US</strong></p>
@@ -410,7 +430,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://www.targetedmassachusetts.org/">https://www.targetedmassachusetts.org/</a><a href="#bib-65">[65]</a></p>
+<p><span id="bib-65" class="anchor-target"></span><a href="https://www.targetedmassachusetts.org/">https://www.targetedmassachusetts.org/</a><a href="#bib-65">[65]</a></p>
 <ul>
 <li>
 <p><strong>Targeted Massachusetts</strong></p>
@@ -419,7 +439,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://www.aihrfoundation.org/">https://www.aihrfoundation.org/</a><a href="#bib-66">[66]</a></p>
+<p><span id="bib-66" class="anchor-target"></span><a href="https://www.aihrfoundation.org/">https://www.aihrfoundation.org/</a><a href="#bib-66">[66]</a></p>
 <ul>
 <li>
 <p><strong>Massachusetts</strong></p>
@@ -437,7 +457,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="http://pactsntl.org/">http://pactsntl.org/</a><a href="#bib-68">[68]</a></p>
+<p><span id="bib-68" class="anchor-target"></span><a href="http://pactsntl.org/">http://pactsntl.org/</a><a href="#bib-68">[68]</a></p>
 <ul>
 <li>
 <p><strong>People Against Covert Torture &amp; Surveillance, International</strong></p>
@@ -446,7 +466,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="http://www.viactec.es/">http://www.viactec.es/</a><a href="#bib-69">[69]</a></p>
+<p><span id="bib-69" class="anchor-target"></span><a href="http://www.viactec.es/">http://www.viactec.es/</a><a href="#bib-69">[69]</a></p>
 <ul>
 <li>
 <p><strong>VIACTEC – Victimas de Acoso Electrónicomind control: Spain</strong></p>
@@ -464,7 +484,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="http://www.associazionevittimearmielettroniche-mentali.org/">http://www.associazionevittimearmielettroniche-mentali.org/</a><a href="#bib-71">[71]</a></p>
+<p><span id="bib-71" class="anchor-target"></span><a href="http://www.associazionevittimearmielettroniche-mentali.org/">http://www.associazionevittimearmielettroniche-mentali.org/</a><a href="#bib-71">[71]</a></p>
 <ul>
 <li>
 <p><strong>Italy</strong></p>
@@ -494,7 +514,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="http://www.svegritet.se/">http://www.svegritet.se/</a><a href="#bib-75">[75]</a></p>
+<p><span id="bib-75" class="anchor-target"></span><a href="http://www.svegritet.se/">http://www.svegritet.se/</a><a href="#bib-75">[75]</a></p>
 <ul>
 <li>
 <p><strong>Society for Brain Integrity in Sweden</strong></p>
@@ -512,7 +532,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="http://www.targeted-individuals.co.uk/">http://www.targeted-individuals.co.uk/</a><a href="#bib-77">[77]</a></p>
+<p><span id="bib-77" class="anchor-target"></span><a href="http://www.targeted-individuals.co.uk/">http://www.targeted-individuals.co.uk/</a><a href="#bib-77">[77]</a></p>
 <ul>
 <li>
 <p><strong>TARGETED INDIVIDUALS ASSOCIATION</strong></p>
@@ -521,7 +541,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="http://www.covertharassment.org/">http://www.covertharassment.org/</a><a href="#bib-78">[78]</a></p>
+<p><span id="bib-78" class="anchor-target"></span><a href="http://www.covertharassment.org/">http://www.covertharassment.org/</a><a href="#bib-78">[78]</a></p>
 <ul>
 <li>
 <p><strong>COVERT HARASSMENT U.K.</strong></p>
@@ -530,19 +550,19 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="http://targetedindividualsua.weebly.com/">http://targetedindividualsua.weebly.com/</a><a href="#bib-79">[79]</a></p>
+<p><span id="bib-79" class="anchor-target"></span><a href="http://targetedindividualsua.weebly.com/">http://targetedindividualsua.weebly.com/</a><a href="#bib-79">[79]</a></p>
 <ul>
 <li>
 <p><strong>TARGETED INDIVIDUALS UNITED</strong></p>
 </li>
 <li>
-<p><strong><a href="https://organizationofmindcontrolvictims.com/">Organization of Victims of Psychotronic (Mind/Body Control) Weapons</a> Organization of Victims Psychotronic (Mind Control) Weapons<a href="#bib-80">[80]</a></strong></p>
+<p><span id="bib-80" class="anchor-target"></span><strong><a href="https://organizationofmindcontrolvictims.com/">Organization of Victims of Psychotronic (Mind/Body Control) Weapons</a> Organization of Victims Psychotronic (Mind Control) Weapons<a href="#bib-80">[80]</a></strong></p>
 </li>
 
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="http://www.westcoast-oseh.com/">http://www.westcoast-oseh.com/</a><a href="#bib-81">[81]</a></p>
+<p><span id="bib-81" class="anchor-target"></span><a href="http://www.westcoast-oseh.com/">http://www.westcoast-oseh.com/</a><a href="#bib-81">[81]</a></p>
 <ul>
 <li>
 <p><strong>The West Coast Society For All Victims Of Organized Stalking And Electronic Harassment</strong></p>
@@ -551,7 +571,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://organised-crime-of-covert-electronic-assault-nz.com/">https://organised-crime-of-covert-electronic-assault-nz.com/</a><a href="#bib-82">[82]</a></p>
+<p><span id="bib-82" class="anchor-target"></span><a href="https://organised-crime-of-covert-electronic-assault-nz.com/">https://organised-crime-of-covert-electronic-assault-nz.com/</a><a href="#bib-82">[82]</a></p>
 <ul>
 <li>
 <p><strong>New Zeeland</strong></p>
@@ -560,13 +580,13 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://www.tekuhan.org/">https://www.tekuhan.org/</a><a href="#bib-83">[83]</a></p>
+<p><span id="bib-83" class="anchor-target"></span><a href="https://www.tekuhan.org/">https://www.tekuhan.org/</a><a href="#bib-83">[83]</a></p>
 <ul>
 <li>**​ &amp; **</li>
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="http://tcvn.sakura.ne.jp/">http://tcvn.sakura.ne.jp/</a><a href="#bib-84">[84]</a></p>
+<p><span id="bib-84" class="anchor-target"></span><a href="http://tcvn.sakura.ne.jp/">http://tcvn.sakura.ne.jp/</a><a href="#bib-84">[84]</a></p>
 <ul>
 <li>
 <p><strong>TECHNOLOGICAL CRIME VICTIMS NETWORK (TCVN) Japan</strong></p>
@@ -575,7 +595,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://peacepink.ning.com/">https://peacepink.ning.com/</a><a href="#bib-85">[85]</a></p>
+<p><span id="bib-85" class="anchor-target"></span><a href="https://peacepink.ning.com/">https://peacepink.ning.com/</a><a href="#bib-85">[85]</a></p>
 <ul>
 <li>
 <p><strong>Peacepink China</strong></p>
@@ -584,7 +604,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://tilibrary.com/">https://tilibrary.com/</a><a href="#bib-86">[86]</a></p>
+<p><span id="bib-86" class="anchor-target"></span><a href="https://tilibrary.com/">https://tilibrary.com/</a><a href="#bib-86">[86]</a></p>
 <ul>
 <li>
 <p><strong>US</strong></p>
@@ -599,7 +619,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://gangstalkingmindcontrolcults.com/">https://gangstalkingmindcontrolcults.com/</a><a href="#bib-88">[88]</a></p>
+<p><span id="bib-88" class="anchor-target"></span><a href="https://gangstalkingmindcontrolcults.com/">https://gangstalkingmindcontrolcults.com/</a><a href="#bib-88">[88]</a></p>
 <ul>
 <li>
 <p><strong>US</strong></p>
@@ -611,28 +631,19 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://fightgangstalking.com/">https://fightgangstalking.com/</a><a href="#bib-90">[90]</a></p>
+<p><span id="bib-90" class="anchor-target"></span><a href="https://fightgangstalking.com/">https://fightgangstalking.com/</a><a href="#bib-90">[90]</a></p>
 <ul>
 <li>
 <p><strong>US</strong></p>
 </li>
 <li>
-<p><strong><a href="https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime">https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime</a> US<a href="#bib-91">[91]</a></strong></p>
+<p><span id="bib-91" class="anchor-target"></span><strong><a href="https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime">https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime</a> US<a href="#bib-91">[91]</a></strong></p>
 </li>
 
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://embracefailure.blog/">https://embracefailure.blog/</a><a href="#bib-92">[92]</a></p>
-<ul>
-<li>
-<p><strong>US</strong></p>
-</li>
-
-</ul>
-</blockquote>
-<blockquote>
-<p><a href="https://yoursocialfreedom.com/">https://yoursocialfreedom.com/</a><a href="#bib-93">[93]</a></p>
+<p><span id="bib-92" class="anchor-target"></span><a href="https://embracefailure.blog/">https://embracefailure.blog/</a><a href="#bib-92">[92]</a></p>
 <ul>
 <li>
 <p><strong>US</strong></p>
@@ -641,7 +652,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://www.bigbrotherwatchingus.com/">https://www.bigbrotherwatchingus.com/</a><a href="#bib-94">[94]</a></p>
+<p><span id="bib-93" class="anchor-target"></span><a href="https://yoursocialfreedom.com/">https://yoursocialfreedom.com/</a><a href="#bib-93">[93]</a></p>
 <ul>
 <li>
 <p><strong>US</strong></p>
@@ -650,7 +661,7 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="http://www.stopdirectedenergyweapons.freeservers.com/">http://www.stopdirectedenergyweapons.freeservers.com/</a><a href="#bib-95">[95]</a></p>
+<p><span id="bib-94" class="anchor-target"></span><a href="https://www.bigbrotherwatchingus.com/">https://www.bigbrotherwatchingus.com/</a><a href="#bib-94">[94]</a></p>
 <ul>
 <li>
 <p><strong>US</strong></p>
@@ -659,7 +670,16 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://www.covertharassmentconference.com/">https://www.covertharassmentconference.com/</a><a href="#bib-96">[96]</a></p>
+<p><span id="bib-95" class="anchor-target"></span><a href="http://www.stopdirectedenergyweapons.freeservers.com/">http://www.stopdirectedenergyweapons.freeservers.com/</a><a href="#bib-95">[95]</a></p>
+<ul>
+<li>
+<p><strong>US</strong></p>
+</li>
+
+</ul>
+</blockquote>
+<blockquote>
+<p><span id="bib-96" class="anchor-target"></span><a href="https://www.covertharassmentconference.com/">https://www.covertharassmentconference.com/</a><a href="#bib-96">[96]</a></p>
 <ul>
 <li>
 <p><strong>Germany, Berlin</strong></p>
@@ -668,13 +688,13 @@
 </ul>
 </blockquote>
 <blockquote>
-<p><a href="https://youarenotmybigbrother.wordpress.com/">https://youarenotmybigbrother.wordpress.com/</a><a href="#bib-97">[97]</a></p>
+<p><span id="bib-97" class="anchor-target"></span><a href="https://youarenotmybigbrother.wordpress.com/">https://youarenotmybigbrother.wordpress.com/</a><a href="#bib-97">[97]</a></p>
 <ul>
 <li>
 <p><strong>US</strong></p>
 </li>
 <li>
-<p><strong><a href="https://www.drlwilson.com/Articles/PSYCHOTRONIC.htm">https://www.drlwilson.com/Articles/PSYCHOTRONIC.htm</a><a href="#bib-98">[98]</a></strong></p>
+<p><span id="bib-98" class="anchor-target"></span><strong><a href="https://www.drlwilson.com/Articles/PSYCHOTRONIC.htm">https://www.drlwilson.com/Articles/PSYCHOTRONIC.htm</a><a href="#bib-98">[98]</a></strong></p>
 </li>
 <li>
 <p><a href="http://njtisupportgroup.blogspot.com">http://njtisupportgroup.blogspot.com</a> New Jersey<a href="#bib-99">[99]</a></p>
@@ -683,7 +703,7 @@
 <p><a href="https://green-liberty.org/jtip/">https://green-liberty.org/jtip/</a> US<a href="#bib-100">[100]</a></p>
 </li>
 <li>
-<p><a href="https://thevinesisters.com/home">https://thevinesisters.com/home</a> US<a href="#bib-101">[101]</a></p>
+<p><span id="bib-101" class="anchor-target"></span><a href="https://thevinesisters.com/home">https://thevinesisters.com/home</a> US<a href="#bib-101">[101]</a></p>
 </li>
 </ul>
 </blockquote>
@@ -691,15 +711,15 @@
 <p>Searching for “Targeted Individuals &amp; Gangstalking Victims International Support Group” on Facebook, yields a large quantity of results. There are hundreds of groups each with thousands of members related to this search alone. Here is just a small sample of them:</p>
 <blockquote>
 <p><strong>Facebook<a href="#bib-102">[102]</a>: Targeted Individuals Community (1.1k members)<a href="https://www.facebook.com/groups/484474675758656/">https://www.facebook.com/groups/484474675758656/</a></strong></p>
-<p><strong>Targeted Individuals - Gangstalking - Psychological Torture (6<a href="#bib-103">[103]</a>.5k members)<a href="https://www.facebook.com/groups/550194910682803">https://www.facebook.com/groups/550194910682803</a></strong></p>
+<p><span id="bib-103" class="anchor-target"></span><strong>Targeted Individuals - Gangstalking - Psychological Torture (6<a href="#bib-103">[103]</a>.5k members)<a href="https://www.facebook.com/groups/550194910682803">https://www.facebook.com/groups/550194910682803</a></strong></p>
+<p><span id="bib-104" class="anchor-target"></span><strong>Gang Stalking Awareness (16<a href="#bib-104">[104]</a>.5k members)<a href="https://www.facebook.com/groups/2036619546605019">https://www.facebook.com/groups/2036619546605019</a></strong></p>
+<p><span id="bib-105" class="anchor-target"></span><strong>Targeted Individuals, gang stalking and V2K (4<a href="#bib-105">[105]</a>.5k members)<a href="https://www.facebook.com/groups/529839465990974">https://www.facebook.com/groups/529839465990974</a></strong></p>
+<p><span id="bib-106" class="anchor-target"></span><strong>Remote Neural Monitoring (3<a href="#bib-106">[106]</a>.1k members)<a href="https://www.facebook.com/groups/remoteneuralmonitoring">https://www.facebook.com/groups/remoteneuralmonitoring</a></strong></p>
+<p><span id="bib-107" class="anchor-target"></span><strong>Targeted Individuals - Victims of Gangstalking Program Crimes (8<a href="#bib-107">[107]</a>.1k members)<a href="https://www.facebook.com/groups/455676116753883">https://www.facebook.com/groups/455676116753883</a></strong></p>
+<p><span id="bib-108" class="anchor-target"></span><strong>The Gang Stalking and The Targeted Individuals Group (23k members)<a href="https://www.facebook.com/groups/483653602078021">https://www.facebook.com/groups/483653602078021</a><a href="#bib-108">[108]</a></strong></p>
+<p><span id="bib-109" class="anchor-target"></span><strong>Support and Guidance for Targeted Individuals and Gangstalking Victims (8<a href="#bib-109">[109]</a>.5k members)<a href="https://www.facebook.com/groups/2081153875302707">https://www.facebook.com/groups/2081153875302707</a></strong></p>
 <p><strong>Gang Stalking Awareness (16<a href="#bib-104">[104]</a>.5k members)<a href="https://www.facebook.com/groups/2036619546605019">https://www.facebook.com/groups/2036619546605019</a></strong></p>
-<p><strong>Targeted Individuals, gang stalking and V2K (4<a href="#bib-105">[105]</a>.5k members)<a href="https://www.facebook.com/groups/529839465990974">https://www.facebook.com/groups/529839465990974</a></strong></p>
-<p><strong>Remote Neural Monitoring (3<a href="#bib-106">[106]</a>.1k members)<a href="https://www.facebook.com/groups/remoteneuralmonitoring">https://www.facebook.com/groups/remoteneuralmonitoring</a></strong></p>
-<p><strong>Targeted Individuals - Victims of Gangstalking Program Crimes (8<a href="#bib-107">[107]</a>.1k members)<a href="https://www.facebook.com/groups/455676116753883">https://www.facebook.com/groups/455676116753883</a></strong></p>
-<p><strong>The Gang Stalking and The Targeted Individuals Group (23k members)<a href="https://www.facebook.com/groups/483653602078021">https://www.facebook.com/groups/483653602078021</a><a href="#bib-108">[108]</a></strong></p>
-<p><strong>Support and Guidance for Targeted Individuals and Gangstalking Victims (8<a href="#bib-109">[109]</a>.5k members)<a href="https://www.facebook.com/groups/2081153875302707">https://www.facebook.com/groups/2081153875302707</a></strong></p>
-<p><strong>Gang Stalking Awareness (16<a href="#bib-104">[104]</a>.5k members)<a href="https://www.facebook.com/groups/2036619546605019">https://www.facebook.com/groups/2036619546605019</a></strong></p>
-<p><strong>TARGETED INDIVIDUALS - OFFICIAL SUPPORT GROUP (15<a href="#bib-110">[110]</a>.3k members)<a href="https://www.facebook.com/groups/477193365693899">https://www.facebook.com/groups/477193365693899</a></strong></p>
+<p><span id="bib-110" class="anchor-target"></span><strong>TARGETED INDIVIDUALS - OFFICIAL SUPPORT GROUP (15<a href="#bib-110">[110]</a>.3k members)<a href="https://www.facebook.com/groups/477193365693899">https://www.facebook.com/groups/477193365693899</a></strong></p>
 </blockquote>
 <h5 id="reddit---weekly-visitors-counted-as-of-102925"><strong>Reddit - (weekly visitors counted as of 10/29/25)</strong><a href="#reddit---weekly-visitors-counted-as-of-102925" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h5>
 <blockquote>
@@ -749,18 +769,18 @@
 <p>This section comprises a short list of the petitions worldwide that have attempted to solicit governments to end psychological weapon harassment.</p>
 <blockquote>
 <p>Stop Electronic Harrassment of Targeted Individuals</p>
-<p><a href="https://sign.moveon.org/petitions/stop-electronic-harrassment-2">https://sign.moveon.org/petitions/stop-electronic-harrassment-2</a><a href="#bib-121">[121]</a></p>
+<p><span id="bib-121" class="anchor-target"></span><a href="https://sign.moveon.org/petitions/stop-electronic-harrassment-2">https://sign.moveon.org/petitions/stop-electronic-harrassment-2</a><a href="#bib-121">[121]</a></p>
 <p>Join the fight to end Neuro electronic Torture</p>
-<p><a href="https://www.ipetitions.com/petition/join-the-fight-to-end-neuro-electronic-torture">https://www.ipetitions.com/petition/join-the-fight-to-end-neuro-electronic-torture</a><a href="#bib-122">[122]</a></p>
+<p><span id="bib-122" class="anchor-target"></span><a href="https://www.ipetitions.com/petition/join-the-fight-to-end-neuro-electronic-torture">https://www.ipetitions.com/petition/join-the-fight-to-end-neuro-electronic-torture</a><a href="#bib-122">[122]</a></p>
 <p>2026 Initiative Petition #41</p>
 <p>Oregon Secretary of State</p>
-<p><a href="https://content.govdelivery.com/accounts/ORSOS/bulletins/3d87b9f">https://content.govdelivery.com/accounts/ORSOS/bulletins/3d87b9f</a><a href="#bib-123">[123]</a></p>
+<p><span id="bib-123" class="anchor-target"></span><a href="https://content.govdelivery.com/accounts/ORSOS/bulletins/3d87b9f">https://content.govdelivery.com/accounts/ORSOS/bulletins/3d87b9f</a><a href="#bib-123">[123]</a></p>
 <p>UK Government and Parliament</p>
 <p>Ban Electronic Waterboarding</p>
-<p>“Havana Syndrome is caused by electronic devices used to modify, cower or intimidate a victim<a href="#bib-124">[124]</a>. Pulsed electromagnetic energy assaults are a type of torture that the unscrupulous can use against their victims to achieve an aim the Law would otherwise not grant them. Such devices should be banned.” <a href="https://petition.parliament.uk/archived/petitions/619749">https://petition.parliament.uk/archived/petitions/619749</a></p>
+<p><span id="bib-124" class="anchor-target"></span>“Havana Syndrome is caused by electronic devices used to modify, cower or intimidate a victim<a href="#bib-124">[124]</a>. Pulsed electromagnetic energy assaults are a type of torture that the unscrupulous can use against their victims to achieve an aim the Law would otherwise not grant them. Such devices should be banned.” <a href="https://petition.parliament.uk/archived/petitions/619749">https://petition.parliament.uk/archived/petitions/619749</a></p>
 <p>UK Government and Parliament</p>
 <p>Stop Electronic Harassment and the use of Satellite surveillance and Energy Weapons to experiment on innocent Citizens.</p>
-<p><a href="https://petition.parliament.uk/archived/petitions/49234">https://petition.parliament.uk/archived/petitions/49234</a><a href="#bib-125">[125]</a></p>
+<p><span id="bib-125" class="anchor-target"></span><a href="https://petition.parliament.uk/archived/petitions/49234">https://petition.parliament.uk/archived/petitions/49234</a><a href="#bib-125">[125]</a></p>
 <p>STOP Electronic Harrassment</p>
 <p>“I have been a victim of mind Control for over a year now without my Consent. I have Been tortured by voices beamed to my head 24/7 thru ELF waves ”</p>
 <p><a href="https://www.gopetition.com/petitions/stop-electronic-harrassment.html#google_vignette">https://www.gopetition.com/petitions/stop-electronic-harrassment.html#google_vignette</a><a href="#bib-126">[126]</a></p>
@@ -772,7 +792,7 @@
 <p>Petition the ACLU to Assist Electronic Harassment, Stalking and Domestic Torture Victims</p>
 <p><a href="https://www.gopetition.com/petitions/petition-the-aclu-to-assist-electronic-harassment-stalking-and-domestic-torture-victims.html#google_vignette">https://www.gopetition.com/petitions/petition-the-aclu-to-assist-electronic-harassment-stalking-and-domestic-torture-victims.html#google_vignette</a><a href="#bib-130">[130]</a></p>
 <p>STOP ELECTRONIC HARASSMENT AND GANGSTALKING</p>
-<p><a href="https://www.targetedhumans.org/change-org-petition">https://www.targetedhumans.org/change-org-petition</a><a href="#bib-131">[131]</a></p>
+<p><span id="bib-131" class="anchor-target"></span><a href="https://www.targetedhumans.org/change-org-petition">https://www.targetedhumans.org/change-org-petition</a><a href="#bib-131">[131]</a></p>
 <p>HELP CEASE GANG STALKING AND ELECTRONIC HARASSMENT!</p>
 <p><a href="https://www.thepetitionsite.com/3/help-cease-gang-stalking-and-electronic-harassment/">https://www.thepetitionsite.com/3/help-cease-gang-stalking-and-electronic-harassment/</a><a href="#bib-132">[132]</a></p>
 <p>Stop Mind Control and Directed Energy weapons on innocent civilians in the UK</p>
@@ -781,122 +801,122 @@
 <p>PETITION TO THE CONGRESS OF THE UNITED STATES OF AMERICA</p>
 <p><a href="https://www.petitions.com/ban_remote_manipulation_of_human_nervous_system">https://www.petitions.com/ban_remote_manipulation_of_human_nervous_system</a><a href="#bib-134">[134]</a></p>
 <p>Targeted Individuals Victims of Gang Stalking and Directed Energy Weapons</p>
-<p><a href="https://www.ipetitions.com/petition/targeted-individuals-gang-stalking-mind-control">https://www.ipetitions.com/petition/targeted-individuals-gang-stalking-mind-control</a><a href="#bib-135">[135]</a></p>
+<p><span id="bib-135" class="anchor-target"></span><a href="https://www.ipetitions.com/petition/targeted-individuals-gang-stalking-mind-control">https://www.ipetitions.com/petition/targeted-individuals-gang-stalking-mind-control</a><a href="#bib-135">[135]</a></p>
 <p>Electronic Harassment - Directed Energy Weapons (TI)</p>
 <p>UK Government and Parliament</p>
-<p><a href="https://petition.parliament.uk/archived/petitions/49171">https://petition.parliament.uk/archived/petitions/49171</a><a href="#bib-136">[136]</a></p>
+<p><span id="bib-136" class="anchor-target"></span><a href="https://petition.parliament.uk/archived/petitions/49171">https://petition.parliament.uk/archived/petitions/49171</a><a href="#bib-136">[136]</a></p>
 <p>Misuse of new technologies and weapons systems</p>
-<p><a href="https://www.openpetition.de/petition/online/misuse-of-new-technologies-and-weapons-systems">https://www.openpetition.de/petition/online/misuse-of-new-technologies-and-weapons-systems</a><a href="#bib-137">[137]</a></p>
+<p><span id="bib-137" class="anchor-target"></span><a href="https://www.openpetition.de/petition/online/misuse-of-new-technologies-and-weapons-systems">https://www.openpetition.de/petition/online/misuse-of-new-technologies-and-weapons-systems</a><a href="#bib-137">[137]</a></p>
 <p>End Remote Neural Monitoring &amp; Gang Stalking: Protect Human Rights</p>
 <p><a href="https://www.change.org/p/end-remote-neural-monitoring-gang-stalking-protect-human-rights?source_location=topics_page&amp;pt=AVBldGl0aW9uAISoQR0AAAAAaPkKgqtljBk4NTQ4YTEwYw%3D%3D">https://www.change.org/p/end-remote-neural-monitoring-gang-stalking-protect-human-rights?source_location=topics_page&amp;pt=AVBldGl0aW9uAISoQR0AAAAAaPkKgqtljBk4NTQ4YTEwYw%3D%3D</a><a href="#bib-138">[138]</a></p>
 <p>Stop the use of V2K on Amazon employees</p>
-<p><a href="https://www.change.org/p/stop-the-use-of-v2k-on-amazon-employees">https://www.change.org/p/stop-the-use-of-v2k-on-amazon-employees</a><a href="#bib-139">[139]</a></p>
+<p><span id="bib-139" class="anchor-target"></span><a href="https://www.change.org/p/stop-the-use-of-v2k-on-amazon-employees">https://www.change.org/p/stop-the-use-of-v2k-on-amazon-employees</a><a href="#bib-139">[139]</a></p>
 <p>Demand Congressional Investigation into Neurotechnology Abuse and Digital Trafficking</p>
-<p><a href="https://sign.moveon.org/petitions/demand-congressional-investigation-into-neurotechnology-abuse-and-digital-trafficking">https://sign.moveon.org/petitions/demand-congressional-investigation-into-neurotechnology-abuse-and-digital-trafficking</a><a href="#bib-140">[140]</a></p>
+<p><span id="bib-140" class="anchor-target"></span><a href="https://sign.moveon.org/petitions/demand-congressional-investigation-into-neurotechnology-abuse-and-digital-trafficking">https://sign.moveon.org/petitions/demand-congressional-investigation-into-neurotechnology-abuse-and-digital-trafficking</a><a href="#bib-140">[140]</a></p>
 <p>Congress pay voice to skull victims in Nevada</p>
-<p><a href="https://sign.moveon.org/petitions/congress-pay-voice-to">https://sign.moveon.org/petitions/congress-pay-voice-to</a><a href="#bib-141">[141]</a></p>
+<p><span id="bib-141" class="anchor-target"></span><a href="https://sign.moveon.org/petitions/congress-pay-voice-to">https://sign.moveon.org/petitions/congress-pay-voice-to</a><a href="#bib-141">[141]</a></p>
 <p>Punish these criminals and parasites using mind control voice to skull remote neural monitoring for murder and extortion</p>
 <p><a href="https://www.thepetitionsite.com/takeaction/556/809/960/">https://www.thepetitionsite.com/takeaction/556/809/960/</a><a href="#bib-142">[142]</a></p>
 <p>Demand an End to Mind Control Experimentation</p>
 <p>‘I am a victim of “mind control” experimentation by the CIA and military. The technology is so advanced it seems like science fiction’</p>
 <p><a href="https://www.thepetitionsite.com/784/504/767/demand-an-end-to-mind-control-experimentation/">https://www.thepetitionsite.com/784/504/767/demand-an-end-to-mind-control-experimentation/</a><a href="#bib-143">[143]</a></p>
 <p>Use of v2k,wban,rmn,ble,ieee,ham radio dew,bci,brainwave,tortureware use on people in nz</p>
-<p><a href="https://fyi.org.nz/request/30393-use-of-v2k-wban-rmn-ble-ieee-ham-radio-dew-bci-brainwave-tortureware-use-on-people-in-nz">https://fyi.org.nz/request/30393-use-of-v2k-wban-rmn-ble-ieee-ham-radio-dew-bci-brainwave-tortureware-use-on-people-in-nz</a><a href="#bib-144">[144]</a></p>
+<p><span id="bib-144" class="anchor-target"></span><a href="https://fyi.org.nz/request/30393-use-of-v2k-wban-rmn-ble-ieee-ham-radio-dew-bci-brainwave-tortureware-use-on-people-in-nz">https://fyi.org.nz/request/30393-use-of-v2k-wban-rmn-ble-ieee-ham-radio-dew-bci-brainwave-tortureware-use-on-people-in-nz</a><a href="#bib-144">[144]</a></p>
 <p>Electronic Harrasment, and V2K turturre</p>
-<p><a href="https://www.petition2congress.com/ctas/electronic-harrasment-v2k-turturre">https://www.petition2congress.com/ctas/electronic-harrasment-v2k-turturre</a><a href="#bib-145">[145]</a></p>
+<p><span id="bib-145" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/electronic-harrasment-v2k-turturre">https://www.petition2congress.com/ctas/electronic-harrasment-v2k-turturre</a><a href="#bib-145">[145]</a></p>
 <p>V2K and Electronic Harassment : Psychotronic Cyber Crime Techniques</p>
 <p>A Research Paper in the International Journal of Scientific Research in Computer Science Engineering and Information Technology issues call to action for governments</p>
 <p><a href="https://www.researchgate.net/publication/370485295_V2K_and_Electronic_Harassment_Psychotronic_Cyber_Crime_Techniques">https://www.researchgate.net/publication/370485295_V2K_and_Electronic_Harassment_Psychotronic_Cyber_Crime_Techniques</a><a href="#bib-146">[146]</a></p>
 <p>Gangstalked/ V2k torture/ Mind Control</p>
 <p>“I am a victim of v2k torture and skull to brain mind control I am in desperate need of help”</p>
-<p><a href="https://petition2congress.rallycongress.net/ctas/gangstalked-v2k-torture-mind-control">https://petition2congress.rallycongress.net/ctas/gangstalked-v2k-torture-mind-control</a><a href="#bib-147">[147]</a></p>
+<p><span id="bib-147" class="anchor-target"></span><a href="https://petition2congress.rallycongress.net/ctas/gangstalked-v2k-torture-mind-control">https://petition2congress.rallycongress.net/ctas/gangstalked-v2k-torture-mind-control</a><a href="#bib-147">[147]</a></p>
 <p>Stop V2k Torture and Harassment</p>
 <p>“I am asking that you please address the issue of the covert illegal projects being run by the CIA and NSA that target individuals, particularly US citizens, using electromagnetic frequency.”</p>
-<p><a href="https://petition2congress.rallycongress.net/ctas/stop-v2k-torture-harassment">https://petition2congress.rallycongress.net/ctas/stop-v2k-torture-harassment</a><a href="#bib-148">[148]</a></p>
+<p><span id="bib-148" class="anchor-target"></span><a href="https://petition2congress.rallycongress.net/ctas/stop-v2k-torture-harassment">https://petition2congress.rallycongress.net/ctas/stop-v2k-torture-harassment</a><a href="#bib-148">[148]</a></p>
 <p>Stop Remote Neural Monitoring Programs and Cruel Experiments on Innocent Citizens</p>
 <p><a href="https://www.change.org/p/stop-remote-neural-monitoring-programs-and-cruel-experiments-on-innocent-citizens?utm_content=cl_sharecopy_31266779_en-US%3A3&amp;recruited_by_id=707f7760-0d50-11ed-b156-6f22a4d3399f&amp;utm_source=share_petition&amp;utm_medium=copylink&amp;utm_campaign=psf_combo_share_initial&amp;share_bandit_exp=initial-31266779-en-GB">https://www.change.org/p/stop-remote-neural-monitoring-programs-and-cruel-experiments-on-innocent-citizens?utm_content=cl_sharecopy_31266779_en-US%3A3&amp;recruited_by_id=707f7760-0d50-11ed-b156-6f22a4d3399f&amp;utm_source=share_petition&amp;utm_medium=copylink&amp;utm_campaign=psf_combo_share_initial&amp;share_bandit_exp=initial-31266779-en-GB</a><a href="#bib-149">[149]</a></p>
 <p>V2k is murder STOP the MASS SHOOTING!!</p>
-<p><a href="https://www.petition2congress.com/ctas/v2k-is-murder-stop-mass-shooting">https://www.petition2congress.com/ctas/v2k-is-murder-stop-mass-shooting</a><a href="#bib-150">[150]</a></p>
+<p><span id="bib-150" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/v2k-is-murder-stop-mass-shooting">https://www.petition2congress.com/ctas/v2k-is-murder-stop-mass-shooting</a><a href="#bib-150">[150]</a></p>
 <p>PUT AN END TO ORGANIZED GANG STALKING BEFORE IT PUTS AN END TO YOU.</p>
 <p>“The mind control methods are provoking suicide and influencing homicides all over the world.”</p>
-<p><a href="https://www.ipetitions.com/petition/put-an-end-to-organized-gang-stalking-before-it">https://www.ipetitions.com/petition/put-an-end-to-organized-gang-stalking-before-it</a><a href="#bib-151">[151]</a></p>
+<p><span id="bib-151" class="anchor-target"></span><a href="https://www.ipetitions.com/petition/put-an-end-to-organized-gang-stalking-before-it">https://www.ipetitions.com/petition/put-an-end-to-organized-gang-stalking-before-it</a><a href="#bib-151">[151]</a></p>
 <p>BAN ELECTRONIC WARFARE ON CIVILIANS</p>
-<p><a href="https://www.ipetitions.com/petition/synergy">https://www.ipetitions.com/petition/synergy</a><a href="#bib-152">[152]</a></p>
+<p><span id="bib-152" class="anchor-target"></span><a href="https://www.ipetitions.com/petition/synergy">https://www.ipetitions.com/petition/synergy</a><a href="#bib-152">[152]</a></p>
 <p>Stop Organized Stalking and Electronic Harassment</p>
 <p>“Please stop the illegal organized stalking and electronic harassment perpetrated on innocent citizens”</p>
-<p><a href="https://sign.moveon.org/petitions/stop-organized-stalking">https://sign.moveon.org/petitions/stop-organized-stalking</a><a href="#bib-153">[153]</a></p>
+<p><span id="bib-153" class="anchor-target"></span><a href="https://sign.moveon.org/petitions/stop-organized-stalking">https://sign.moveon.org/petitions/stop-organized-stalking</a><a href="#bib-153">[153]</a></p>
 <p>Help Cease Gang Stalking And Electronic Harassment</p>
-<p><a href="https://www.gopetition.com/petitions/help-cease-gang-stalking-and-electronic-harassment.html">https://www.gopetition.com/petitions/help-cease-gang-stalking-and-electronic-harassment.html</a><a href="#bib-154">[154]</a></p>
+<p><span id="bib-154" class="anchor-target"></span><a href="https://www.gopetition.com/petitions/help-cease-gang-stalking-and-electronic-harassment.html">https://www.gopetition.com/petitions/help-cease-gang-stalking-and-electronic-harassment.html</a><a href="#bib-154">[154]</a></p>
 <p>STOP PREDATORY GANG STALKING</p>
-<p><a href="https://www.gopetition.com/petitions/stop-predatory-gang-stalking.html">https://www.gopetition.com/petitions/stop-predatory-gang-stalking.html</a><a href="#bib-155">[155]</a></p>
+<p><span id="bib-155" class="anchor-target"></span><a href="https://www.gopetition.com/petitions/stop-predatory-gang-stalking.html">https://www.gopetition.com/petitions/stop-predatory-gang-stalking.html</a><a href="#bib-155">[155]</a></p>
 <p>Harassment, Whistleblower, Group Stalking (Gang-Stalking)</p>
 <p>“STOP the illegal and unauthorized abuses of advanced military-grade weapons V2K-VOICE 2 SKULL (Microwave Hearing)”</p>
-<p><a href="https://www.petition2congress.com/ctas/harassment-whistleblower-group-gang">https://www.petition2congress.com/ctas/harassment-whistleblower-group-gang</a><a href="#bib-156">[156]</a></p>
+<p><span id="bib-156" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/harassment-whistleblower-group-gang">https://www.petition2congress.com/ctas/harassment-whistleblower-group-gang</a><a href="#bib-156">[156]</a></p>
 <p>Gangstalked/ V2k torture/ Mind Control</p>
 <p>“I am a victim of v2k torture and skull to brain mind control I am in desperate need of help”</p>
-<p><a href="https://www.petition2congress.com/ctas/gangstalked-v2k-torture-mind-control">https://www.petition2congress.com/ctas/gangstalked-v2k-torture-mind-control</a><a href="#bib-157">[157]</a></p>
+<p><span id="bib-157" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/gangstalked-v2k-torture-mind-control">https://www.petition2congress.com/ctas/gangstalked-v2k-torture-mind-control</a><a href="#bib-157">[157]</a></p>
 <p>Stop V2k Torture and Harassment</p>
 <p>“please address the issue of the covert illegal projects being run by the CIA and NSA that target individuals, particularly US citizens, using electromagnetic frequency.”</p>
-<p><a href="https://www.petition2congress.com/ctas/stop-v2k-torture-harassment">https://www.petition2congress.com/ctas/stop-v2k-torture-harassment</a><a href="#bib-158">[158]</a></p>
+<p><span id="bib-158" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/stop-v2k-torture-harassment">https://www.petition2congress.com/ctas/stop-v2k-torture-harassment</a><a href="#bib-158">[158]</a></p>
 <p>STOP NEGLECT OF DUTY BY LAW ENFORCEMENT FOR TARGETED INDIVIDUALS</p>
 <p>“I’m now a survivor of No Touch Torture/Torture/Targeting/V2K.”</p>
-<p><a href="https://www.petition2congress.com/ctas/stop-neglect-duty-by-law-enforcement-targeted">https://www.petition2congress.com/ctas/stop-neglect-duty-by-law-enforcement-targeted</a><a href="#bib-159">[159]</a></p>
+<p><span id="bib-159" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/stop-neglect-duty-by-law-enforcement-targeted">https://www.petition2congress.com/ctas/stop-neglect-duty-by-law-enforcement-targeted</a><a href="#bib-159">[159]</a></p>
 <p>Stop small town crime corruption in Central Illinois</p>
 <p>“I believe they use synthetic telepathy and v2k to target vulnerable individuals and use small courts to try and cover it up!”</p>
-<p><a href="https://www.petition2congress.com/ctas/stop-small-town-crime-corruption-in-central">https://www.petition2congress.com/ctas/stop-small-town-crime-corruption-in-central</a><a href="#bib-160">[160]</a></p>
+<p><span id="bib-160" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/stop-small-town-crime-corruption-in-central">https://www.petition2congress.com/ctas/stop-small-town-crime-corruption-in-central</a><a href="#bib-160">[160]</a></p>
 <p>V2K or microwave effect</p>
 <p>“I am an individual who is tormented with direct energy weapons. I live in physical and mental pain. I hear voices using the v2k effect or microwave auditory effect”</p>
-<p><a href="https://www.petition2congress.com/ctas/v2k-microwave-effect">https://www.petition2congress.com/ctas/v2k-microwave-effect</a><a href="#bib-161">[161]</a></p>
+<p><span id="bib-161" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/v2k-microwave-effect">https://www.petition2congress.com/ctas/v2k-microwave-effect</a><a href="#bib-161">[161]</a></p>
 <p>V2K Gang Stalking</p>
 <p>“I am a victim of V2k Gang Stalking.”</p>
-<p><a href="https://www.petition2congress.com/ctas/v2k-gang-stalking">https://www.petition2congress.com/ctas/v2k-gang-stalking</a><a href="#bib-162">[162]</a></p>
+<p><span id="bib-162" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/v2k-gang-stalking">https://www.petition2congress.com/ctas/v2k-gang-stalking</a><a href="#bib-162">[162]</a></p>
 <p>Stop Illegal Gangstalking</p>
 <p>“They are using Direct Energy Weapons (DEW) and v2k (Voice to Skull) as well as Radio frequency (RF) Radiation Microwaving devices (Microwave Auditory Effect) Infrasound A1 Voice Cloning Software, Mind Control, Nano Psychotronics, Excessive Stalking and following innocent Americans around everywhere”</p>
-<p><a href="https://www.petition2congress.com/ctas/stop-illegal-gangstalking">https://www.petition2congress.com/ctas/stop-illegal-gangstalking</a><a href="#bib-163">[163]</a></p>
+<p><span id="bib-163" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/stop-illegal-gangstalking">https://www.petition2congress.com/ctas/stop-illegal-gangstalking</a><a href="#bib-163">[163]</a></p>
 <p>The president is a murder for not stopping V2k mind control</p>
 <p>“I am a of V2k mind control and they have been doing the mass shooting and the murders involved with voices”</p>
-<p><a href="https://www.petition2congress.com/ctas/the-president-is-murder-not-stopping-v2k-mind">https://www.petition2congress.com/ctas/the-president-is-murder-not-stopping-v2k-mind</a><a href="#bib-164">[164]</a></p>
+<p><span id="bib-164" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/the-president-is-murder-not-stopping-v2k-mind">https://www.petition2congress.com/ctas/the-president-is-murder-not-stopping-v2k-mind</a><a href="#bib-164">[164]</a></p>
 <p>All the mass shooting and murders involved with voices are government murders the prof is in liberal on grant st and 7th in three locations check hotels for name of the killers</p>
 <p>“I am a victim of V2k mind control you can’t say no more that this is a lie”</p>
-<p><a href="https://www.petition2congress.com/ctas/all-mass-shooting-murders-involved-with-voices-are-government-murders-prof-is-in-liberal-on-grant-st-7th-in-three-locations-check-hotels-name">https://www.petition2congress.com/ctas/all-mass-shooting-murders-involved-with-voices-are-government-murders-prof-is-in-liberal-on-grant-st-7th-in-three-locations-check-hotels-name</a><a href="#bib-165">[165]</a></p>
+<p><span id="bib-165" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/all-mass-shooting-murders-involved-with-voices-are-government-murders-prof-is-in-liberal-on-grant-st-7th-in-three-locations-check-hotels-name">https://www.petition2congress.com/ctas/all-mass-shooting-murders-involved-with-voices-are-government-murders-prof-is-in-liberal-on-grant-st-7th-in-three-locations-check-hotels-name</a><a href="#bib-165">[165]</a></p>
 <p>Biden don’t be a Hypocrite STOP THE MASS SHOOTING</p>
 <p>“but the truth is that the V2k mind control technology is the cause of it I have been on there kill list for 6 years and it’s the same thing everyday”</p>
-<p><a href="https://www.petition2congress.com/ctas/biden-dont-be-hypocrite-stop-mass-shooting">https://www.petition2congress.com/ctas/biden-dont-be-hypocrite-stop-mass-shooting</a><a href="#bib-166">[166]</a></p>
+<p><span id="bib-166" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/biden-dont-be-hypocrite-stop-mass-shooting">https://www.petition2congress.com/ctas/biden-dont-be-hypocrite-stop-mass-shooting</a><a href="#bib-166">[166]</a></p>
 <p>V2k is murder STOP the MASS SHOOTING!!</p>
 <p>“I am a victim of V2k mind control”</p>
-<p><a href="https://www.petition2congress.com/ctas/action-558-v2k-is-murder-stop-mass-shooting">https://www.petition2congress.com/ctas/action-558-v2k-is-murder-stop-mass-shooting</a><a href="#bib-167">[167]</a></p>
+<p><span id="bib-167" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/action-558-v2k-is-murder-stop-mass-shooting">https://www.petition2congress.com/ctas/action-558-v2k-is-murder-stop-mass-shooting</a><a href="#bib-167">[167]</a></p>
 <p>Cruelty Against Humanity</p>
 <p>“I’m recorded 24 hrs a day. V2k, touchless torture, radiation, extreme pain, electronic sex, blurred vision, hair roasted, electrical shocks to head, private area, and body”</p>
-<p><a href="https://www.petition2congress.com/ctas/cruelty-against-humanity">https://www.petition2congress.com/ctas/cruelty-against-humanity</a><a href="#bib-168">[168]</a></p>
+<p><span id="bib-168" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/cruelty-against-humanity">https://www.petition2congress.com/ctas/cruelty-against-humanity</a><a href="#bib-168">[168]</a></p>
 <p>V2K, DEW and remote neural monitoring</p>
 <p>“A petition against companies that use voice to skull technology ,remote neural monitoring and direct energy weapons in order to intimidate employees.”</p>
-<p><a href="https://www.petition2congress.com/ctas/v2k-dew-remote-neural-monitoring">https://www.petition2congress.com/ctas/v2k-dew-remote-neural-monitoring</a><a href="#bib-169">[169]</a></p>
+<p><span id="bib-169" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/v2k-dew-remote-neural-monitoring">https://www.petition2congress.com/ctas/v2k-dew-remote-neural-monitoring</a><a href="#bib-169">[169]</a></p>
 <p>Prison Illegal Experimentation</p>
 <p>“Remote Neural Monitoring, Audio SpotLight, and V2K synthetic low frequency transmission are all innovative technology that can be used to create false mental health ailments in a subject”</p>
-<p><a href="https://www.petition2congress.com/ctas/prison-illegal-experimentation">https://www.petition2congress.com/ctas/prison-illegal-experimentation</a><a href="#bib-170">[170]</a></p>
+<p><span id="bib-170" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/prison-illegal-experimentation">https://www.petition2congress.com/ctas/prison-illegal-experimentation</a><a href="#bib-170">[170]</a></p>
 <p>Gang stalking V2K victim electromagnetic assault victim</p>
 <p>“I am a victim of V2K AND GANG STALKING IT STARTED 2017 IN VALLEJO. I AM BEING HARASSED 24/7 THERE IS PEOPLE IN MY HEAD HARASSING ME TORTURING ME AND GAINING MIND CONTROL”</p>
-<p><a href="https://www.petition2congress.com/ctas/gang-stalking-v2k-electromagnetic-assault">https://www.petition2congress.com/ctas/gang-stalking-v2k-electromagnetic-assault</a><a href="#bib-171">[171]</a></p>
+<p><span id="bib-171" class="anchor-target"></span><a href="https://www.petition2congress.com/ctas/gang-stalking-v2k-electromagnetic-assault">https://www.petition2congress.com/ctas/gang-stalking-v2k-electromagnetic-assault</a><a href="#bib-171">[171]</a></p>
 <p>Urgent Call for Action Against Organised Gang Stalking</p>
 <p><a href="https://www.whatdotheyknow.com/request/urgent_call_for_action_against_o">https://www.whatdotheyknow.com/request/urgent_call_for_action_against_o</a><a href="#bib-172">[172]</a></p>
 <p>Demand an End to the Targeted Individual Unacknowledged Special Access Program</p>
 <p><a href="https://www.thepetitionsite.com/142/079/399/demand-an-end-to-the-targeted-individual-special-access-unacknowledged-program/">https://www.thepetitionsite.com/142/079/399/demand-an-end-to-the-targeted-individual-special-access-unacknowledged-program/</a><a href="#bib-173">[173]</a></p>
 <p>Walk Against Human Experiments</p>
 <p>“The program is studying human-machine interface weaponry, and the technology is used in psychological warfare, harassment, discrediting, and revenge campaigns. The Targeted Individual program is a domestic torture program aimed at unsuspecting US citizens.”</p>
-<p><a href="https://www.gofundme.com/f/No-Touch-Torture">https://www.gofundme.com/f/No-Touch-Torture</a><a href="#bib-174">[174]</a></p>
+<p><span id="bib-174" class="anchor-target"></span><a href="https://www.gofundme.com/f/No-Touch-Torture">https://www.gofundme.com/f/No-Touch-Torture</a><a href="#bib-174">[174]</a></p>
 <p>UK Parliament</p>
 <p>Electronic Harassment Law</p>
 <p>“The importance of providing advice to educational, legal and medical organisations about remote neural monitoring, the somatic and genetic effects of non-ionizing radiation, use of unique brain frequencies (brain mapping) and manipulation of a target’s physical and cognitive functions should expedite the development of a framework to protect society.”</p>
-<p><a href="https://you.38degrees.org.uk/petitions/electronic-harassment-law">https://you.38degrees.org.uk/petitions/electronic-harassment-law</a><a href="#bib-175">[175]</a></p>
+<p><span id="bib-175" class="anchor-target"></span><a href="https://you.38degrees.org.uk/petitions/electronic-harassment-law">https://you.38degrees.org.uk/petitions/electronic-harassment-law</a><a href="#bib-175">[175]</a></p>
 <p>Repeal FISA, by Kelb, Inc.</p>
 <p>“Congress has adapted and upgraded a Blacklist, based on inquisitional precepts, precluding guilt. FISA,(code, definitions, included) a secret court, now includes electronic and mass surveillance methods of targeted harassment.”</p>
 <p><a href="https://www.change.org/p/keep-the-ethical-light-burning-repeal-fisa-by-kelb-inc?recruiter=877153774&amp;utm_source=share_petition&amp;utm_medium=copylink&amp;utm_campaign=share_petition&amp;use_react=false&amp;fbclid=IwAR2VWSsNJAK000s3l9MldT-RcaxhxvrqgKKSvBcTC68fsaCLDqDVs5ye4Lw">https://www.change.org/p/keep-the-ethical-light-burning-repeal-fisa-by-kelb-inc?recruiter=877153774&amp;utm_source=share_petition&amp;utm_medium=copylink&amp;utm_campaign=share_petition&amp;use_react=false&amp;fbclid=IwAR2VWSsNJAK000s3l9MldT-RcaxhxvrqgKKSvBcTC68fsaCLDqDVs5ye4Lw</a><a href="#bib-176">[176]</a></p>
 <p>CDC &amp; NIH: Recognize, Track, and Investigate Diagnosed Civilian Havana Syndrome/AHI Cases<br>
 “We call on the CDC and NIH to immediately establish a civilian case registry, issue diagnostic criteria and reporting instructions for physicians, and provide immediate public health guidance to ensure cases are tracked, investigated, and patients receive care. This is a novel public health threat, and Civilian Americans deserve the same recognition, protection, and support afforded to government personnel.”</p>
-<p><a href="https://www.change.org/p/cdc-nih-recognize-track-and-investigate-diagnosed-civilian-havana-syndrome-ahi-cases?signed=true">https://www.change.org/p/cdc-nih-recognize-track-and-investigate-diagnosed-civilian-havana-syndrome-ahi-cases?signed=true</a><a href="#bib-177">[177]</a></p>
+<p><span id="bib-177" class="anchor-target"></span><a href="https://www.change.org/p/cdc-nih-recognize-track-and-investigate-diagnosed-civilian-havana-syndrome-ahi-cases?signed=true">https://www.change.org/p/cdc-nih-recognize-track-and-investigate-diagnosed-civilian-havana-syndrome-ahi-cases?signed=true</a><a href="#bib-177">[177]</a></p>
 <p>Protect Women from Cyber Torture, Digital Human Trafficking &amp; Targeted Exploitation</p>
 <p>“Women are being tracked, discredited, and digitally violated through secret government watchlists, AI surveillance, and online exploitation. Many report experiencing cyber torture and electronic sexual assault (eSA), a disturbing form of abuse carried out remotely through technology.”</p>
-<p><a href="https://form.jotform.com/250757079723061">https://form.jotform.com/250757079723061</a><a href="#bib-178">[178]</a></p>
+<p><span id="bib-178" class="anchor-target"></span><a href="https://form.jotform.com/250757079723061">https://form.jotform.com/250757079723061</a><a href="#bib-178">[178]</a></p>
 </blockquote>
 <h4 id="court-cases">Court Cases<a href="#court-cases" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h4>
 <p>Here is a short compilation of US court cases alleging electronic harassment via Remote Neural Monitoring and V2K. Note that defendants range from FBI, Department of Justice, to City Police Departments country wide as well as private corporations like Facebook, State Farm, HP etc.</p>
@@ -929,7 +949,7 @@
 <p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1_06-cv-02125/pdf/USCOURTS-dcd-1_06-cv-02125-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1_06-cv-02125/pdf/USCOURTS-dcd-1_06-cv-02125-1.pdf</a><a href="#bib-182">[182]</a></p>
 <p><strong>Friedman v. U.S. Secret Serv.</strong></p>
 <p>Request for records concerning use of “’directed energy devices or systems’”</p>
-<p><a href="https://www.justice.gov/oip/friedman-v-us-secret-serv-no-06-2125-2017-wl-4797785-ddc-oct-20-2017-leon-j">https://www.justice.gov/oip/friedman-v-us-secret-serv-no-06-2125-2017-wl-4797785-ddc-oct-20-2017-leon-j</a><a href="#bib-183">[183]</a></p>
+<p><span id="bib-183" class="anchor-target"></span><a href="https://www.justice.gov/oip/friedman-v-us-secret-serv-no-06-2125-2017-wl-4797785-ddc-oct-20-2017-leon-j">https://www.justice.gov/oip/friedman-v-us-secret-serv-no-06-2125-2017-wl-4797785-ddc-oct-20-2017-leon-j</a><a href="#bib-183">[183]</a></p>
 <p><strong>KELLY WALLACE, against FBI, U.S. Dept. of Justice</strong></p>
 <p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2_14-cv-02512/pdf/USCOURTS-nyed-2_14-cv-02512-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2_14-cv-02512/pdf/USCOURTS-nyed-2_14-cv-02512-0.pdf</a><a href="#bib-184">[184]</a></p>
 <p><strong>15-054 - BANKS v. NYPD et al: 2015</strong></p>
@@ -1018,7 +1038,7 @@
 <p><strong>William Starrett, Jr. v. Lockheed Martin Corporation</strong></p>
 <p>“targeted him with “Remote Neural Monitoring,” harassed him</p>
 <p>using “Voice to Skull” technology”</p>
-<p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca5-18-10389/pdf/USCOURTS-ca5-18-10389-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca5-18-10389/pdf/USCOURTS-ca5-18-10389-0.pdf</a><a href="#bib-214">[214]</a></p>
+<p><span id="bib-214" class="anchor-target"></span><a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca5-18-10389/pdf/USCOURTS-ca5-18-10389-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca5-18-10389/pdf/USCOURTS-ca5-18-10389-0.pdf</a><a href="#bib-214">[214]</a></p>
 <p><strong>STARRETT v. USA</strong></p>
 <p>“satellite-relayed or satellite-based technologies being forced upon [him] by the foregoing groups and their employees and agents” which “have included microwave, radar, radio, optics, directed energy, and tracking technologies,” which Plaintiff refers to as “Remote Neural Monitoring.”</p>
 <p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-cofc-1_21-cv-01168/pdf/USCOURTS-cofc-1_21-cv-01168-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-cofc-1_21-cv-01168/pdf/USCOURTS-cofc-1_21-cv-01168-0.pdf</a><a href="#bib-215">[215]</a></p>
@@ -1037,7 +1057,7 @@
 <p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-nmd-1_23-cv-00598/pdf/USCOURTS-nmd-1_23-cv-00598-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nmd-1_23-cv-00598/pdf/USCOURTS-nmd-1_23-cv-00598-0.pdf</a><a href="#bib-219">[219]</a></p>
 <p><strong>Starrett v. US: 2023</strong></p>
 <p>“...he has been subjected to “remote neural monitoring.””</p>
-<p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca13-22-01555/pdf/USCOURTS-ca13-22-01555-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca13-22-01555/pdf/USCOURTS-ca13-22-01555-0.pdf</a><a href="#bib-220">[220]</a></p>
+<p><span id="bib-220" class="anchor-target"></span><a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca13-22-01555/pdf/USCOURTS-ca13-22-01555-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca13-22-01555/pdf/USCOURTS-ca13-22-01555-0.pdf</a><a href="#bib-220">[220]</a></p>
 <p><strong>BANKS v. BEN: 2013</strong></p>
 <p>“...claiming that defendants used “Remote Neural Monitoring” technology to harass and steal from him)”</p>
 <p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2_13-cv-01582/pdf/USCOURTS-pawd-2_13-cv-01582-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2_13-cv-01582/pdf/USCOURTS-pawd-2_13-cv-01582-1.pdf</a><a href="#bib-221">[221]</a></p>
@@ -1049,7 +1069,7 @@
 <p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-paed-5_22-cv-04394/pdf/USCOURTS-paed-5_22-cv-04394-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-paed-5_22-cv-04394/pdf/USCOURTS-paed-5_22-cv-04394-0.pdf</a><a href="#bib-223">[223]</a></p>
 <p><strong>Targeted Justice v. Garland: 2024</strong></p>
 <p>“conspired to use [a plaintiff] for mind experiments, targeted him with ‘Remote Neural Monitoring,’ harassed him using ‘Voice to Skull’ technology, and otherwise remotely monitored and controlled his thoughts, movements, sleep, and bodily functions.”</p>
-<p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca5-23-20342/pdf/USCOURTS-ca5-23-20342-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca5-23-20342/pdf/USCOURTS-ca5-23-20342-0.pdf</a><a href="#bib-224">[224]</a></p>
+<p><span id="bib-224" class="anchor-target"></span><a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca5-23-20342/pdf/USCOURTS-ca5-23-20342-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca5-23-20342/pdf/USCOURTS-ca5-23-20342-0.pdf</a><a href="#bib-224">[224]</a></p>
 <p><strong>Banks v. Davenport et al:2013</strong></p>
 <p>“using “remote neural monitoring” to harass him via satellite”</p>
 <p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-ared-4_13-cv-00481/pdf/USCOURTS-ared-4_13-cv-00481-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ared-4_13-cv-00481/pdf/USCOURTS-ared-4_13-cv-00481-0.pdf</a><a href="#bib-225">[225]</a></p>
@@ -1103,7 +1123,7 @@
 <p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1_21-cv-02073/pdf/USCOURTS-dcd-1_21-cv-02073-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1_21-cv-02073/pdf/USCOURTS-dcd-1_21-cv-02073-0.pdf</a><a href="#bib-239">[239]</a></p>
 <p><strong>United States v. Richards: 2025</strong></p>
 <p>“Mr. Richards’s testimony focused on two concepts, “voice-to-skull” and “gang stalking.” Voice-to-skull, he explained, “is like telepathy,” conveying “a thought process to another person using some kind of equipment.”</p>
-<p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca10-25-03028/pdf/USCOURTS-ca10-25-03028-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca10-25-03028/pdf/USCOURTS-ca10-25-03028-0.pdf</a><a href="#bib-240">[240]</a></p>
+<p><span id="bib-240" class="anchor-target"></span><a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca10-25-03028/pdf/USCOURTS-ca10-25-03028-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca10-25-03028/pdf/USCOURTS-ca10-25-03028-0.pdf</a><a href="#bib-240">[240]</a></p>
 <p><strong>Bivolarevic v. U.S. CIA</strong></p>
 <p>“...action against the CIA (presumably meaning the Central Intelligence Agency), alleging that she has been subjected to “voice to skull technology (in different forms) since . . . January 2005”</p>
 <p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-cand-4_09-cv-04620/pdf/USCOURTS-cand-4_09-cv-04620-4.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-cand-4_09-cv-04620/pdf/USCOURTS-cand-4_09-cv-04620-4.pdf</a><a href="#bib-241">[241]</a></p>
@@ -1207,13 +1227,13 @@
 <p>“On March 9, 2021, Plaintiff submitted clarification and sought records pertaining to the following: Bioeffects of non-lethal weapons, microwave hearing or microwave auditory effect, Frey effect, voice to skull devices, including silent audio devices, radio frequency radiation auditory effect in humans, (also, RFR auditory effect in humans, synthetic telepathy, electronic brain link or EBL, P300 brain wave technology, remote neutral monitoring or RNM, targeted neuroplasticity training or T.N.T., communicating via the microwave auditory effect”</p>
 <p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-mdd-1_22-cv-00710/pdf/USCOURTS-mdd-1_22-cv-00710-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-mdd-1_22-cv-00710/pdf/USCOURTS-mdd-1_22-cv-00710-0.pdf</a><a href="#bib-272">[272]</a></p>
 <p><strong>Targeted Justice v. Garland: 2024</strong></p>
-<p><a href="https://law.justia.com/cases/federal/appellate-courts/ca5/23-20342/23-20342-2024-03-08.html">https://law.justia.com/cases/federal/appellate-courts/ca5/23-20342/23-20342-2024-03-08.html</a><a href="#bib-273">[273]</a></p>
+<p><span id="bib-273" class="anchor-target"></span><a href="https://law.justia.com/cases/federal/appellate-courts/ca5/23-20342/23-20342-2024-03-08.html">https://law.justia.com/cases/federal/appellate-courts/ca5/23-20342/23-20342-2024-03-08.html</a><a href="#bib-273">[273]</a></p>
 <p><strong>Todd Giffen v. Obama et al: 2014</strong></p>
 <p>“Petitioner claims that the United States military has tortured him by sending energy into his body and mind.”</p>
 <p><a href="https://www.govinfo.gov/content/pkg/USCOURTS-caed-1_14-cv-01280/pdf/USCOURTS-caed-1_14-cv-01280-4.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-caed-1_14-cv-01280/pdf/USCOURTS-caed-1_14-cv-01280-4.pdf</a><a href="#bib-274">[274]</a></p>
 <p><strong>Dr. Katherine Horton v SIS, MI5, GCHQ [2016] EWHC 2095 (QB)</strong></p>
 <p>“So this is 24/7 assaults with these microwave weapons and, and that’s why I basically decided to just, and that’s why you find the documents in this kind of very haphazard way assembled because they’ve been assembled, written in an emergency”</p>
-<p><a href="https://stop007.org/wp-content/uploads/2016/10/dca-khorton-no-claim-no-court-37-horton-sis-mi5-gchq-19-05-16.pdf">https://stop007.org/wp-content/uploads/2016/10/dca-khorton-no-claim-no-court-37-horton-sis-mi5-gchq-19-05-16.pdf</a><a href="#bib-275">[275]</a></p>
+<p><span id="bib-275" class="anchor-target"></span><a href="https://stop007.org/wp-content/uploads/2016/10/dca-khorton-no-claim-no-court-37-horton-sis-mi5-gchq-19-05-16.pdf">https://stop007.org/wp-content/uploads/2016/10/dca-khorton-no-claim-no-court-37-horton-sis-mi5-gchq-19-05-16.pdf</a><a href="#bib-275">[275]</a></p>
 <p><strong>Sherven v. Central Intelligence Agency: 2023</strong></p>
 <p>“In response the CIA began conducting a psychological operation to get rid of the Plaintiff extra-judicially by driving him insane with mind-control and mind-reading satellites, to force him into a mental hospital.”</p>
 <p><a href="https://www.courtlistener.com/opinion/9399969/sherven-v-central-intelligence-agency/">https://www.courtlistener.com/opinion/9399969/sherven-v-central-intelligence-agency/</a><a href="#bib-276">[276]</a></p>
@@ -1323,7 +1343,7 @@
 <p><a href="https://www.ebsco.com/research-starters/law/shooting-police-officers-baton-rouge-2016">https://www.ebsco.com/research-starters/law/shooting-police-officers-baton-rouge-2016</a><a href="#bib-303">[303]</a></p>
 </blockquote>
 <hr>
-<h3 id="discussion-on-credibility">Discussion on Credibility<a href="#discussion-on-credibility" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="discussion-on-credibility" class="main-heading">Discussion on Credibility<a href="#discussion-on-credibility" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <hr>
 <h4 id="is-it-feasible-for-these-technologies-to-actually-exist">Is it feasible for these technologies to actually exist?<a href="#is-it-feasible-for-these-technologies-to-actually-exist" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h4>
 <p>From the discussion above, we know that Directed Energy Weapons commonly referred to as DEWs certainly exist. It is documented that the Russians were using electromagnetic weapons to cause a range of negative physiological <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3509929/">effects as early as 1953</a> and the Havana Syndrome/ AHI’s are confirmed by experts from a range of different fields to have been most likely caused by direct pulsed radio-frequency energy<a href="#bib-304">[304]</a>.</p>
@@ -1533,7 +1553,7 @@
 <hr>
 <p>“If what you describe were happening — that is, <strong>a U.S. government agency conducting nonconsensual experiments on civilians involving psychological and neurological torture</strong> — it would violate <strong>numerous U.S. and international laws, constitutional protections, and human rights conventions</strong>. Below is a detailed breakdown of the main legal and ethical boundaries that such a program would be violating.</p>
 <hr>
-<h3 id="1-us-constitutional-violations"><strong>1. U.S. Constitutional Violations</strong><a href="#1-us-constitutional-violations" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="1-us-constitutional-violations" class="main-heading"><strong>1. U.S. Constitutional Violations</strong><a href="#1-us-constitutional-violations" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <h4 id="fourth-amendment--protection-from-unreasonable-searches-and-seizures"><strong>Fourth Amendment – Protection from Unreasonable Searches and Seizures</strong><a href="#fourth-amendment--protection-from-unreasonable-searches-and-seizures" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h4>
 <ul>
 <li>
@@ -1578,7 +1598,7 @@
 </li>
 </ul>
 <hr>
-<h3 id="2-federal-statutes-violated"><strong>2. Federal Statutes Violated</strong><a href="#2-federal-statutes-violated" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="2-federal-statutes-violated" class="main-heading"><strong>2. Federal Statutes Violated</strong><a href="#2-federal-statutes-violated" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <h4 id="18-usc--23402340a--torture-act"><strong>18 U.S.C. § 2340–2340A – Torture Act</strong><a href="#18-usc--23402340a--torture-act" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h4>
 <ul>
 <li>
@@ -1618,7 +1638,7 @@
 <li>If the alleged experiments cause harassment, intimidation, or emotional distress, they could also constitute federal <em>stalking</em> crimes using “electronic communication” or other means.</li>
 </ul>
 <hr>
-<h3 id="3-international-law-and-human-rights-violations"><strong>3. International Law and Human Rights Violations</strong><a href="#3-international-law-and-human-rights-violations" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="3-international-law-and-human-rights-violations" class="main-heading"><strong>3. International Law and Human Rights Violations</strong><a href="#3-international-law-and-human-rights-violations" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <h4 id="united-nations-convention-against-torture-cat"><strong>United Nations Convention Against Torture (CAT)</strong><a href="#united-nations-convention-against-torture-cat" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h4>
 <ul>
 <li>
@@ -1653,7 +1673,7 @@
 </li>
 </ul>
 <hr>
-<h3 id="4-ethical-and-medical-violations"><strong>4. Ethical and Medical Violations</strong><a href="#4-ethical-and-medical-violations" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="4-ethical-and-medical-violations" class="main-heading"><strong>4. Ethical and Medical Violations</strong><a href="#4-ethical-and-medical-violations" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <h4 id="belmont-report-1979--ethical-principles-for-human-research"><strong>Belmont Report (1979) – Ethical Principles for Human Research</strong><a href="#belmont-report-1979--ethical-principles-for-human-research" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h4>
 <ul>
 <li>
@@ -1668,7 +1688,7 @@
 <li>Both organizations explicitly prohibit participating in or facilitating torture, coercive psychological manipulation, or nonconsensual experimentation.</li>
 </ul>
 <hr>
-<h3 id="5-legal-consequences-if-proven-true"><strong>5. Legal Consequences (If Proven True)</strong><a href="#5-legal-consequences-if-proven-true" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="5-legal-consequences-if-proven-true" class="main-heading"><strong>5. Legal Consequences (If Proven True)</strong><a href="#5-legal-consequences-if-proven-true" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <p>If such a program were proven to exist, the responsible officials and agencies could face:</p>
 <ul>
 <li>
@@ -1694,7 +1714,7 @@
 <p>What other theories are there? This is being reported en mass in both the US and countless other nations worldwide. Is this a new form of psychological warfare that all established governments are using on each other? Is this the work of criminal organizations hired by private companies to silence whistleblowers as former Naval officer David Voigts suggested about the Church of Scientology and countless lawsuits alleged against companies like State Farm, Facebook, and Ford? It is easy to imagine that if this technology has been developed, then criminal enterprises could be able to obtain it as well. With all of these possibilities in mind, it certainly stands that the perpetrators could be a variety of governments, institutions, companies and criminal syndicates each utilizing them for a multitude of their own objectives.</p>
 <p>Above all, with the sheer quantity of American citizens reporting this phenomenon, and the evidence established over the course of this research that this these weapons abuses are a possibility, this warrants an extensive investigation. By the evidence above, American Lives are being severely impacted by a phenomenon that aligns with psychotronic weapon development and abuse. In the next section is an additional element of this phenomenon.</p>
 <hr>
-<h3 id="medical-victimization-of-individuals-experiencing-these-attacks"><strong>Medical Victimization of Individuals Experiencing these Attacks</strong><a href="#medical-victimization-of-individuals-experiencing-these-attacks" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="medical-victimization-of-individuals-experiencing-these-attacks" class="main-heading"><strong>Medical Victimization of Individuals Experiencing these Attacks</strong><a href="#medical-victimization-of-individuals-experiencing-these-attacks" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <hr>
 <h4 id="anomalous-health-incidents-and-the-moscow-embassy-attacks">Anomalous Health Incidents and the Moscow Embassy Attacks<a href="#anomalous-health-incidents-and-the-moscow-embassy-attacks" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h4>
 <p>Another aspect of the victimization of those who believe they are experiencing these attacks is the doubt cast on their experiences by the <a href="https://scholarworks.smith.edu/theses/702/">Medical community.</a> The medical community does not have a framework to diagnose when someone is experiencing the effects of advanced weapons as evidenced by the Havana Syndrome, and discussed below<a href="#bib-319">[319]</a>. Professional often deny the reports of these victims rationalizing them in delusion or psychogenic illness. For example, examine the reaction by the medical community to the Havana Attacks and AHI victims:</p>
@@ -1830,7 +1850,7 @@
 <p><a href="https://substackcdn.com/image/fetch/$s_!AGqi!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fde3ba698-2a8c-4132-80ad-ca6aac067723_1008x515.jpeg"><img src="https://substackcdn.com/image/fetch/$s_!AGqi!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fde3ba698-2a8c-4132-80ad-ca6aac067723_1008x515.jpeg" alt=""></a><a href="#bib-346">[346]</a></p>
 <p>This discussion has established the idea that schizophrenia may be used as a means to further discredit and victimize the targets of psychotronic weapons. <a href="https://www.nami.org/media-and-pop-culture/the-consequences-of-stigma-surrounding-schizophrenia/">Schizophrenia’s stigma can be humiliating, massively discrediting and socially harmful</a><a href="#bib-347">[347]</a>. <a href="https://pubmed.ncbi.nlm.nih.gov/36244006/">The monetary burden of the medical system and schizophrenia related treatment is knowingly financially burdensome</a><a href="#bib-348">[348]</a>. <a href="https://my.clevelandclinic.org/health/treatments/24692-antipsychotic-medications">Additionally the medications given to the victims cause varieties of physical ailments ranging from the permanent disorder of tardive dyskinesia, weight gain, exhaustion, nausea, vomiting, confusion, and many more</a><a href="#bib-349">[349]</a>. This layer of compounding victimization is a problematic prospect and potential result of the use of advanced psychological weapons on US civilians.</p>
 <hr>
-<h3 id="summary"><strong>Summary</strong><a href="#summary" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="summary" class="main-heading"><strong>Summary</strong><a href="#summary" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <hr>
 <p>Psychological warfare is a long standing principle of war and there is undeniable evidence that United States foreign adversaries are implementing psychological tactics to cause disruption, political volatility, and damage to our nation. The Havana Syndrome and AHI anomalies are being linked to possible Russian involvement using Directed Pulsed Energy Weapons and our intelligence agencies are denying the existence of these weapons and the idea that our enemies possess psychotronic weapon technology.</p>
 <p>The development of psychological weapons that can influence the mind, degrade a target mentally, communicate voices, subliminal messages, and sounds into people’s heads, and read minds have been on the research and technological agenda of Russia and China and the US for decades as noted by people like Timothy L. Thomas. Masses of US citizens have been reporting that they have been hearing voices and experiencing a variety of other symptoms like their thoughts being read and voices being transmitted to their skulls for decades. The people who are claiming this include doctors, researchers, scientists, neuroscientists, particle physicists like Dr. Katherine Horton, engineers, and civilians of all walks of life.</p>
@@ -1838,7 +1858,7 @@
 <p>People reporting the experience of these technologies are suffering immensely; they equate the experience as torture. Their lives are filled with pain, paranoia, and psychological torment. The symptoms of hearing voices, and minds being read are reported en mass. Some of the people experiencing this phenomenon are committing atrocities because of their suffering. Additionally, these people are experiencing further harm by medical diagnoses.</p>
 <p>Given the substantial amassing body of reports of psychotronic weapons being used, experts attesting their use and existence, university, military, and scientific publications declaring that these technologies exist or that they have been on military research agendas for decades, and the overwhelming possibility that foreign adversaries, criminal organizations or even US Agencies are perpetrating these crimes, a formal and extensive investigation into the use of advanced psychological weapons on US civilians needs to be conducted.</p>
 <hr>
-<h3 id="notes">Notes<a href="#notes" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+<h3 id="notes" class="main-heading">Notes<a href="#notes" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <hr>
 <ol>
 <li>Interestingly enough, I began writing this article in October of 2025. I was able to find one web source that hosted Timothy Thomas’s Human Network Attacks, I have not been able to find another. That source was APAN Networks. I tried to access the link to Human Network Attacks on the 31st of October and the site was shutdown as of the 29th:</li>
@@ -1916,54 +1936,54 @@
 <li><span id="bib-60" class="anchor-target"></span>"<a href="https://barbarahartwell.blogspot.com/">https://barbarahartwell.blogspot.com/</a>." barbarahartwell.blogspot.com. Accessed November 13, 2025. <a href="https://barbarahartwell.blogspot.com/">https://barbarahartwell.blogspot.com/</a>.</li>
 <li><span id="bib-61" class="anchor-target"></span>"<a href="https://stop007.org/home/about">https://stop007.org/home/about</a>." stop007.org. Accessed November 13, 2025. <a href="https://stop007.org/home/about">https://stop007.org/home/about</a>.</li>
 <li><span id="bib-62" class="anchor-target"></span>"<a href="https://www.youtube.com/watch?v=COJi50XXvbo%5C&amp;t=2s">https://www.youtube.com/watch?v=COJi50XXvbo\&amp;t=2s</a>." youtube.com. Accessed November 13, 2025. <a href="https://www.youtube.com/watch?v=COJi50XXvbo%5C&amp;t=2s">https://www.youtube.com/watch?v=COJi50XXvbo\&amp;t=2s</a>.</li>
-<li><span id="bib-63" class="anchor-target"></span>"<a href="https://mindjustice.org/">https://mindjustice.org/</a>." mindjustice.org. Accessed November 13, 2025. <a href="https://mindjustice.org/">https://mindjustice.org/</a>.</li>
-<li><span id="bib-64" class="anchor-target"></span>"<a href="https://www.targetedjustice.com/">https://www.targetedjustice.com/</a>." targetedjustice.com. Accessed November 13, 2025. <a href="https://www.targetedjustice.com/">https://www.targetedjustice.com/</a>.</li>
-<li><span id="bib-65" class="anchor-target"></span>"<a href="https://www.targetedmassachusetts.org/">https://www.targetedmassachusetts.org/</a>." targetedmassachusetts.org. Accessed November 13, 2025. <a href="https://www.targetedmassachusetts.org/">https://www.targetedmassachusetts.org/</a>.</li>
-<li><span id="bib-66" class="anchor-target"></span>"<a href="https://www.aihrfoundation.org/">https://www.aihrfoundation.org/</a>." aihrfoundation.org. Accessed November 13, 2025. <a href="https://www.aihrfoundation.org/">https://www.aihrfoundation.org/</a>.</li>
+
+
+
+
 <li><span id="bib-67" class="anchor-target"></span>"<a href="https://icator.be/">https://icator.be/</a>." icator.be. Accessed November 13, 2025. <a href="https://icator.be/">https://icator.be/</a>.</li>
-<li><span id="bib-68" class="anchor-target"></span>"<a href="http://pactsntl.org/">http://pactsntl.org/</a>." pactsntl.org. Accessed November 13, 2025. <a href="http://pactsntl.org/">http://pactsntl.org/</a>.</li>
-<li><span id="bib-69" class="anchor-target"></span>"<a href="http://www.viactec.es/">http://www.viactec.es/</a>." viactec.es. Accessed November 13, 2025. <a href="http://www.viactec.es/">http://www.viactec.es/</a>.</li>
+
+
 <li><span id="bib-70" class="anchor-target"></span>"<a href="https://e-waffen.de/">https://e-waffen.de/</a>." e-waffen.de. Accessed November 13, 2025. <a href="https://e-waffen.de/">https://e-waffen.de/</a>.</li>
-<li><span id="bib-71" class="anchor-target"></span>"<a href="http://www.associazionevittimearmielettroniche-mentali.org/">http://www.associazionevittimearmielettroniche-mentali.org/</a>." associazionevittimearmielettroniche-mentali.org. Accessed November 13, 2025. <a href="http://www.associazionevittimearmielettroniche-mentali.org/">http://www.associazionevittimearmielettroniche-mentali.org/</a>.</li>
+
 <li><span id="bib-72" class="anchor-target"></span>"<a href="http://www.ontarget.co.cc/">http://www.ontarget.co.cc/</a>." ontarget.co.cc. Accessed November 13, 2025. <a href="http://www.ontarget.co.cc/">http://www.ontarget.co.cc/</a>.</li>
 <li><span id="bib-73" class="anchor-target"></span>"<a href="http://www.stopeg.com/">http://www.stopeg.com/</a>." stopeg.com. Accessed November 13, 2025. <a href="http://www.stopeg.com/">http://www.stopeg.com/</a>.</li>
 <li><span id="bib-74" class="anchor-target"></span>"<a href="http://stopzet.org/">http://stopzet.org/</a>." stopzet.org. Accessed November 13, 2025. <a href="http://stopzet.org/">http://stopzet.org/</a>.</li>
-<li><span id="bib-75" class="anchor-target"></span>"<a href="http://www.svegritet.se/">http://www.svegritet.se/</a>." svegritet.se. Accessed November 13, 2025. <a href="http://www.svegritet.se/">http://www.svegritet.se/</a>.</li>
+
 <li><span id="bib-76" class="anchor-target"></span>"<a href="https://www.targetedsurvivors.com/">https://www.targetedsurvivors.com/</a>." targetedsurvivors.com. Accessed November 13, 2025. <a href="https://www.targetedsurvivors.com/">https://www.targetedsurvivors.com/</a>.</li>
-<li><span id="bib-77" class="anchor-target"></span>"<a href="http://www.targeted-individuals.co.uk/">http://www.targeted-individuals.co.uk/</a>." targeted-individuals.co.uk. Accessed November 13, 2025. <a href="http://www.targeted-individuals.co.uk/">http://www.targeted-individuals.co.uk/</a>.</li>
-<li><span id="bib-78" class="anchor-target"></span>"<a href="http://www.covertharassment.org/">http://www.covertharassment.org/</a>." covertharassment.org. Accessed November 13, 2025. <a href="http://www.covertharassment.org/">http://www.covertharassment.org/</a>.</li>
-<li><span id="bib-79" class="anchor-target"></span>"<a href="http://targetedindividualsua.weebly.com/">http://targetedindividualsua.weebly.com/</a>." targetedindividualsua.weebly.com. Accessed November 13, 2025. <a href="http://targetedindividualsua.weebly.com/">http://targetedindividualsua.weebly.com/</a>.</li>
-<li><span id="bib-80" class="anchor-target"></span>"<a href="https://organizationofmindcontrolvictims.com/">https://organizationofmindcontrolvictims.com/</a>." organizationofmindcontrolvictims.com. Accessed November 13, 2025. <a href="https://organizationofmindcontrolvictims.com/">https://organizationofmindcontrolvictims.com/</a>.</li>
-<li><span id="bib-81" class="anchor-target"></span>"<a href="http://www.westcoast-oseh.com/">http://www.westcoast-oseh.com/</a>." westcoast-oseh.com. Accessed November 13, 2025. <a href="http://www.westcoast-oseh.com/">http://www.westcoast-oseh.com/</a>.</li>
-<li><span id="bib-82" class="anchor-target"></span>"<a href="https://organised-crime-of-covert-electronic-assault-nz.com/">https://organised-crime-of-covert-electronic-assault-nz.com/</a>." organised-crime-of-covert-electronic-assault-nz.com. Accessed November 13, 2025. <a href="https://organised-crime-of-covert-electronic-assault-nz.com/">https://organised-crime-of-covert-electronic-assault-nz.com/</a>.</li>
-<li><span id="bib-83" class="anchor-target"></span>"<a href="https://www.tekuhan.org/">https://www.tekuhan.org/</a>." tekuhan.org. Accessed November 13, 2025. <a href="https://www.tekuhan.org/">https://www.tekuhan.org/</a>.</li>
-<li><span id="bib-84" class="anchor-target"></span>"<a href="http://tcvn.sakura.ne.jp/">http://tcvn.sakura.ne.jp/</a>." tcvn.sakura.ne.jp. Accessed November 13, 2025. <a href="http://tcvn.sakura.ne.jp/">http://tcvn.sakura.ne.jp/</a>.</li>
-<li><span id="bib-85" class="anchor-target"></span>"<a href="https://peacepink.ning.com/">https://peacepink.ning.com/</a>." peacepink.ning.com. Accessed November 13, 2025. <a href="https://peacepink.ning.com/">https://peacepink.ning.com/</a>.</li>
-<li><span id="bib-86" class="anchor-target"></span>"<a href="https://tilibrary.com/">https://tilibrary.com/</a>." tilibrary.com. Accessed November 13, 2025. <a href="https://tilibrary.com/">https://tilibrary.com/</a>.</li>
+
+
+
+
+
+
+
+
+
+
 <li><span id="bib-87" class="anchor-target"></span>"<a href="https://bounceblack.org/2025/04/26/call-to-duty-fighting-back-against-organised-harassment">https://bounceblack.org/2025/04/26/call-to-duty-fighting-back-against-organised-harassment</a>." bounceblack.org. Accessed November 13, 2025. <a href="https://bounceblack.org/2025/04/26/call-to-duty-fighting-back-against-organised-harassment">https://bounceblack.org/2025/04/26/call-to-duty-fighting-back-against-organised-harassment</a>.</li>
-<li><span id="bib-88" class="anchor-target"></span>"<a href="https://gangstalkingmindcontrolcults.com/">https://gangstalkingmindcontrolcults.com/</a>." gangstalkingmindcontrolcults.com. Accessed November 13, 2025. <a href="https://gangstalkingmindcontrolcults.com/">https://gangstalkingmindcontrolcults.com/</a>.</li>
+
 <li><span id="bib-89" class="anchor-target"></span>"<a href="https://educate-yourself.org/mc">https://educate-yourself.org/mc</a>." educate-yourself.org. Accessed November 13, 2025. <a href="https://educate-yourself.org/mc">https://educate-yourself.org/mc</a>.</li>
-<li><span id="bib-90" class="anchor-target"></span>"<a href="https://fightgangstalking.com/">https://fightgangstalking.com/</a>." fightgangstalking.com. Accessed November 13, 2025. <a href="https://fightgangstalking.com/">https://fightgangstalking.com/</a>.</li>
-<li><span id="bib-91" class="anchor-target"></span>"<a href="https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime">https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime</a>." discover.hubpages.com. Accessed November 13, 2025. <a href="https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime">https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime</a>.</li>
-<li><span id="bib-92" class="anchor-target"></span>"<a href="https://embracefailure.blog/">https://embracefailure.blog/</a>." embracefailure.blog. Accessed November 13, 2025. <a href="https://embracefailure.blog/">https://embracefailure.blog/</a>.</li>
-<li><span id="bib-93" class="anchor-target"></span>"<a href="https://yoursocialfreedom.com/">https://yoursocialfreedom.com/</a>." yoursocialfreedom.com. Accessed November 13, 2025. <a href="https://yoursocialfreedom.com/">https://yoursocialfreedom.com/</a>.</li>
-<li><span id="bib-94" class="anchor-target"></span>"<a href="https://www.bigbrotherwatchingus.com/">https://www.bigbrotherwatchingus.com/</a>." bigbrotherwatchingus.com. Accessed November 13, 2025. <a href="https://www.bigbrotherwatchingus.com/">https://www.bigbrotherwatchingus.com/</a>.</li>
-<li><span id="bib-95" class="anchor-target"></span>"<a href="http://www.stopdirectedenergyweapons.freeservers.com/">http://www.stopdirectedenergyweapons.freeservers.com/</a>." stopdirectedenergyweapons.freeservers.com. Accessed November 13, 2025. <a href="http://www.stopdirectedenergyweapons.freeservers.com/">http://www.stopdirectedenergyweapons.freeservers.com/</a>.</li>
-<li><span id="bib-96" class="anchor-target"></span>"<a href="https://www.covertharassmentconference.com/">https://www.covertharassmentconference.com/</a>." covertharassmentconference.com. Accessed November 13, 2025. <a href="https://www.covertharassmentconference.com/">https://www.covertharassmentconference.com/</a>.</li>
-<li><span id="bib-97" class="anchor-target"></span>"<a href="https://youarenotmybigbrother.wordpress.com/">https://youarenotmybigbrother.wordpress.com/</a>." youarenotmybigbrother.wordpress.com. Accessed November 13, 2025. <a href="https://youarenotmybigbrother.wordpress.com/">https://youarenotmybigbrother.wordpress.com/</a>.</li>
-<li><span id="bib-98" class="anchor-target"></span>"<a href="https://www.drlwilson.com/Articles/PSYCHOTRONIC.htm">https://www.drlwilson.com/Articles/PSYCHOTRONIC.htm</a>." drlwilson.com. Accessed November 13, 2025. <a href="https://www.drlwilson.com/Articles/PSYCHOTRONIC.htm">https://www.drlwilson.com/Articles/PSYCHOTRONIC.htm</a>.</li>
+
+
+
+
+
+
+
+
+
 <li><span id="bib-99" class="anchor-target"></span>"<a href="http://njtisupportgroup.blogspot.com/">http://njtisupportgroup.blogspot.com/</a>." njtisupportgroup.blogspot.com. Accessed November 13, 2025. <a href="http://njtisupportgroup.blogspot.com/">http://njtisupportgroup.blogspot.com/</a>.</li>
 <li><span id="bib-100" class="anchor-target"></span>"<a href="https://green-liberty.org/jtip">https://green-liberty.org/jtip</a>." green-liberty.org. Accessed November 13, 2025. <a href="https://green-liberty.org/jtip">https://green-liberty.org/jtip</a>.</li>
-<li><span id="bib-101" class="anchor-target"></span>"<a href="https://thevinesisters.com/home">https://thevinesisters.com/home</a>." thevinesisters.com. Accessed November 13, 2025. <a href="https://thevinesisters.com/home">https://thevinesisters.com/home</a>.</li>
+
 <li><span id="bib-102" class="anchor-target"></span>"<a href="https://www.facebook.com/groups/484474675758656">https://www.facebook.com/groups/484474675758656</a>." facebook.com. Accessed November 13, 2025. <a href="https://www.facebook.com/groups/484474675758656">https://www.facebook.com/groups/484474675758656</a>.</li>
-<li><span id="bib-103" class="anchor-target"></span>"<a href="https://www.facebook.com/groups/550194910682803">https://www.facebook.com/groups/550194910682803</a>." facebook.com. Accessed November 13, 2025. <a href="https://www.facebook.com/groups/550194910682803">https://www.facebook.com/groups/550194910682803</a>.</li>
-<li><span id="bib-104" class="anchor-target"></span>"<a href="https://www.facebook.com/groups/2036619546605019">https://www.facebook.com/groups/2036619546605019</a>." facebook.com. Accessed November 13, 2025. <a href="https://www.facebook.com/groups/2036619546605019">https://www.facebook.com/groups/2036619546605019</a>.</li>
-<li><span id="bib-105" class="anchor-target"></span>"<a href="https://www.facebook.com/groups/529839465990974">https://www.facebook.com/groups/529839465990974</a>." facebook.com. Accessed November 13, 2025. <a href="https://www.facebook.com/groups/529839465990974">https://www.facebook.com/groups/529839465990974</a>.</li>
-<li><span id="bib-106" class="anchor-target"></span>"<a href="https://www.facebook.com/groups/remoteneuralmonitoring">https://www.facebook.com/groups/remoteneuralmonitoring</a>." facebook.com. Accessed November 13, 2025. <a href="https://www.facebook.com/groups/remoteneuralmonitoring">https://www.facebook.com/groups/remoteneuralmonitoring</a>.</li>
-<li><span id="bib-107" class="anchor-target"></span>"<a href="https://www.facebook.com/groups/455676116753883">https://www.facebook.com/groups/455676116753883</a>." facebook.com. Accessed November 13, 2025. <a href="https://www.facebook.com/groups/455676116753883">https://www.facebook.com/groups/455676116753883</a>.</li>
-<li><span id="bib-108" class="anchor-target"></span>"<a href="https://www.facebook.com/groups/483653602078021">https://www.facebook.com/groups/483653602078021</a>." facebook.com. Accessed November 13, 2025. <a href="https://www.facebook.com/groups/483653602078021">https://www.facebook.com/groups/483653602078021</a>.</li>
-<li><span id="bib-109" class="anchor-target"></span>"<a href="https://www.facebook.com/groups/2081153875302707">https://www.facebook.com/groups/2081153875302707</a>." facebook.com. Accessed November 13, 2025. <a href="https://www.facebook.com/groups/2081153875302707">https://www.facebook.com/groups/2081153875302707</a>.</li>
-<li><span id="bib-110" class="anchor-target"></span>"<a href="https://www.facebook.com/groups/477193365693899">https://www.facebook.com/groups/477193365693899</a>." facebook.com. Accessed November 13, 2025. <a href="https://www.facebook.com/groups/477193365693899">https://www.facebook.com/groups/477193365693899</a>.</li>
+
+
+
+
+
+
+
+
 <li><span id="bib-111" class="anchor-target"></span>"<a href="https://www.reddit.com/r/Gangstalking">https://www.reddit.com/r/Gangstalking</a>." reddit.com. Accessed November 13, 2025. <a href="https://www.reddit.com/r/Gangstalking">https://www.reddit.com/r/Gangstalking</a>.</li>
 <li><span id="bib-112" class="anchor-target"></span>"<a href="https://www.reddit.com/r/V2KTRUTH">https://www.reddit.com/r/V2KTRUTH</a>." reddit.com. Accessed November 13, 2025. <a href="https://www.reddit.com/r/V2KTRUTH">https://www.reddit.com/r/V2KTRUTH</a>.</li>
 <li><span id="bib-113" class="anchor-target"></span>"<a href="https://www.reddit.com/r/ElectronicSlavery">https://www.reddit.com/r/ElectronicSlavery</a>." reddit.com. Accessed November 13, 2025. <a href="https://www.reddit.com/r/ElectronicSlavery">https://www.reddit.com/r/ElectronicSlavery</a>.</li>
@@ -1974,69 +1994,69 @@
 <li><span id="bib-118" class="anchor-target"></span>"<a href="https://www.reddit.com/r/SurveillanceStalking">https://www.reddit.com/r/SurveillanceStalking</a>." reddit.com. Accessed November 13, 2025. <a href="https://www.reddit.com/r/SurveillanceStalking">https://www.reddit.com/r/SurveillanceStalking</a>.</li>
 <li><span id="bib-119" class="anchor-target"></span>"<a href="https://www.reddit.com/r/PositiveTI">https://www.reddit.com/r/PositiveTI</a>." reddit.com. Accessed November 13, 2025. <a href="https://www.reddit.com/r/PositiveTI">https://www.reddit.com/r/PositiveTI</a>.</li>
 <li><span id="bib-120" class="anchor-target"></span>"<a href="https://www.reddit.com/r/TargetedIndividuals">https://www.reddit.com/r/TargetedIndividuals</a>." reddit.com. Accessed November 13, 2025. <a href="https://www.reddit.com/r/TargetedIndividuals">https://www.reddit.com/r/TargetedIndividuals</a>.</li>
-<li><span id="bib-121" class="anchor-target"></span>"<a href="https://sign.moveon.org/petitions/stop-electronic-harrassment-2">https://sign.moveon.org/petitions/stop-electronic-harrassment-2</a>." sign.moveon.org. Accessed November 13, 2025. <a href="https://sign.moveon.org/petitions/stop-electronic-harrassment-2">https://sign.moveon.org/petitions/stop-electronic-harrassment-2</a>.</li>
-<li><span id="bib-122" class="anchor-target"></span>"<a href="https://www.ipetitions.com/petition/join-the-fight-to-end-neuro-electronic-torture">https://www.ipetitions.com/petition/join-the-fight-to-end-neuro-electronic-torture</a>." ipetitions.com. Accessed November 13, 2025. <a href="https://www.ipetitions.com/petition/join-the-fight-to-end-neuro-electronic-torture">https://www.ipetitions.com/petition/join-the-fight-to-end-neuro-electronic-torture</a>.</li>
-<li><span id="bib-123" class="anchor-target"></span>"<a href="https://content.govdelivery.com/accounts/ORSOS/bulletins/3d87b9f">https://content.govdelivery.com/accounts/ORSOS/bulletins/3d87b9f</a>." content.govdelivery.com. Accessed November 13, 2025. <a href="https://content.govdelivery.com/accounts/ORSOS/bulletins/3d87b9f">https://content.govdelivery.com/accounts/ORSOS/bulletins/3d87b9f</a>.</li>
-<li><span id="bib-124" class="anchor-target"></span>"<a href="https://petition.parliament.uk/archived/petitions/619749">https://petition.parliament.uk/archived/petitions/619749</a>." petition.parliament.uk. Accessed November 13, 2025. <a href="https://petition.parliament.uk/archived/petitions/619749">https://petition.parliament.uk/archived/petitions/619749</a>.</li>
-<li><span id="bib-125" class="anchor-target"></span>"<a href="https://petition.parliament.uk/archived/petitions/49234">https://petition.parliament.uk/archived/petitions/49234</a>." petition.parliament.uk. Accessed November 13, 2025. <a href="https://petition.parliament.uk/archived/petitions/49234">https://petition.parliament.uk/archived/petitions/49234</a>.</li>
+
+
+
+
+
 <li><span id="bib-126" class="anchor-target"></span>"<a href="https://www.gopetition.com/petitions/stop-electronic-harrassment.html">https://www.gopetition.com/petitions/stop-electronic-harrassment.html</a>." gopetition.com. Accessed November 13, 2025. <a href="https://www.gopetition.com/petitions/stop-electronic-harrassment.html">https://www.gopetition.com/petitions/stop-electronic-harrassment.html</a>.</li>
 <li><span id="bib-127" class="anchor-target"></span>"<a href="https://www.thepetitionsite.com/354/247/018/stop-organized-stalking-and-electronic-harassment">https://www.thepetitionsite.com/354/247/018/stop-organized-stalking-and-electronic-harassment</a>." thepetitionsite.com. Accessed November 13, 2025. <a href="https://www.thepetitionsite.com/354/247/018/stop-organized-stalking-and-electronic-harassment">https://www.thepetitionsite.com/354/247/018/stop-organized-stalking-and-electronic-harassment</a>.</li>
 <li><span id="bib-128" class="anchor-target"></span>"<a href="https://dpl-surveillance-equipment.com/prevention-and-detection-of-electronic-harassment/petition-federal-law-for-the-prevention-of-electronic-harassment">https://dpl-surveillance-equipment.com/prevention-and-detection-of-electronic-harassment/petition-federal-law-for-the-prevention-of-electronic-harassment</a>." dpl-surveillance-equipment.com. Accessed November 13, 2025. <a href="https://dpl-surveillance-equipment.com/prevention-and-detection-of-electronic-harassment/petition-federal-law-for-the-prevention-of-electronic-harassment">https://dpl-surveillance-equipment.com/prevention-and-detection-of-electronic-harassment/petition-federal-law-for-the-prevention-of-electronic-harassment</a>.</li>
 <li><span id="bib-129" class="anchor-target"></span>"<a href="https://www.onegreenplanet.org/human-interest/petition-stop-organized-stalking-and-electronic-harassment">https://www.onegreenplanet.org/human-interest/petition-stop-organized-stalking-and-electronic-harassment</a>." onegreenplanet.org. Accessed November 13, 2025. <a href="https://www.onegreenplanet.org/human-interest/petition-stop-organized-stalking-and-electronic-harassment">https://www.onegreenplanet.org/human-interest/petition-stop-organized-stalking-and-electronic-harassment</a>.</li>
 <li><span id="bib-130" class="anchor-target"></span>"<a href="https://www.gopetition.com/petitions/petition-the-aclu-to-assist-electronic-harassment-stalking-and-domestic-torture-victims.html">https://www.gopetition.com/petitions/petition-the-aclu-to-assist-electronic-harassment-stalking-and-domestic-torture-victims.html</a>." gopetition.com. Accessed November 13, 2025. <a href="https://www.gopetition.com/petitions/petition-the-aclu-to-assist-electronic-harassment-stalking-and-domestic-torture-victims.html">https://www.gopetition.com/petitions/petition-the-aclu-to-assist-electronic-harassment-stalking-and-domestic-torture-victims.html</a>.</li>
-<li><span id="bib-131" class="anchor-target"></span>"<a href="https://www.targetedhumans.org/change-org-petition">https://www.targetedhumans.org/change-org-petition</a>." targetedhumans.org. Accessed November 13, 2025. <a href="https://www.targetedhumans.org/change-org-petition">https://www.targetedhumans.org/change-org-petition</a>.</li>
+
 <li><span id="bib-132" class="anchor-target"></span>"<a href="https://www.thepetitionsite.com/3/help-cease-gang-stalking-and-electronic-harassment">https://www.thepetitionsite.com/3/help-cease-gang-stalking-and-electronic-harassment</a>." thepetitionsite.com. Accessed November 13, 2025. <a href="https://www.thepetitionsite.com/3/help-cease-gang-stalking-and-electronic-harassment">https://www.thepetitionsite.com/3/help-cease-gang-stalking-and-electronic-harassment</a>.</li>
 <li><span id="bib-133" class="anchor-target"></span>"<a href="https://www.change.org/p/uk-government-stop-mind-control-and-directed-energy-weapons-on-innocent-civilians-in-the-uk?source%5C_location=topics%5C_page">https://www.change.org/p/uk-government-stop-mind-control-and-directed-energy-weapons-on-innocent-civilians-in-the-uk?source\_location=topics\_page</a>." change.org. Accessed November 13, 2025. <a href="https://www.change.org/p/uk-government-stop-mind-control-and-directed-energy-weapons-on-innocent-civilians-in-the-uk?source%5C_location=topics%5C_page">https://www.change.org/p/uk-government-stop-mind-control-and-directed-energy-weapons-on-innocent-civilians-in-the-uk?source\_location=topics\_page</a>.</li>
 <li><span id="bib-134" class="anchor-target"></span>"<a href="https://www.petitions.com/ban%5C_remote%5C_manipulation%5C_of%5C_human%5C_nervous%5C_system">https://www.petitions.com/ban\_remote\_manipulation\_of\_human\_nervous\_system</a>." petitions.com. Accessed November 13, 2025. <a href="https://www.petitions.com/ban%5C_remote%5C_manipulation%5C_of%5C_human%5C_nervous%5C_system">https://www.petitions.com/ban\_remote\_manipulation\_of\_human\_nervous\_system</a>.</li>
-<li><span id="bib-135" class="anchor-target"></span>"<a href="https://www.ipetitions.com/petition/targeted-individuals-gang-stalking-mind-control">https://www.ipetitions.com/petition/targeted-individuals-gang-stalking-mind-control</a>." ipetitions.com. Accessed November 13, 2025. <a href="https://www.ipetitions.com/petition/targeted-individuals-gang-stalking-mind-control">https://www.ipetitions.com/petition/targeted-individuals-gang-stalking-mind-control</a>.</li>
-<li><span id="bib-136" class="anchor-target"></span>"<a href="https://petition.parliament.uk/archived/petitions/49171">https://petition.parliament.uk/archived/petitions/49171</a>." petition.parliament.uk. Accessed November 13, 2025. <a href="https://petition.parliament.uk/archived/petitions/49171">https://petition.parliament.uk/archived/petitions/49171</a>.</li>
-<li><span id="bib-137" class="anchor-target"></span>"<a href="https://www.openpetition.de/petition/online/misuse-of-new-technologies-and-weapons-systems">https://www.openpetition.de/petition/online/misuse-of-new-technologies-and-weapons-systems</a>." openpetition.de. Accessed November 13, 2025. <a href="https://www.openpetition.de/petition/online/misuse-of-new-technologies-and-weapons-systems">https://www.openpetition.de/petition/online/misuse-of-new-technologies-and-weapons-systems</a>.</li>
+
+
+
 <li><span id="bib-138" class="anchor-target"></span>"<a href="https://www.change.org/p/end-remote-neural-monitoring-gang-stalking-protect-human-rights?source%5C_location=topics%5C_page%5C&amp;pt=AVBldGl0aW9uAISoQR0AAAAAaPkKgqtljBk4NTQ4YTEwYw%3D%3D">https://www.change.org/p/end-remote-neural-monitoring-gang-stalking-protect-human-rights?source\_location=topics\_page\&amp;pt=AVBldGl0aW9uAISoQR0AAAAAaPkKgqtljBk4NTQ4YTEwYw%3D%3D</a>." change.org. Accessed November 13, 2025. <a href="https://www.change.org/p/end-remote-neural-monitoring-gang-stalking-protect-human-rights?source%5C_location=topics%5C_page%5C&amp;pt=AVBldGl0aW9uAISoQR0AAAAAaPkKgqtljBk4NTQ4YTEwYw%3D%3D">https://www.change.org/p/end-remote-neural-monitoring-gang-stalking-protect-human-rights?source\_location=topics\_page\&amp;pt=AVBldGl0aW9uAISoQR0AAAAAaPkKgqtljBk4NTQ4YTEwYw%3D%3D</a>.</li>
-<li><span id="bib-139" class="anchor-target"></span>"<a href="https://www.change.org/p/stop-the-use-of-v2k-on-amazon-employees">https://www.change.org/p/stop-the-use-of-v2k-on-amazon-employees</a>." change.org. Accessed November 13, 2025. <a href="https://www.change.org/p/stop-the-use-of-v2k-on-amazon-employees">https://www.change.org/p/stop-the-use-of-v2k-on-amazon-employees</a>.</li>
-<li><span id="bib-140" class="anchor-target"></span>"<a href="https://sign.moveon.org/petitions/demand-congressional-investigation-into-neurotechnology-abuse-and-digital-trafficking">https://sign.moveon.org/petitions/demand-congressional-investigation-into-neurotechnology-abuse-and-digital-trafficking</a>." sign.moveon.org. Accessed November 13, 2025. <a href="https://sign.moveon.org/petitions/demand-congressional-investigation-into-neurotechnology-abuse-and-digital-trafficking">https://sign.moveon.org/petitions/demand-congressional-investigation-into-neurotechnology-abuse-and-digital-trafficking</a>.</li>
-<li><span id="bib-141" class="anchor-target"></span>"<a href="https://sign.moveon.org/petitions/congress-pay-voice-to">https://sign.moveon.org/petitions/congress-pay-voice-to</a>." sign.moveon.org. Accessed November 13, 2025. <a href="https://sign.moveon.org/petitions/congress-pay-voice-to">https://sign.moveon.org/petitions/congress-pay-voice-to</a>.</li>
+
+
+
 <li><span id="bib-142" class="anchor-target"></span>"<a href="https://www.thepetitionsite.com/takeaction/556/809/960">https://www.thepetitionsite.com/takeaction/556/809/960</a>." thepetitionsite.com. Accessed November 13, 2025. <a href="https://www.thepetitionsite.com/takeaction/556/809/960">https://www.thepetitionsite.com/takeaction/556/809/960</a>.</li>
 <li><span id="bib-143" class="anchor-target"></span>"<a href="https://www.thepetitionsite.com/784/504/767/demand-an-end-to-mind-control-experimentation">https://www.thepetitionsite.com/784/504/767/demand-an-end-to-mind-control-experimentation</a>." thepetitionsite.com. Accessed November 13, 2025. <a href="https://www.thepetitionsite.com/784/504/767/demand-an-end-to-mind-control-experimentation">https://www.thepetitionsite.com/784/504/767/demand-an-end-to-mind-control-experimentation</a>.</li>
-<li><span id="bib-144" class="anchor-target"></span>"<a href="https://fyi.org.nz/request/30393-use-of-v2k-wban-rmn-ble-ieee-ham-radio-dew-bci-brainwave-tortureware-use-on-people-in-nz">https://fyi.org.nz/request/30393-use-of-v2k-wban-rmn-ble-ieee-ham-radio-dew-bci-brainwave-tortureware-use-on-people-in-nz</a>." fyi.org.nz. Accessed November 13, 2025. <a href="https://fyi.org.nz/request/30393-use-of-v2k-wban-rmn-ble-ieee-ham-radio-dew-bci-brainwave-tortureware-use-on-people-in-nz">https://fyi.org.nz/request/30393-use-of-v2k-wban-rmn-ble-ieee-ham-radio-dew-bci-brainwave-tortureware-use-on-people-in-nz</a>.</li>
-<li><span id="bib-145" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/electronic-harrasment-v2k-turturre">https://www.petition2congress.com/ctas/electronic-harrasment-v2k-turturre</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/electronic-harrasment-v2k-turturre">https://www.petition2congress.com/ctas/electronic-harrasment-v2k-turturre</a>.</li>
+
+
 <li><span id="bib-146" class="anchor-target"></span>"<a href="https://www.researchgate.net/publication/370485295%5C_V2K%5C_and%5C_Electronic%5C_Harassment%5C_Psychotronic%5C_Cyber%5C_Crime%5C_Techniques">https://www.researchgate.net/publication/370485295\_V2K\_and\_Electronic\_Harassment\_Psychotronic\_Cyber\_Crime\_Techniques</a>." researchgate.net. Accessed November 13, 2025. <a href="https://www.researchgate.net/publication/370485295%5C_V2K%5C_and%5C_Electronic%5C_Harassment%5C_Psychotronic%5C_Cyber%5C_Crime%5C_Techniques">https://www.researchgate.net/publication/370485295\_V2K\_and\_Electronic\_Harassment\_Psychotronic\_Cyber\_Crime\_Techniques</a>.</li>
-<li><span id="bib-147" class="anchor-target"></span>"<a href="https://petition2congress.rallycongress.net/ctas/gangstalked-v2k-torture-mind-control">https://petition2congress.rallycongress.net/ctas/gangstalked-v2k-torture-mind-control</a>." petition2congress.rallycongress.net. Accessed November 13, 2025. <a href="https://petition2congress.rallycongress.net/ctas/gangstalked-v2k-torture-mind-control">https://petition2congress.rallycongress.net/ctas/gangstalked-v2k-torture-mind-control</a>.</li>
-<li><span id="bib-148" class="anchor-target"></span>"<a href="https://petition2congress.rallycongress.net/ctas/stop-v2k-torture-harassment">https://petition2congress.rallycongress.net/ctas/stop-v2k-torture-harassment</a>." petition2congress.rallycongress.net. Accessed November 13, 2025. <a href="https://petition2congress.rallycongress.net/ctas/stop-v2k-torture-harassment">https://petition2congress.rallycongress.net/ctas/stop-v2k-torture-harassment</a>.</li>
+
+
 <li><span id="bib-149" class="anchor-target"></span>"<a href="https://www.change.org/p/stop-remote-neural-monitoring-programs-and-cruel-experiments-on-innocent-citizens?utm%5C_content=cl%5C_sharecopy%5C_31266779%5C_en-US%3A3%5C&amp;recruited%5C_by%5C_id=707f7760-0d50-11ed-b156-6f22a4d3399f%5C&amp;utm%5C_source=share%5C_petition%5C&amp;utm%5C_medium=copylink%5C&amp;utm%5C_campaign=psf%5C_combo%5C_share%5C_initial%5C&amp;share%5C_bandit%5C_exp=initial-31266779-en-GB">https://www.change.org/p/stop-remote-neural-monitoring-programs-and-cruel-experiments-on-innocent-citizens?utm\_content=cl\_sharecopy\_31266779\_en-US%3A3\&amp;recruited\_by\_id=707f7760-0d50-11ed-b156-6f22a4d3399f\&amp;utm\_source=share\_petition\&amp;utm\_medium=copylink\&amp;utm\_campaign=psf\_combo\_share\_initial\&amp;share\_bandit\_exp=initial-31266779-en-GB</a>." change.org. Accessed November 13, 2025. <a href="https://www.change.org/p/stop-remote-neural-monitoring-programs-and-cruel-experiments-on-innocent-citizens?utm%5C_content=cl%5C_sharecopy%5C_31266779%5C_en-US%3A3%5C&amp;recruited%5C_by%5C_id=707f7760-0d50-11ed-b156-6f22a4d3399f%5C&amp;utm%5C_source=share%5C_petition%5C&amp;utm%5C_medium=copylink%5C&amp;utm%5C_campaign=psf%5C_combo%5C_share%5C_initial%5C&amp;share%5C_bandit%5C_exp=initial-31266779-en-GB">https://www.change.org/p/stop-remote-neural-monitoring-programs-and-cruel-experiments-on-innocent-citizens?utm\_content=cl\_sharecopy\_31266779\_en-US%3A3\&amp;recruited\_by\_id=707f7760-0d50-11ed-b156-6f22a4d3399f\&amp;utm\_source=share\_petition\&amp;utm\_medium=copylink\&amp;utm\_campaign=psf\_combo\_share\_initial\&amp;share\_bandit\_exp=initial-31266779-en-GB</a>.</li>
-<li><span id="bib-150" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/v2k-is-murder-stop-mass-shooting">https://www.petition2congress.com/ctas/v2k-is-murder-stop-mass-shooting</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/v2k-is-murder-stop-mass-shooting">https://www.petition2congress.com/ctas/v2k-is-murder-stop-mass-shooting</a>.</li>
-<li><span id="bib-151" class="anchor-target"></span>"<a href="https://www.ipetitions.com/petition/put-an-end-to-organized-gang-stalking-before-it">https://www.ipetitions.com/petition/put-an-end-to-organized-gang-stalking-before-it</a>." ipetitions.com. Accessed November 13, 2025. <a href="https://www.ipetitions.com/petition/put-an-end-to-organized-gang-stalking-before-it">https://www.ipetitions.com/petition/put-an-end-to-organized-gang-stalking-before-it</a>.</li>
-<li><span id="bib-152" class="anchor-target"></span>"<a href="https://www.ipetitions.com/petition/synergy">https://www.ipetitions.com/petition/synergy</a>." ipetitions.com. Accessed November 13, 2025. <a href="https://www.ipetitions.com/petition/synergy">https://www.ipetitions.com/petition/synergy</a>.</li>
-<li><span id="bib-153" class="anchor-target"></span>"<a href="https://sign.moveon.org/petitions/stop-organized-stalking">https://sign.moveon.org/petitions/stop-organized-stalking</a>." sign.moveon.org. Accessed November 13, 2025. <a href="https://sign.moveon.org/petitions/stop-organized-stalking">https://sign.moveon.org/petitions/stop-organized-stalking</a>.</li>
-<li><span id="bib-154" class="anchor-target"></span>"<a href="https://www.gopetition.com/petitions/help-cease-gang-stalking-and-electronic-harassment.html">https://www.gopetition.com/petitions/help-cease-gang-stalking-and-electronic-harassment.html</a>." gopetition.com. Accessed November 13, 2025. <a href="https://www.gopetition.com/petitions/help-cease-gang-stalking-and-electronic-harassment.html">https://www.gopetition.com/petitions/help-cease-gang-stalking-and-electronic-harassment.html</a>.</li>
-<li><span id="bib-155" class="anchor-target"></span>"<a href="https://www.gopetition.com/petitions/stop-predatory-gang-stalking.html">https://www.gopetition.com/petitions/stop-predatory-gang-stalking.html</a>." gopetition.com. Accessed November 13, 2025. <a href="https://www.gopetition.com/petitions/stop-predatory-gang-stalking.html">https://www.gopetition.com/petitions/stop-predatory-gang-stalking.html</a>.</li>
-<li><span id="bib-156" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/harassment-whistleblower-group-gang">https://www.petition2congress.com/ctas/harassment-whistleblower-group-gang</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/harassment-whistleblower-group-gang">https://www.petition2congress.com/ctas/harassment-whistleblower-group-gang</a>.</li>
-<li><span id="bib-157" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/gangstalked-v2k-torture-mind-control">https://www.petition2congress.com/ctas/gangstalked-v2k-torture-mind-control</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/gangstalked-v2k-torture-mind-control">https://www.petition2congress.com/ctas/gangstalked-v2k-torture-mind-control</a>.</li>
-<li><span id="bib-158" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/stop-v2k-torture-harassment">https://www.petition2congress.com/ctas/stop-v2k-torture-harassment</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/stop-v2k-torture-harassment">https://www.petition2congress.com/ctas/stop-v2k-torture-harassment</a>.</li>
-<li><span id="bib-159" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/stop-neglect-duty-by-law-enforcement-targeted">https://www.petition2congress.com/ctas/stop-neglect-duty-by-law-enforcement-targeted</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/stop-neglect-duty-by-law-enforcement-targeted">https://www.petition2congress.com/ctas/stop-neglect-duty-by-law-enforcement-targeted</a>.</li>
-<li><span id="bib-160" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/stop-small-town-crime-corruption-in-central">https://www.petition2congress.com/ctas/stop-small-town-crime-corruption-in-central</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/stop-small-town-crime-corruption-in-central">https://www.petition2congress.com/ctas/stop-small-town-crime-corruption-in-central</a>.</li>
-<li><span id="bib-161" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/v2k-microwave-effect">https://www.petition2congress.com/ctas/v2k-microwave-effect</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/v2k-microwave-effect">https://www.petition2congress.com/ctas/v2k-microwave-effect</a>.</li>
-<li><span id="bib-162" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/v2k-gang-stalking">https://www.petition2congress.com/ctas/v2k-gang-stalking</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/v2k-gang-stalking">https://www.petition2congress.com/ctas/v2k-gang-stalking</a>.</li>
-<li><span id="bib-163" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/stop-illegal-gangstalking">https://www.petition2congress.com/ctas/stop-illegal-gangstalking</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/stop-illegal-gangstalking">https://www.petition2congress.com/ctas/stop-illegal-gangstalking</a>.</li>
-<li><span id="bib-164" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/the-president-is-murder-not-stopping-v2k-mind">https://www.petition2congress.com/ctas/the-president-is-murder-not-stopping-v2k-mind</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/the-president-is-murder-not-stopping-v2k-mind">https://www.petition2congress.com/ctas/the-president-is-murder-not-stopping-v2k-mind</a>.</li>
-<li><span id="bib-165" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/all-mass-shooting-murders-involved-with-voices-are-government-murders-prof-is-in-liberal-on-grant-st-7th-in-three-locations-check-hotels-name">https://www.petition2congress.com/ctas/all-mass-shooting-murders-involved-with-voices-are-government-murders-prof-is-in-liberal-on-grant-st-7th-in-three-locations-check-hotels-name</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/all-mass-shooting-murders-involved-with-voices-are-government-murders-prof-is-in-liberal-on-grant-st-7th-in-three-locations-check-hotels-name">https://www.petition2congress.com/ctas/all-mass-shooting-murders-involved-with-voices-are-government-murders-prof-is-in-liberal-on-grant-st-7th-in-three-locations-check-hotels-name</a>.</li>
-<li><span id="bib-166" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/biden-dont-be-hypocrite-stop-mass-shooting">https://www.petition2congress.com/ctas/biden-dont-be-hypocrite-stop-mass-shooting</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/biden-dont-be-hypocrite-stop-mass-shooting">https://www.petition2congress.com/ctas/biden-dont-be-hypocrite-stop-mass-shooting</a>.</li>
-<li><span id="bib-167" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/action-558-v2k-is-murder-stop-mass-shooting">https://www.petition2congress.com/ctas/action-558-v2k-is-murder-stop-mass-shooting</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/action-558-v2k-is-murder-stop-mass-shooting">https://www.petition2congress.com/ctas/action-558-v2k-is-murder-stop-mass-shooting</a>.</li>
-<li><span id="bib-168" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/cruelty-against-humanity">https://www.petition2congress.com/ctas/cruelty-against-humanity</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/cruelty-against-humanity">https://www.petition2congress.com/ctas/cruelty-against-humanity</a>.</li>
-<li><span id="bib-169" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/v2k-dew-remote-neural-monitoring">https://www.petition2congress.com/ctas/v2k-dew-remote-neural-monitoring</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/v2k-dew-remote-neural-monitoring">https://www.petition2congress.com/ctas/v2k-dew-remote-neural-monitoring</a>.</li>
-<li><span id="bib-170" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/prison-illegal-experimentation">https://www.petition2congress.com/ctas/prison-illegal-experimentation</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/prison-illegal-experimentation">https://www.petition2congress.com/ctas/prison-illegal-experimentation</a>.</li>
-<li><span id="bib-171" class="anchor-target"></span>"<a href="https://www.petition2congress.com/ctas/gang-stalking-v2k-electromagnetic-assault">https://www.petition2congress.com/ctas/gang-stalking-v2k-electromagnetic-assault</a>." petition2congress.com. Accessed November 13, 2025. <a href="https://www.petition2congress.com/ctas/gang-stalking-v2k-electromagnetic-assault">https://www.petition2congress.com/ctas/gang-stalking-v2k-electromagnetic-assault</a>.</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <li><span id="bib-172" class="anchor-target"></span>"<a href="https://www.whatdotheyknow.com/request/urgent%5C_call%5C_for%5C_action%5C_against%5C_o">https://www.whatdotheyknow.com/request/urgent\_call\_for\_action\_against\_o</a>." whatdotheyknow.com. Accessed November 13, 2025. <a href="https://www.whatdotheyknow.com/request/urgent%5C_call%5C_for%5C_action%5C_against%5C_o">https://www.whatdotheyknow.com/request/urgent\_call\_for\_action\_against\_o</a>.</li>
 <li><span id="bib-173" class="anchor-target"></span>"<a href="https://www.thepetitionsite.com/142/079/399/demand-an-end-to-the-targeted-individual-special-access-unacknowledged-program">https://www.thepetitionsite.com/142/079/399/demand-an-end-to-the-targeted-individual-special-access-unacknowledged-program</a>." thepetitionsite.com. Accessed November 13, 2025. <a href="https://www.thepetitionsite.com/142/079/399/demand-an-end-to-the-targeted-individual-special-access-unacknowledged-program">https://www.thepetitionsite.com/142/079/399/demand-an-end-to-the-targeted-individual-special-access-unacknowledged-program</a>.</li>
-<li><span id="bib-174" class="anchor-target"></span>"<a href="https://www.gofundme.com/f/No-Touch-Torture">https://www.gofundme.com/f/No-Touch-Torture</a>." gofundme.com. Accessed November 13, 2025. <a href="https://www.gofundme.com/f/No-Touch-Torture">https://www.gofundme.com/f/No-Touch-Torture</a>.</li>
-<li><span id="bib-175" class="anchor-target"></span>"<a href="https://you.38degrees.org.uk/petitions/electronic-harassment-law">https://you.38degrees.org.uk/petitions/electronic-harassment-law</a>." you.38degrees.org.uk. Accessed November 13, 2025. <a href="https://you.38degrees.org.uk/petitions/electronic-harassment-law">https://you.38degrees.org.uk/petitions/electronic-harassment-law</a>.</li>
+
+
 <li><span id="bib-176" class="anchor-target"></span>"<a href="https://www.change.org/p/keep-the-ethical-light-burning-repeal-fisa-by-kelb-inc?recruiter=877153774%5C&amp;utm%5C_source=share%5C_petition%5C&amp;utm%5C_medium=copylink%5C&amp;utm%5C_campaign=share%5C_petition%5C&amp;use%5C_react=false%5C&amp;fbclid=IwAR2VWSsNJAK000s3l9MldT-RcaxhxvrqgKKSvBcTC68fsaCLDqDVs5ye4Lw">https://www.change.org/p/keep-the-ethical-light-burning-repeal-fisa-by-kelb-inc?recruiter=877153774\&amp;utm\_source=share\_petition\&amp;utm\_medium=copylink\&amp;utm\_campaign=share\_petition\&amp;use\_react=false\&amp;fbclid=IwAR2VWSsNJAK000s3l9MldT-RcaxhxvrqgKKSvBcTC68fsaCLDqDVs5ye4Lw</a>." change.org. Accessed November 13, 2025. <a href="https://www.change.org/p/keep-the-ethical-light-burning-repeal-fisa-by-kelb-inc?recruiter=877153774%5C&amp;utm%5C_source=share%5C_petition%5C&amp;utm%5C_medium=copylink%5C&amp;utm%5C_campaign=share%5C_petition%5C&amp;use%5C_react=false%5C&amp;fbclid=IwAR2VWSsNJAK000s3l9MldT-RcaxhxvrqgKKSvBcTC68fsaCLDqDVs5ye4Lw">https://www.change.org/p/keep-the-ethical-light-burning-repeal-fisa-by-kelb-inc?recruiter=877153774\&amp;utm\_source=share\_petition\&amp;utm\_medium=copylink\&amp;utm\_campaign=share\_petition\&amp;use\_react=false\&amp;fbclid=IwAR2VWSsNJAK000s3l9MldT-RcaxhxvrqgKKSvBcTC68fsaCLDqDVs5ye4Lw</a>.</li>
-<li><span id="bib-177" class="anchor-target"></span>"<a href="https://www.change.org/p/cdc-nih-recognize-track-and-investigate-diagnosed-civilian-havana-syndrome-ahi-cases?signed=true">https://www.change.org/p/cdc-nih-recognize-track-and-investigate-diagnosed-civilian-havana-syndrome-ahi-cases?signed=true</a>." change.org. Accessed November 13, 2025. <a href="https://www.change.org/p/cdc-nih-recognize-track-and-investigate-diagnosed-civilian-havana-syndrome-ahi-cases?signed=true">https://www.change.org/p/cdc-nih-recognize-track-and-investigate-diagnosed-civilian-havana-syndrome-ahi-cases?signed=true</a>.</li>
-<li><span id="bib-178" class="anchor-target"></span>"<a href="https://form.jotform.com/250757079723061">https://form.jotform.com/250757079723061</a>." form.jotform.com. Accessed November 13, 2025. <a href="https://form.jotform.com/250757079723061">https://form.jotform.com/250757079723061</a>.</li>
+
+
 <li><span id="bib-179" class="anchor-target"></span>"<a href="https://www.supremecourt.gov/DocketPDF/19/19-1289/143506/20200515150959069%5C_20200515-150529-00000282-00000926.pdf">https://www.supremecourt.gov/DocketPDF/19/19-1289/143506/20200515150959069\_20200515-150529-00000282-00000926.pdf</a>." supremecourt.gov. Accessed November 13, 2025. <a href="https://www.supremecourt.gov/DocketPDF/19/19-1289/143506/20200515150959069%5C_20200515-150529-00000282-00000926.pdf">https://www.supremecourt.gov/DocketPDF/19/19-1289/143506/20200515150959069\_20200515-150529-00000282-00000926.pdf</a>.</li>
 <li><span id="bib-180" class="anchor-target"></span>"<a href="https://stoporgangstalking.com/2014/10/12/watterson-v-aro-court-ruling-90415">https://stoporgangstalking.com/2014/10/12/watterson-v-aro-court-ruling-90415</a>." stoporgangstalking.com. Accessed November 13, 2025. <a href="https://stoporgangstalking.com/2014/10/12/watterson-v-aro-court-ruling-90415">https://stoporgangstalking.com/2014/10/12/watterson-v-aro-court-ruling-90415</a>.</li>
 <li><span id="bib-181" class="anchor-target"></span>"<a href="https://ecf.flmd.uscourts.gov/cgi-bin/show%5C_public%5C_doc?2023-02011-2-8-cv">https://ecf.flmd.uscourts.gov/cgi-bin/show\_public\_doc?2023-02011-2-8-cv</a>." ecf.flmd.uscourts.gov. Accessed November 13, 2025. <a href="https://ecf.flmd.uscourts.gov/cgi-bin/show%5C_public%5C_doc?2023-02011-2-8-cv">https://ecf.flmd.uscourts.gov/cgi-bin/show\_public\_doc?2023-02011-2-8-cv</a>.</li>
 <li><span id="bib-182" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1%5C_06-cv-02125/pdf/USCOURTS-dcd-1%5C_06-cv-02125-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1\_06-cv-02125/pdf/USCOURTS-dcd-1\_06-cv-02125-1.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1%5C_06-cv-02125/pdf/USCOURTS-dcd-1%5C_06-cv-02125-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1\_06-cv-02125/pdf/USCOURTS-dcd-1\_06-cv-02125-1.pdf</a>.</li>
-<li><span id="bib-183" class="anchor-target"></span>"<a href="https://www.justice.gov/oip/friedman-v-us-secret-serv-no-06-2125-2017-wl-4797785-ddc-oct-20-2017-leon-j">https://www.justice.gov/oip/friedman-v-us-secret-serv-no-06-2125-2017-wl-4797785-ddc-oct-20-2017-leon-j</a>." justice.gov. Accessed November 13, 2025. <a href="https://www.justice.gov/oip/friedman-v-us-secret-serv-no-06-2125-2017-wl-4797785-ddc-oct-20-2017-leon-j">https://www.justice.gov/oip/friedman-v-us-secret-serv-no-06-2125-2017-wl-4797785-ddc-oct-20-2017-leon-j</a>.</li>
+
 <li><span id="bib-184" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2%5C_14-cv-02512/pdf/USCOURTS-nyed-2%5C_14-cv-02512-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2\_14-cv-02512/pdf/USCOURTS-nyed-2\_14-cv-02512-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2%5C_14-cv-02512/pdf/USCOURTS-nyed-2%5C_14-cv-02512-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2\_14-cv-02512/pdf/USCOURTS-nyed-2\_14-cv-02512-0.pdf</a>.</li>
 <li><span id="bib-185" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2%5C_15-cv-00054/pdf/USCOURTS-pawd-2%5C_15-cv-00054-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2\_15-cv-00054/pdf/USCOURTS-pawd-2\_15-cv-00054-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2%5C_15-cv-00054/pdf/USCOURTS-pawd-2%5C_15-cv-00054-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2\_15-cv-00054/pdf/USCOURTS-pawd-2\_15-cv-00054-0.pdf</a>.</li>
 <li><span id="bib-186" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2%5C_14-cv-02264/pdf/USCOURTS-nyed-2%5C_14-cv-02264-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2\_14-cv-02264/pdf/USCOURTS-nyed-2\_14-cv-02264-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2%5C_14-cv-02264/pdf/USCOURTS-nyed-2%5C_14-cv-02264-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2\_14-cv-02264/pdf/USCOURTS-nyed-2\_14-cv-02264-0.pdf</a>.</li>
@@ -2067,17 +2087,17 @@
 <li><span id="bib-211" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-txnd-3%5C_19-cv-01860/pdf/USCOURTS-txnd-3%5C_19-cv-01860-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-txnd-3\_19-cv-01860/pdf/USCOURTS-txnd-3\_19-cv-01860-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-txnd-3%5C_19-cv-01860/pdf/USCOURTS-txnd-3%5C_19-cv-01860-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-txnd-3\_19-cv-01860/pdf/USCOURTS-txnd-3\_19-cv-01860-0.pdf</a>.</li>
 <li><span id="bib-212" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-caed-2%5C_21-mc-00008/pdf/USCOURTS-caed-2%5C_21-mc-00008-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-caed-2\_21-mc-00008/pdf/USCOURTS-caed-2\_21-mc-00008-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-caed-2%5C_21-mc-00008/pdf/USCOURTS-caed-2%5C_21-mc-00008-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-caed-2\_21-mc-00008/pdf/USCOURTS-caed-2\_21-mc-00008-0.pdf</a>.</li>
 <li><span id="bib-213" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-ohsd-1%5C_17-cv-00071/pdf/USCOURTS-ohsd-1%5C_17-cv-00071-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ohsd-1\_17-cv-00071/pdf/USCOURTS-ohsd-1\_17-cv-00071-1.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-ohsd-1%5C_17-cv-00071/pdf/USCOURTS-ohsd-1%5C_17-cv-00071-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ohsd-1\_17-cv-00071/pdf/USCOURTS-ohsd-1\_17-cv-00071-1.pdf</a>.</li>
-<li><span id="bib-214" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca5-18-10389/pdf/USCOURTS-ca5-18-10389-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca5-18-10389/pdf/USCOURTS-ca5-18-10389-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca5-18-10389/pdf/USCOURTS-ca5-18-10389-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca5-18-10389/pdf/USCOURTS-ca5-18-10389-0.pdf</a>.</li>
+
 <li><span id="bib-215" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-cofc-1%5C_21-cv-01168/pdf/USCOURTS-cofc-1%5C_21-cv-01168-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-cofc-1\_21-cv-01168/pdf/USCOURTS-cofc-1\_21-cv-01168-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-cofc-1%5C_21-cv-01168/pdf/USCOURTS-cofc-1%5C_21-cv-01168-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-cofc-1\_21-cv-01168/pdf/USCOURTS-cofc-1\_21-cv-01168-0.pdf</a>.</li>
 <li><span id="bib-216" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-caed-2%5C_15-cv-01507/pdf/USCOURTS-caed-2%5C_15-cv-01507-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-caed-2\_15-cv-01507/pdf/USCOURTS-caed-2\_15-cv-01507-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-caed-2%5C_15-cv-01507/pdf/USCOURTS-caed-2%5C_15-cv-01507-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-caed-2\_15-cv-01507/pdf/USCOURTS-caed-2\_15-cv-01507-0.pdf</a>.</li>
 <li><span id="bib-217" class="anchor-target"></span>"<a href="https://www.govinfo.gov/app/details/USCOURTS-ohsd-2%5C_12-cv-00322/USCOURTS-ohsd-2%5C_12-cv-00322-1">https://www.govinfo.gov/app/details/USCOURTS-ohsd-2\_12-cv-00322/USCOURTS-ohsd-2\_12-cv-00322-1</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/app/details/USCOURTS-ohsd-2%5C_12-cv-00322/USCOURTS-ohsd-2%5C_12-cv-00322-1">https://www.govinfo.gov/app/details/USCOURTS-ohsd-2\_12-cv-00322/USCOURTS-ohsd-2\_12-cv-00322-1</a>.</li>
 <li><span id="bib-218" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2%5C_13-cv-01615/pdf/USCOURTS-pawd-2%5C_13-cv-01615-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2\_13-cv-01615/pdf/USCOURTS-pawd-2\_13-cv-01615-1.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2%5C_13-cv-01615/pdf/USCOURTS-pawd-2%5C_13-cv-01615-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2\_13-cv-01615/pdf/USCOURTS-pawd-2\_13-cv-01615-1.pdf</a>.</li>
 <li><span id="bib-219" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-nmd-1%5C_23-cv-00598/pdf/USCOURTS-nmd-1%5C_23-cv-00598-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nmd-1\_23-cv-00598/pdf/USCOURTS-nmd-1\_23-cv-00598-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-nmd-1%5C_23-cv-00598/pdf/USCOURTS-nmd-1%5C_23-cv-00598-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nmd-1\_23-cv-00598/pdf/USCOURTS-nmd-1\_23-cv-00598-0.pdf</a>.</li>
-<li><span id="bib-220" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca13-22-01555/pdf/USCOURTS-ca13-22-01555-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca13-22-01555/pdf/USCOURTS-ca13-22-01555-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca13-22-01555/pdf/USCOURTS-ca13-22-01555-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca13-22-01555/pdf/USCOURTS-ca13-22-01555-0.pdf</a>.</li>
+
 <li><span id="bib-221" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2%5C_13-cv-01582/pdf/USCOURTS-pawd-2%5C_13-cv-01582-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2\_13-cv-01582/pdf/USCOURTS-pawd-2\_13-cv-01582-1.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2%5C_13-cv-01582/pdf/USCOURTS-pawd-2%5C_13-cv-01582-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-pawd-2\_13-cv-01582/pdf/USCOURTS-pawd-2\_13-cv-01582-1.pdf</a>.</li>
 <li><span id="bib-222" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-cofc-1%5C_21-cv-01168/pdf/USCOURTS-cofc-1%5C_21-cv-01168-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-cofc-1\_21-cv-01168/pdf/USCOURTS-cofc-1\_21-cv-01168-1.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-cofc-1%5C_21-cv-01168/pdf/USCOURTS-cofc-1%5C_21-cv-01168-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-cofc-1\_21-cv-01168/pdf/USCOURTS-cofc-1\_21-cv-01168-1.pdf</a>.</li>
 <li><span id="bib-223" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-paed-5%5C_22-cv-04394/pdf/USCOURTS-paed-5%5C_22-cv-04394-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-paed-5\_22-cv-04394/pdf/USCOURTS-paed-5\_22-cv-04394-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-paed-5%5C_22-cv-04394/pdf/USCOURTS-paed-5%5C_22-cv-04394-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-paed-5\_22-cv-04394/pdf/USCOURTS-paed-5\_22-cv-04394-0.pdf</a>.</li>
-<li><span id="bib-224" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca5-23-20342/pdf/USCOURTS-ca5-23-20342-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca5-23-20342/pdf/USCOURTS-ca5-23-20342-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca5-23-20342/pdf/USCOURTS-ca5-23-20342-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca5-23-20342/pdf/USCOURTS-ca5-23-20342-0.pdf</a>.</li>
+
 <li><span id="bib-225" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-ared-4%5C_13-cv-00481/pdf/USCOURTS-ared-4%5C_13-cv-00481-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ared-4\_13-cv-00481/pdf/USCOURTS-ared-4\_13-cv-00481-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-ared-4%5C_13-cv-00481/pdf/USCOURTS-ared-4%5C_13-cv-00481-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ared-4\_13-cv-00481/pdf/USCOURTS-ared-4\_13-cv-00481-0.pdf</a>.</li>
 <li><span id="bib-226" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-nhd-1%5C_22-cv-00246/pdf/USCOURTS-nhd-1%5C_22-cv-00246-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nhd-1\_22-cv-00246/pdf/USCOURTS-nhd-1\_22-cv-00246-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-nhd-1%5C_22-cv-00246/pdf/USCOURTS-nhd-1%5C_22-cv-00246-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nhd-1\_22-cv-00246/pdf/USCOURTS-nhd-1\_22-cv-00246-0.pdf</a>.</li>
 <li><span id="bib-227" class="anchor-target"></span>"<a href="https://www.govinfo.gov/app/details/USCOURTS-caed-2%5C_23-cv-00987/USCOURTS-caed-2%5C_23-cv-00987-1">https://www.govinfo.gov/app/details/USCOURTS-caed-2\_23-cv-00987/USCOURTS-caed-2\_23-cv-00987-1</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/app/details/USCOURTS-caed-2%5C_23-cv-00987/USCOURTS-caed-2%5C_23-cv-00987-1">https://www.govinfo.gov/app/details/USCOURTS-caed-2\_23-cv-00987/USCOURTS-caed-2\_23-cv-00987-1</a>.</li>
@@ -2093,7 +2113,7 @@
 <li><span id="bib-237" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-ctd-3%5C_21-cv-00094/pdf/USCOURTS-ctd-3%5C_21-cv-00094-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ctd-3\_21-cv-00094/pdf/USCOURTS-ctd-3\_21-cv-00094-1.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-ctd-3%5C_21-cv-00094/pdf/USCOURTS-ctd-3%5C_21-cv-00094-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ctd-3\_21-cv-00094/pdf/USCOURTS-ctd-3\_21-cv-00094-1.pdf</a>.</li>
 <li><span id="bib-238" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2%5C_23-cv-00402/pdf/USCOURTS-nyed-2%5C_23-cv-00402-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2\_23-cv-00402/pdf/USCOURTS-nyed-2\_23-cv-00402-1.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2%5C_23-cv-00402/pdf/USCOURTS-nyed-2%5C_23-cv-00402-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-nyed-2\_23-cv-00402/pdf/USCOURTS-nyed-2\_23-cv-00402-1.pdf</a>.</li>
 <li><span id="bib-239" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1%5C_21-cv-02073/pdf/USCOURTS-dcd-1%5C_21-cv-02073-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1\_21-cv-02073/pdf/USCOURTS-dcd-1\_21-cv-02073-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1%5C_21-cv-02073/pdf/USCOURTS-dcd-1%5C_21-cv-02073-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-dcd-1\_21-cv-02073/pdf/USCOURTS-dcd-1\_21-cv-02073-0.pdf</a>.</li>
-<li><span id="bib-240" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca10-25-03028/pdf/USCOURTS-ca10-25-03028-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca10-25-03028/pdf/USCOURTS-ca10-25-03028-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-ca10-25-03028/pdf/USCOURTS-ca10-25-03028-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-ca10-25-03028/pdf/USCOURTS-ca10-25-03028-0.pdf</a>.</li>
+
 <li><span id="bib-241" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-cand-4%5C_09-cv-04620/pdf/USCOURTS-cand-4%5C_09-cv-04620-4.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-cand-4\_09-cv-04620/pdf/USCOURTS-cand-4\_09-cv-04620-4.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-cand-4%5C_09-cv-04620/pdf/USCOURTS-cand-4%5C_09-cv-04620-4.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-cand-4\_09-cv-04620/pdf/USCOURTS-cand-4\_09-cv-04620-4.pdf</a>.</li>
 <li><span id="bib-242" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-pamd-1%5C_13-cv-03014/pdf/USCOURTS-pamd-1%5C_13-cv-03014-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-pamd-1\_13-cv-03014/pdf/USCOURTS-pamd-1\_13-cv-03014-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-pamd-1%5C_13-cv-03014/pdf/USCOURTS-pamd-1%5C_13-cv-03014-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-pamd-1\_13-cv-03014/pdf/USCOURTS-pamd-1\_13-cv-03014-0.pdf</a>.</li>
 <li><span id="bib-243" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-pamd-1%5C_13-cv-02095/pdf/USCOURTS-pamd-1%5C_13-cv-02095-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-pamd-1\_13-cv-02095/pdf/USCOURTS-pamd-1\_13-cv-02095-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-pamd-1%5C_13-cv-02095/pdf/USCOURTS-pamd-1%5C_13-cv-02095-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-pamd-1\_13-cv-02095/pdf/USCOURTS-pamd-1\_13-cv-02095-0.pdf</a>.</li>
@@ -2126,9 +2146,9 @@
 <li><span id="bib-270" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-cand-5%5C_19-cv-04223/pdf/USCOURTS-cand-5%5C_19-cv-04223-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-cand-5\_19-cv-04223/pdf/USCOURTS-cand-5\_19-cv-04223-1.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-cand-5%5C_19-cv-04223/pdf/USCOURTS-cand-5%5C_19-cv-04223-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-cand-5\_19-cv-04223/pdf/USCOURTS-cand-5\_19-cv-04223-1.pdf</a>.</li>
 <li><span id="bib-271" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-caed-1%5C_11-cv-01458/pdf/USCOURTS-caed-1%5C_11-cv-01458-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-caed-1\_11-cv-01458/pdf/USCOURTS-caed-1\_11-cv-01458-1.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-caed-1%5C_11-cv-01458/pdf/USCOURTS-caed-1%5C_11-cv-01458-1.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-caed-1\_11-cv-01458/pdf/USCOURTS-caed-1\_11-cv-01458-1.pdf</a>.</li>
 <li><span id="bib-272" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-mdd-1%5C_22-cv-00710/pdf/USCOURTS-mdd-1%5C_22-cv-00710-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-mdd-1\_22-cv-00710/pdf/USCOURTS-mdd-1\_22-cv-00710-0.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-mdd-1%5C_22-cv-00710/pdf/USCOURTS-mdd-1%5C_22-cv-00710-0.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-mdd-1\_22-cv-00710/pdf/USCOURTS-mdd-1\_22-cv-00710-0.pdf</a>.</li>
-<li><span id="bib-273" class="anchor-target"></span>"<a href="https://law.justia.com/cases/federal/appellate-courts/ca5/23-20342/23-20342-2024-03-08.html">https://law.justia.com/cases/federal/appellate-courts/ca5/23-20342/23-20342-2024-03-08.html</a>." law.justia.com. Accessed November 13, 2025. <a href="https://law.justia.com/cases/federal/appellate-courts/ca5/23-20342/23-20342-2024-03-08.html">https://law.justia.com/cases/federal/appellate-courts/ca5/23-20342/23-20342-2024-03-08.html</a>.</li>
+
 <li><span id="bib-274" class="anchor-target"></span>"<a href="https://www.govinfo.gov/content/pkg/USCOURTS-caed-1%5C_14-cv-01280/pdf/USCOURTS-caed-1%5C_14-cv-01280-4.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-caed-1\_14-cv-01280/pdf/USCOURTS-caed-1\_14-cv-01280-4.pdf</a>." govinfo.gov. Accessed November 13, 2025. <a href="https://www.govinfo.gov/content/pkg/USCOURTS-caed-1%5C_14-cv-01280/pdf/USCOURTS-caed-1%5C_14-cv-01280-4.pdf">https://www.govinfo.gov/content/pkg/USCOURTS-caed-1\_14-cv-01280/pdf/USCOURTS-caed-1\_14-cv-01280-4.pdf</a>.</li>
-<li><span id="bib-275" class="anchor-target"></span>Dawn. "Case No: ………………………." stop007.org. Accessed November 13, 2025. <a href="https://stop007.org/wp-content/uploads/2016/10/dca-khorton-no-claim-no-court-37-horton-sis-mi5-gchq-19-05-16.pdf">https://stop007.org/wp-content/uploads/2016/10/dca-khorton-no-claim-no-court-37-horton-sis-mi5-gchq-19-05-16.pdf</a>.</li>
+
 <li><span id="bib-276" class="anchor-target"></span>"<a href="https://www.courtlistener.com/opinion/9399969/sherven-v-central-intelligence-agency">https://www.courtlistener.com/opinion/9399969/sherven-v-central-intelligence-agency</a>." courtlistener.com. Accessed November 13, 2025. <a href="https://www.courtlistener.com/opinion/9399969/sherven-v-central-intelligence-agency">https://www.courtlistener.com/opinion/9399969/sherven-v-central-intelligence-agency</a>.</li>
 <li><span id="bib-277" class="anchor-target"></span>"<a href="https://www.alachuacounty.us/Depts/epd/EPAC/Angels%20Dont%20Play%20This%20HAARP%20by%20Nick%20Begich%201997.pdf">https://www.alachuacounty.us/Depts/epd/EPAC/Angels%20Dont%20Play%20This%20HAARP%20by%20Nick%20Begich%201997.pdf</a>." alachuacounty.us. Accessed November 13, 2025. <a href="https://www.alachuacounty.us/Depts/epd/EPAC/Angels%20Dont%20Play%20This%20HAARP%20by%20Nick%20Begich%201997.pdf">https://www.alachuacounty.us/Depts/epd/EPAC/Angels%20Dont%20Play%20This%20HAARP%20by%20Nick%20Begich%201997.pdf</a>.</li>
 <li><span id="bib-278" class="anchor-target"></span>"<a href="https://www.npr.org/2006/01/23/5168026/1996-under-the-watchful-eye-of-the-government">https://www.npr.org/2006/01/23/5168026/1996-under-the-watchful-eye-of-the-government</a>." npr.org. Accessed November 13, 2025. <a href="https://www.npr.org/2006/01/23/5168026/1996-under-the-watchful-eye-of-the-government">https://www.npr.org/2006/01/23/5168026/1996-under-the-watchful-eye-of-the-government</a>.</li>
