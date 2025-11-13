@@ -2,6 +2,8 @@ import type { ProcessedMarkdown } from '../utils/types'
 
 interface GeneratePdfOptions {
   originalFileName?: string
+  fontFamily?: string
+  fontSize?: number
 }
 
 export async function generatePdf(

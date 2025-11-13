@@ -89,6 +89,9 @@ const initialSectionState: Record<SectionKey, boolean> = {
 
 type ProcessingState = 'idle' | 'processing' | 'processed' | 'error'
 
+const FONT_OPTIONS = ['Times New Roman', 'Helvetica', 'Courier New'] as const
+type FontOption = typeof FONT_OPTIONS[number]
+
 function App() {
   const [fileName, setFileName] = useState<string | null>(null)
   const [originalMarkdown, setOriginalMarkdown] = useState<string>('')
@@ -97,6 +100,8 @@ function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
   const [isGeneratingDocx, setIsGeneratingDocx] = useState(false)
+  const [selectedFontFamily, setSelectedFontFamily] = useState<FontOption>('Times New Roman')
+  const [bodyFontSize, setBodyFontSize] = useState<number>(12)
   const [expandedSections, setExpandedSections] =
     useState<Record<SectionKey, boolean>>(initialSectionState)
   const [promptForManualMetadata, setPromptForManualMetadata] = useState(true)
@@ -260,7 +265,11 @@ function App() {
     if (!processed) return
     setIsGeneratingPdf(true)
     try {
-      const blob = await generatePdf(processed, { originalFileName: fileName ?? undefined })
+      const blob = await generatePdf(processed, {
+        originalFileName: fileName ?? undefined,
+        fontFamily: selectedFontFamily,
+        fontSize: bodyFontSize,
+      })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -283,7 +292,7 @@ function App() {
     } finally {
       setIsGeneratingPdf(false)
     }
-  }, [processed, fileName])
+    }, [processed, fileName, selectedFontFamily, bodyFontSize])
 
   const handleDownloadDocx = useCallback(async () => {
     if (!processed) return
@@ -458,7 +467,41 @@ function App() {
         >
           {processed ? (
             <>
-              <div className="actions">
+                <div className="typography-controls">
+                  <label className="typography-controls__label">
+                    <span>Font Family</span>
+                    <select
+                      value={selectedFontFamily}
+                      onChange={(event) =>
+                        setSelectedFontFamily(event.target.value as FontOption)
+                      }
+                    >
+                      {FONT_OPTIONS.map((font) => (
+                        <option key={font} value={font}>
+                          {font}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="typography-controls__label">
+                    <span>Body Font Size (pt)</span>
+                    <input
+                      type="number"
+                      min={8}
+                      max={20}
+                      value={bodyFontSize}
+                      onChange={(event) => {
+                        const nextValue = Number(event.target.value)
+                        if (!Number.isFinite(nextValue)) {
+                          return
+                        }
+                        const clamped = Math.min(Math.max(Math.round(nextValue), 8), 20)
+                        setBodyFontSize(clamped)
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="actions">
                 <button type="button" onClick={handleDownloadMarkdown}>
                   Download Processed Markdown
                 </button>

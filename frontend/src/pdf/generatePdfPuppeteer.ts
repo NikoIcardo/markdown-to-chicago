@@ -10,6 +10,28 @@ import remarkAutolinkHeadings from 'remark-autolink-headings'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import type { ProcessedMarkdown } from '../utils/types.ts'
 
+const FONT_CONFIG = {
+  'Times New Roman': {
+    css: "'Times New Roman', Times, serif",
+    pdf: StandardFonts.TimesRoman,
+  },
+  Helvetica: {
+    css: 'Helvetica, Arial, sans-serif',
+    pdf: StandardFonts.Helvetica,
+  },
+  'Courier New': {
+    css: "'Courier New', Courier, monospace",
+    pdf: StandardFonts.Courier,
+  },
+} as const satisfies Record<string, { css: string; pdf: StandardFonts }>
+
+type FontName = keyof typeof FONT_CONFIG
+
+const DEFAULT_FONT: FontName = 'Times New Roman'
+const DEFAULT_FONT_SIZE = 12
+const MIN_FONT_SIZE = 8
+const MAX_FONT_SIZE = 20
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -35,13 +57,23 @@ async function markdownToHtml(markdown: string): Promise<string> {
 
 export async function generatePdfWithPuppeteer(
   processed: ProcessedMarkdown,
-  options?: { outputPath?: string },
+  options?: { outputPath?: string; fontFamily?: string; fontSize?: number },
 ): Promise<Buffer> {
   const htmlBody = await markdownToHtml(processed.modified)
   const docTitle = processed.title?.trim() || options?.originalFileName || 'Document'
   const docSubtitle = processed.subtitle?.trim()
+  const requestedFontKey = options?.fontFamily as FontName | undefined
+  const selectedFontKey = requestedFontKey && FONT_CONFIG[requestedFontKey] ? requestedFontKey : DEFAULT_FONT
+  const selectedFontConfig = FONT_CONFIG[selectedFontKey]
+  const requestedFontSize =
+    typeof options?.fontSize === 'number' && Number.isFinite(options.fontSize)
+      ? Math.round(options.fontSize)
+      : DEFAULT_FONT_SIZE
+  const contentFontSize = Math.min(Math.max(requestedFontSize, MIN_FONT_SIZE), MAX_FONT_SIZE)
+  const contentFontFamily = selectedFontConfig.css
+  const headingFontFamily = FONT_CONFIG[DEFAULT_FONT].css
 
-  const html = `
+const html = `
 <!DOCTYPE html>
 <html>
   <head>
@@ -78,6 +110,8 @@ export async function generatePdfWithPuppeteer(
       }
       .document-body {
         padding: 0;
+        font-family: ${contentFontFamily};
+        font-size: ${contentFontSize}px;
       }
       .document-body > *:first-child {
         margin-top: 0;
@@ -85,15 +119,19 @@ export async function generatePdfWithPuppeteer(
       h1 {
         font-size: 40px;
         margin-top: 0;
+        font-family: ${headingFontFamily};
       }
       h2 {
         font-size: 32px;
+        font-family: ${headingFontFamily};
       }
       h3 {
         font-size: 26px;
+        font-family: ${headingFontFamily};
       }
       h4 {
         font-size: 20px;
+        font-family: ${headingFontFamily};
       }
       .main-heading,
       .first-main-heading {
@@ -503,7 +541,7 @@ export async function generatePdfWithPuppeteer(
       })
 
       const pdfDoc = await PDFDocument.load(rawPdf)
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+      const font = await pdfDoc.embedFont(selectedFontConfig.pdf)
       const pages = pdfDoc.getPages()
       const color = rgb(0.29, 0.33, 0.39)
       const fontSize = 11
