@@ -96,8 +96,16 @@ export async function generatePdfWithPuppeteer(
       }
       .main-heading,
       .first-main-heading {
-        page-break-before: always;
         margin-top: 0;
+      }
+      .main-heading-divider,
+      .first-main-heading-divider {
+        break-before: page;
+        display: block;
+      }
+      .main-heading-break,
+      .first-main-heading-break {
+        break-before: page;
       }
       a {
         color: #1a56db;
@@ -113,13 +121,6 @@ export async function generatePdfWithPuppeteer(
       .anchor-target {
         display: block;
         height: 0;
-      }
-      @page {
-        margin: 1in;
-      }
-      @page title {
-        margin: 1in;
-        @bottom-center { content: none; }
       }
       @media print {
         a[href^="#"]::after { content: ""; }
@@ -177,7 +178,10 @@ export async function generatePdfWithPuppeteer(
         document.querySelector('h6#table-of-contents')
 
       if (tocHeading) {
-        const tocNodes = []
+        ;(tocHeading as HTMLElement).style.fontSize = '34px'
+        ;(tocHeading as HTMLElement).style.marginBottom = '1.2rem'
+
+        const tocNodes: Node[] = []
         let node = tocHeading.nextSibling
         while (node) {
           if (node.nodeType === Node.ELEMENT_NODE && /^H[1-6]$/i.test((node as HTMLElement).tagName)) {
@@ -187,7 +191,7 @@ export async function generatePdfWithPuppeteer(
           node = node.nextSibling
         }
 
-        const tocLinks = []
+        const tocLinks: HTMLAnchorElement[] = []
         tocNodes.forEach((tocNode) => {
           if (tocNode.nodeType === Node.ELEMENT_NODE) {
             tocLinks.push(...(tocNode as HTMLElement).querySelectorAll('a'))
@@ -214,6 +218,16 @@ export async function generatePdfWithPuppeteer(
             link.setAttribute('href', `#${targetSlug}`)
           }
         })
+
+        const tocList = tocHeading.nextElementSibling
+        if (tocList && ['OL', 'UL'].includes(tocList.tagName)) {
+          const tocListElement = tocList as HTMLElement
+          tocListElement.style.fontSize = '26px'
+          tocListElement.style.lineHeight = '1.8'
+          tocListElement.style.paddingLeft = '1.25rem'
+          tocListElement.style.breakAfter = 'page'
+          tocListElement.style.pageBreakAfter = 'always'
+        }
       }
       const listItems = Array.from(document.querySelectorAll('li'))
       listItems.forEach((li) => {
@@ -254,9 +268,9 @@ export async function generatePdfWithPuppeteer(
         'petitionsfund-raisers',
         'court-cases',
       ]
-      const urlsToExclude = new Set()
+      const urlsToExclude = new Set<string>()
 
-      const collectSectionUrls = (slug) => {
+      const collectSectionUrls = (slug: string) => {
         const heading = document.getElementById(slug)
         if (!heading) {
           return
@@ -286,7 +300,7 @@ export async function generatePdfWithPuppeteer(
         }
       }
 
-      const isExcludedBibliographyItem = (itemLinks) =>
+      const isExcludedBibliographyItem = (itemLinks: (string | null)[]) =>
         itemLinks.some((href) => {
           if (!href) {
             return false
@@ -300,18 +314,6 @@ export async function generatePdfWithPuppeteer(
 
       sectionsToExclude.forEach((slug) => {
         collectSectionUrls(slug)
-        const sectionHeading = document.getElementById(slug)
-        if (sectionHeading) {
-          const sectionLinks = Array.from(
-            sectionHeading.parentElement?.querySelectorAll(`#${slug} ~ a[href]`) ?? [],
-          )
-          sectionLinks.forEach((link) => {
-            const href = link.getAttribute('href')
-            if (href) {
-              urlsToExclude.add(href)
-            }
-          })
-        }
       })
 
       const bibliographyHeading = document.getElementById('bibliography')
@@ -325,7 +327,6 @@ export async function generatePdfWithPuppeteer(
           }
           cursor = cursor.nextSibling
         }
-
         if (bibliographyList) {
           bibliographyList.querySelectorAll('li').forEach((item) => {
             const itemLinks = Array.from(item.querySelectorAll('a[href]')).map((anchor) =>
@@ -358,11 +359,32 @@ export async function generatePdfWithPuppeteer(
       const mainHeadingNodes = Array.from(document.querySelectorAll(mainHeadingSelector)).filter(
         (heading) => heading.id !== 'table-of-contents' && !heading.closest('.title-page'),
       )
+      const markDivider = (divider: HTMLElement | null, className: string) => {
+        if (divider) {
+          divider.classList.add(className)
+        }
+      }
       mainHeadingNodes.forEach((heading, index) => {
-        if (index === 0) {
-          heading.classList.add('first-main-heading')
+        const isFirst = index === 0
+        const headingClass = isFirst ? 'first-main-heading' : 'main-heading'
+        heading.classList.add(headingClass)
+
+        let previous = heading.previousSibling
+        let divider: HTMLElement | null = null
+        while (previous) {
+          if (previous.nodeType === Node.ELEMENT_NODE && (previous as HTMLElement).tagName === 'HR') {
+            divider = previous as HTMLElement
+            break
+          }
+          if (previous.nodeType === Node.ELEMENT_NODE && (previous as HTMLElement).tagName !== 'HR') {
+            break
+          }
+          previous = previous.previousSibling
+        }
+        if (divider) {
+          markDivider(divider, isFirst ? 'first-main-heading-divider' : 'main-heading-divider')
         } else {
-          heading.classList.add('main-heading')
+          heading.classList.add(isFirst ? 'first-main-heading-break' : 'main-heading-break')
         }
       })
 
@@ -431,37 +453,7 @@ export async function generatePdfWithPuppeteer(
     })
 
     try {
-      const introHeading = await page.waitForSelector('#introduction', {
-        timeout: 2000,
-      })
-      if (introHeading) {
-        await page.evaluate((headingSelector) => {
-          const heading = document.querySelector(headingSelector)
-          if (!heading) {
-            return
-          }
-          let previous = heading.previousSibling
-          while (previous) {
-            const isDivider =
-              previous.nodeType === Node.ELEMENT_NODE &&
-              /^HR$/i.test((previous as HTMLElement).tagName)
-            if (isDivider) {
-              ;(previous as HTMLElement).remove()
-            }
-            if (
-              previous.nodeType === Node.ELEMENT_NODE &&
-              !/^HR$/i.test((previous as HTMLElement).tagName)
-            ) {
-              break
-            }
-            previous = previous.previousSibling
-          }
-          const dividerTop = document.createElement('hr')
-          const dividerBottom = document.createElement('hr')
-          heading.parentNode?.insertBefore(dividerTop, heading)
-          heading.parentNode?.insertBefore(dividerBottom, heading.nextSibling)
-        }, '#introduction')
-      }
+        await page.waitForSelector('a[href^="#"]', { timeout: 2000 })
     } catch {
       // no internal anchors detected; continue without validation
     }
@@ -505,12 +497,29 @@ export async function generatePdfWithPuppeteer(
         text-align: right;
         padding: 0.2in 0.25in 0;
       }
-      .pdf-header[data-page-number="1"],
-      .pdf-header[data-page-number="2"] {
-        display: none;
-      }
     </style>
-    <div class="pdf-header"><span class="pageNumber"></span></div>
+    <div class="pdf-header">
+      <span class="pageNumber"></span>
+      <span class="totalPages" style="display:none;"></span>
+    </div>
+    <script>
+    (function () {
+      var container = document.currentScript.previousElementSibling;
+      if (!container) {
+        return;
+      }
+      var pageNumberEl = container.querySelector('.pageNumber');
+      if (!pageNumberEl) {
+        return;
+      }
+      var pageNumber = parseInt(pageNumberEl.textContent || '0', 10);
+      if (!Number.isFinite(pageNumber) || pageNumber <= 2) {
+        container.style.visibility = 'hidden';
+        return;
+      }
+      pageNumberEl.textContent = String(pageNumber - 2);
+    })();
+    </script>
     `
 
     const pdfBuffer = await page.pdf({
