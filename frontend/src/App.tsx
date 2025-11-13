@@ -41,6 +41,7 @@ interface AccordionSectionProps {
   isOpen: boolean
   onToggle: () => void
   badge?: React.ReactNode
+  collapsedNotice?: React.ReactNode
   children: React.ReactNode
 }
 
@@ -49,22 +50,35 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
   isOpen,
   onToggle,
   badge,
+  collapsedNotice,
   children,
-}) => (
-  <section className={`panel accordion ${isOpen ? 'accordion--open' : ''}`}>
-    <button type="button" className="accordion__header" onClick={onToggle}>
-      <span className="accordion__title">{title}</span>
-      <span className="accordion__spacer" />
-      {badge ? <span className="accordion__badge">{badge}</span> : null}
-      <span className="accordion__chevron" aria-hidden="true">
-        {isOpen ? '−' : '+'}
-      </span>
-    </button>
-    <div className="accordion__content" aria-hidden={!isOpen}>
-      {isOpen ? children : null}
-    </div>
-  </section>
-)
+}) => {
+  const showCollapsedNotice = !isOpen && collapsedNotice
+  const collapsedStyle = !isOpen
+    ? showCollapsedNotice
+      ? { paddingTop: '0.75rem', paddingBottom: '0.75rem' }
+      : { paddingTop: 0, paddingBottom: 0 }
+    : undefined
+  return (
+    <section className={`panel accordion ${isOpen ? 'accordion--open' : ''}`}>
+      <button type="button" className="accordion__header" onClick={onToggle}>
+        <span className="accordion__title">{title}</span>
+        <span className="accordion__spacer" />
+        {badge ? <span className="accordion__badge">{badge}</span> : null}
+        <span className="accordion__chevron" aria-hidden="true">
+          {isOpen ? '−' : '+'}
+        </span>
+      </button>
+      <div
+        className={`accordion__content ${isOpen ? 'accordion__content--open' : 'accordion__content--collapsed'}`}
+        aria-hidden={showCollapsedNotice ? false : !isOpen}
+        style={collapsedStyle}
+      >
+        {isOpen ? children : collapsedNotice ?? null}
+      </div>
+    </section>
+  )
+}
 
 const initialSectionState: Record<SectionKey, boolean> = {
   upload: true,
@@ -106,6 +120,10 @@ function App() {
     if (processed) {
       setShowDiagnosticsNotice(true)
       setShowBibliographyNotice(true)
+      setExpandedSections((prev) => ({
+        ...prev,
+        preview: true,
+      }))
     } else {
       setShowDiagnosticsNotice(false)
       setShowBibliographyNotice(false)
@@ -351,16 +369,6 @@ function App() {
           {processingState === 'processed' && processed && (
             <div className="status status--success">Document processed successfully.</div>
           )}
-          {processed && showDiagnosticsNotice && !expandedSections.diagnostics ? (
-            <div className="status status--info">
-              Diagnostics are ready. Expand “2. Diagnostics” to review processing notes.
-            </div>
-          ) : null}
-          {processed && showBibliographyNotice && !expandedSections.bibliography ? (
-            <div className="status status--info">
-              Bibliography entries are ready. Expand “3. Bibliography Summary” to view them.
-            </div>
-          ) : null}
         </AccordionSection>
 
         <AccordionSection
@@ -371,6 +379,17 @@ function App() {
             diagnostics?.warnings?.length
               ? <span>{diagnostics.warnings.length}</span>
               : undefined
+          }
+          collapsedNotice={
+            processed && showDiagnosticsNotice
+              ? (
+                <div className="status status--info">
+                  Diagnostics Ready to View, Click the Drop Down
+                </div>
+              )
+              : !processed
+                ? <p>Diagnostics will appear here once a document has been processed.</p>
+                : null
           }
         >
           {processed ? (
@@ -396,6 +415,17 @@ function App() {
             bibliographyEntries.length
               ? <span>{bibliographyEntries.length}</span>
               : undefined
+          }
+          collapsedNotice={
+            processed && showBibliographyNotice
+              ? (
+                <div className="status status--info">
+                  Bibliography entries are ready. To view click the drop down.
+                </div>
+              )
+              : !processed
+                ? <p>The bibliography summary will be available after you process a document.</p>
+                : null
           }
         >
           {processed ? (

@@ -207,7 +207,7 @@ export async function generateDocx(processed: ProcessedMarkdown): Promise<Blob> 
         }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { before: 4000, after: 400 },
+      spacing: { before: 4320, after: 400 },
     }),
   ]
   

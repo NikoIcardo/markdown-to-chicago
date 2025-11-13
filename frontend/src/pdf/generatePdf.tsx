@@ -46,9 +46,10 @@ const styles = StyleSheet.create({
   },
   titlePage: {
     flexDirection: 'column',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     height: '100%',
+    paddingTop: 216,
   },
   titleText: {
     fontSize: 24,
@@ -193,9 +194,8 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   anchorMarker: {
-    fontSize: 1,
-    color: 'transparent',
-    lineHeight: 1,
+    height: 0.1,
+    width: '100%',
     marginBottom: 0,
   },
   imageContainer: {
@@ -381,17 +381,15 @@ function renderImageBlock({
   }
 
   const anchorElement = anchorId ? (
-    <Text key={`${key}-anchor`} id={anchorId} style={styles.anchorMarker}>
-      {' '}
-    </Text>
+    <View key={`${key}-anchor`} id={anchorId} style={styles.anchorMarker} />
   ) : null
 
   const imageElement = linkHref ? (
     <Link src={linkHref}>
-      <Image src={{ uri: imageNode.url }} style={styles.image} />
+      <Image src={imageNode.url} style={styles.image} />
     </Link>
   ) : (
-    <Image src={{ uri: imageNode.url }} style={styles.image} />
+    <Image src={imageNode.url} style={styles.image} />
   )
 
   return (
@@ -428,11 +426,7 @@ function renderParagraph(node: Paragraph, key: string) {
   const { anchorId, remainder } = extractAnchor(node.children as Content[])
   if (!remainder.length) {
     if (anchorId) {
-      return (
-        <Text key={key} id={anchorId} style={styles.anchorMarker}>
-          {' '}
-        </Text>
-      )
+      return <View key={key} id={anchorId} style={styles.anchorMarker} />
     }
     return null
   }
@@ -489,16 +483,14 @@ function renderParagraph(node: Paragraph, key: string) {
     </Text>
   )
 
-  if (anchorId) {
-    return (
-      <View key={key} style={styles.paragraphContainer}>
-        <Text id={anchorId} style={styles.anchorMarker}>
-          {' '}
-        </Text>
-        {paragraphText}
-      </View>
-    )
-  }
+    if (anchorId) {
+      return (
+        <View key={key} style={styles.paragraphContainer}>
+          <View id={anchorId} style={styles.anchorMarker} />
+          {paragraphText}
+        </View>
+      )
+    }
 
   return (
     <View key={key} style={styles.paragraphContainer}>
@@ -561,7 +553,12 @@ function renderList(
 function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
   let headingIndex = 0
 
-  const render = (node: Content, key: string, depth: number = 0, insideList: boolean = false): React.ReactNode => {
+  const render = (
+    node: Content,
+    key: string,
+    depth: number = 0,
+    insideList: boolean = false,
+  ): React.ReactNode => {
     switch (node.type) {
       case 'paragraph':
         return renderParagraph(node as Paragraph, key)
@@ -574,9 +571,11 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
         const slug = headingInfo ? headingInfo.slug : slugify(textContent)
         headingIndex += 1
         return (
-          <Text key={key} id={slug} style={headingStyles[headingNode.depth] || styles.heading6}>
-            {renderInlineChildren(headingNode.children as InlineNode[], key)}
-          </Text>
+          <View key={key} id={slug}>
+            <Text style={headingStyles[headingNode.depth] || styles.heading6}>
+              {renderInlineChildren(headingNode.children as InlineNode[], key)}
+            </Text>
+          </View>
         )
       }
       case 'image': {
@@ -610,11 +609,7 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
         const htmlNode = node as Html
         const anchorMatch = htmlNode.value.match(/<a id="([^"]+)"><\/a>/i)
         if (anchorMatch) {
-          return (
-            <Text key={key} id={anchorMatch[1]} style={styles.anchorMarker}>
-              {' '}
-            </Text>
-          )
+          return <View key={key} id={anchorMatch[1]} style={styles.anchorMarker} />
         }
         const superscript = renderSuperscript(htmlNode, key)
         return superscript
