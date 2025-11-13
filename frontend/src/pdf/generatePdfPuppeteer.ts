@@ -54,7 +54,7 @@ export async function generatePdfWithPuppeteer(
         padding: 0;
       }
       .title-page {
-        min-height: calc(100vh - 2in);
+        min-height: calc(100vh - 2.5in);
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
