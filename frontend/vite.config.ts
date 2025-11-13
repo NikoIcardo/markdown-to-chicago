@@ -3,36 +3,49 @@ import react from '@vitejs/plugin-react'
 import * as fs from 'fs'
 import * as path from 'path'
 
+function sanitizeFileName(name: string): string {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_')
+}
+
 // Plugin to save downloaded files to repo root in dev mode
 function saveFilesToRoot() {
   return {
     name: 'save-files-to-root',
     configureServer(server: any) {
+      let pdfModulePromise: Promise<any> | null = null
+
+      const ensurePdfModule = () => {
+        if (!pdfModulePromise) {
+          pdfModulePromise = server.ssrLoadModule('/src/pdf/generatePdfPuppeteer.ts')
+        }
+        return pdfModulePromise
+      }
+
       server.middlewares.use((req: any, res: any, next: any) => {
-        if (req.url === '/api/save-file' && req.method === 'POST') {
+        const url = req.url?.split('?')[0]
+
+        if (url === '/api/save-file' && req.method === 'POST') {
           let body = Buffer.alloc(0)
-          
+
           req.on('data', (chunk: Buffer) => {
             body = Buffer.concat([body, chunk])
           })
-          
+
           req.on('end', () => {
             try {
-              // Parse multipart form data manually (simple approach)
               const boundary = req.headers['content-type']?.split('boundary=')[1]
               if (!boundary) {
                 res.statusCode = 400
                 res.end('No boundary found')
                 return
               }
-              
+
               const parts = body.toString('binary').split(`--${boundary}`)
               for (const part of parts) {
                 if (part.includes('filename=')) {
                   const filenameMatch = part.match(/filename="([^"]+)"/)
                   if (filenameMatch) {
                     const filename = filenameMatch[1]
-                    // Find the actual file content (after double newline)
                     const contentStart = part.indexOf('\r\n\r\n') + 4
                     const contentEnd = part.lastIndexOf('\r\n')
                     if (contentStart > 3 && contentEnd > contentStart) {
@@ -44,7 +57,7 @@ function saveFilesToRoot() {
                   }
                 }
               }
-              
+
               res.statusCode = 200
               res.setHeader('Content-Type', 'application/json')
               res.end(JSON.stringify({ success: true }))
@@ -54,9 +67,55 @@ function saveFilesToRoot() {
               res.end('Error saving file')
             }
           })
-        } else {
-          next()
+          return
         }
+
+        if (url === '/api/generate-pdf' && req.method === 'POST') {
+          let body = ''
+          req.setEncoding('utf8')
+
+          req.on('data', (chunk: string) => {
+            body += chunk
+          })
+
+          req.on('end', async () => {
+            try {
+              const payload = body ? JSON.parse(body) : {}
+              const processed = payload?.processed
+              const options = payload?.options ?? {}
+
+              if (!processed || typeof processed.modified !== 'string') {
+                res.statusCode = 400
+                res.end('Invalid processed payload')
+                return
+              }
+
+              const { generatePdfWithPuppeteer } = await ensurePdfModule()
+              const pdfBuffer: Buffer = await generatePdfWithPuppeteer(processed)
+
+              const downloadNameBase =
+                typeof options.originalFileName === 'string' && options.originalFileName
+                  ? options.originalFileName.replace(/\.md$/i, '')
+                  : processed.title || 'document'
+
+              const downloadName = `${sanitizeFileName(downloadNameBase || 'document')}.pdf`
+
+              res.statusCode = 200
+              res.setHeader('Content-Type', 'application/pdf')
+              res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`)
+              res.setHeader('Cache-Control', 'no-store')
+              res.end(pdfBuffer)
+            } catch (error) {
+              console.error('Error generating PDF:', error)
+              res.statusCode = 500
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: 'Error generating PDF' }))
+            }
+          })
+          return
+        }
+
+        next()
       })
     },
   }
