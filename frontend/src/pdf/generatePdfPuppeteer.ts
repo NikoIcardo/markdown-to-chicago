@@ -62,9 +62,6 @@ export async function generatePdfWithPuppeteer(
   </body>
 </html>`
 
-  const debugHtmlPath = resolvePath(process.cwd(), 'debug-output.html')
-  await fs.writeFile(debugHtmlPath, html, 'utf8')
-
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox'],
@@ -73,6 +70,41 @@ export async function generatePdfWithPuppeteer(
   try {
     const page = await browser.newPage()
     await page.setContent(html, { waitUntil: 'networkidle0' })
+
+    await page.evaluate(() => {
+      const anchorTargets = Array.from(document.querySelectorAll('a[id]')) as HTMLAnchorElement[]
+      anchorTargets.forEach((anchor) => {
+        const isEmpty =
+          anchor.childElementCount === 0 &&
+          (anchor.textContent === null || anchor.textContent.trim().length === 0)
+        if (!isEmpty) {
+          return
+        }
+
+        const { id } = anchor
+        if (!id) {
+          return
+        }
+
+        const parent = anchor.parentElement
+        if (parent) {
+          if (!parent.id) {
+            parent.id = id
+            anchor.remove()
+            return
+          }
+
+          if (parent.id === id) {
+            anchor.remove()
+            return
+          }
+        }
+
+        const span = document.createElement('span')
+        span.id = id
+        anchor.replaceWith(span)
+      })
+    })
 
     try {
       await page.waitForSelector('a[href^="#"]', { timeout: 2000 })
@@ -105,6 +137,9 @@ export async function generatePdfWithPuppeteer(
     }
 
     const pdfPath = options?.outputPath ?? resolvePath(process.cwd(), 'output.pdf')
+    const debugHtmlPath = resolvePath(process.cwd(), 'debug-output.html')
+    const finalHtml = await page.content()
+    await fs.writeFile(debugHtmlPath, finalHtml, 'utf8')
 
     const pdfBuffer = await page.pdf({
       path: pdfPath,
