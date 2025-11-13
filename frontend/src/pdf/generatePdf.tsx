@@ -3,6 +3,7 @@ import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
 import { toString } from 'mdast-util-to-string'
+import { visit } from 'unist-util-visit'
 import type {
   Content,
   Heading,
@@ -194,8 +195,9 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   anchorMarker: {
-    height: 0.1,
-    width: '100%',
+    fontSize: 1,
+    color: 'transparent',
+    lineHeight: 1,
     marginBottom: 0,
   },
   imageContainer: {
@@ -369,27 +371,33 @@ function renderImageBlock({
   anchorId,
   linkHref,
   references,
+  imageMap,
 }: {
   imageNode: MdImage
   key: string
   anchorId?: string
   linkHref?: string
   references: MdLink[]
+  imageMap: Record<string, string>
 }) {
   if (!imageNode.url) {
     return null
   }
 
   const anchorElement = anchorId ? (
-    <View key={`${key}-anchor`} id={anchorId} style={styles.anchorMarker} />
+    <Text key={`${key}-anchor`} id={anchorId} style={styles.anchorMarker}>
+      {' '}
+    </Text>
   ) : null
+
+  const resolvedSrc = imageMap[imageNode.url] ?? imageNode.url
 
   const imageElement = linkHref ? (
     <Link src={linkHref}>
-      <Image src={imageNode.url} style={styles.image} />
+      <Image src={resolvedSrc} style={styles.image} />
     </Link>
   ) : (
-    <Image src={imageNode.url} style={styles.image} />
+    <Image src={resolvedSrc} style={styles.image} />
   )
 
   return (
@@ -422,11 +430,15 @@ function renderImageBlock({
   )
 }
 
-function renderParagraph(node: Paragraph, key: string) {
+function renderParagraph(node: Paragraph, key: string, imageMap: Record<string, string>) {
   const { anchorId, remainder } = extractAnchor(node.children as Content[])
   if (!remainder.length) {
     if (anchorId) {
-      return <View key={key} id={anchorId} style={styles.anchorMarker} />
+      return (
+        <Text key={key} id={anchorId} style={styles.anchorMarker}>
+          {' '}
+        </Text>
+      )
     }
     return null
   }
@@ -474,6 +486,7 @@ function renderParagraph(node: Paragraph, key: string) {
       anchorId,
       linkHref,
       references,
+      imageMap,
     })
   }
 
@@ -483,14 +496,16 @@ function renderParagraph(node: Paragraph, key: string) {
     </Text>
   )
 
-    if (anchorId) {
-      return (
-        <View key={key} style={styles.paragraphContainer}>
-          <View id={anchorId} style={styles.anchorMarker} />
-          {paragraphText}
-        </View>
-      )
-    }
+  if (anchorId) {
+    return (
+      <View key={key} style={styles.paragraphContainer}>
+        <Text id={anchorId} style={styles.anchorMarker}>
+          {' '}
+        </Text>
+        {paragraphText}
+      </View>
+    )
+  }
 
   return (
     <View key={key} style={styles.paragraphContainer}>
@@ -511,7 +526,9 @@ function renderListItem(
     <View key={key} style={styles.listItem}>
       <Text style={styles.listMarker}>{marker}</Text>
       <View style={styles.listContent}>
-        {node.children.map((child, idx) => render(child as Content, `${key}-${idx}`, options.depth + 1, true))}
+        {node.children.map((child, idx) =>
+          render(child as Content, `${key}-${idx}`, options.depth + 1, true),
+        )}
       </View>
     </View>
   )
@@ -550,7 +567,10 @@ function renderList(
   )
 }
 
-function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
+function renderNodeFactory(
+  headings: ProcessedMarkdown['headings'],
+  imageMap: Record<string, string>,
+) {
   let headingIndex = 0
 
   const render = (
@@ -561,7 +581,7 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
   ): React.ReactNode => {
     switch (node.type) {
       case 'paragraph':
-        return renderParagraph(node as Paragraph, key)
+        return renderParagraph(node as Paragraph, key, imageMap)
       case 'heading': {
         const headingNode = node as Heading
         const textContent = headingNode.children
@@ -571,11 +591,9 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
         const slug = headingInfo ? headingInfo.slug : slugify(textContent)
         headingIndex += 1
         return (
-          <View key={key} id={slug}>
-            <Text style={headingStyles[headingNode.depth] || styles.heading6}>
-              {renderInlineChildren(headingNode.children as InlineNode[], key)}
-            </Text>
-          </View>
+          <Text key={key} id={slug} style={headingStyles[headingNode.depth] || styles.heading6}>
+            {renderInlineChildren(headingNode.children as InlineNode[], key)}
+          </Text>
         )
       }
       case 'image': {
@@ -583,7 +601,7 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
         if (!imageNode.url) {
           return null
         }
-        return renderImageBlock({ imageNode, key, references: [] })
+        return renderImageBlock({ imageNode, key, references: [], imageMap })
       }
       case 'list':
         return renderList(node as List, key, render, depth)
@@ -609,7 +627,11 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
         const htmlNode = node as Html
         const anchorMatch = htmlNode.value.match(/<a id="([^"]+)"><\/a>/i)
         if (anchorMatch) {
-          return <View key={key} id={anchorMatch[1]} style={styles.anchorMarker} />
+          return (
+            <Text key={key} id={anchorMatch[1]} style={styles.anchorMarker}>
+              {' '}
+            </Text>
+          )
         }
         const superscript = renderSuperscript(htmlNode, key)
         return superscript
@@ -657,8 +679,60 @@ function removeInitialTitleHeading(ast: Root, title?: string | null) {
   })
 }
 
-function buildContentElements(tree: Root, headings: ProcessedMarkdown['headings']) {
-  const render = renderNodeFactory(headings)
+function collectImageUrls(tree: Root): string[] {
+  const urls = new Set<string>()
+  visit(tree, 'image', (node: MdImage) => {
+    if (node.url) {
+      urls.add(node.url)
+    }
+  })
+  return Array.from(urls)
+}
+
+async function preloadImages(urls: string[]): Promise<Record<string, string>> {
+  const map: Record<string, string> = {}
+  await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const response = await fetch(url)
+        if (!response.ok) {
+          return
+        }
+        const contentType = response.headers.get('content-type') || 'application/octet-stream'
+        const arrayBuffer = await response.arrayBuffer()
+        const base64 = arrayBufferToBase64(arrayBuffer)
+        map[url] = `data:${contentType};base64,${base64}`
+      } catch (error) {
+        console.warn(`Failed to preload image ${url}:`, error)
+      }
+    }),
+  )
+  return map
+}
+
+function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(arrayBuffer).toString('base64')
+  }
+  let binary = ''
+  const bytes = new Uint8Array(arrayBuffer)
+  const chunkSize = 0x8000
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize)
+    binary += String.fromCharCode(...chunk)
+  }
+  if (typeof btoa !== 'undefined') {
+    return btoa(binary)
+  }
+  throw new Error('No available method to convert ArrayBuffer to base64')
+}
+
+function buildContentElements(
+  tree: Root,
+  headings: ProcessedMarkdown['headings'],
+  imageMap: Record<string, string>,
+) {
+  const render = renderNodeFactory(headings, imageMap)
   return tree.children
     .map((node, index) => render(node as Content, `node-${index}`))
     .filter(Boolean)
@@ -681,8 +755,10 @@ export async function generatePdf(
   // Remove YAML frontmatter from AST before building content
   ast.children = ast.children.filter((node) => node.type !== 'yaml')
   removeInitialTitleHeading(ast, processed.title)
-  
-  const contentElements = buildContentElements(ast, processed.headings)
+
+  const imageUrls = collectImageUrls(ast)
+  const imageMap = await preloadImages(imageUrls)
+  const contentElements = buildContentElements(ast, processed.headings, imageMap)
   const title = processed.title || options?.originalFileName || 'Untitled Document'
   const subtitle = processed.subtitle
 
