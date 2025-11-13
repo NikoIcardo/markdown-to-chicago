@@ -504,7 +504,11 @@ export async function generatePdfWithPuppeteer(
     </div>
     <script>
     (function () {
-      var container = document.currentScript.previousElementSibling;
+      var containers = document.querySelectorAll('.pdf-header');
+      if (!containers.length) {
+        return;
+      }
+      var container = containers[containers.length - 1];
       if (!container) {
         return;
       }
@@ -512,7 +516,8 @@ export async function generatePdfWithPuppeteer(
       if (!pageNumberEl) {
         return;
       }
-      var pageNumber = parseInt(pageNumberEl.textContent || '0', 10);
+      var raw = container.getAttribute('data-page-number') || pageNumberEl.textContent || '0';
+      var pageNumber = parseInt(raw, 10);
       if (!Number.isFinite(pageNumber) || pageNumber <= 2) {
         container.style.visibility = 'hidden';
         return;
