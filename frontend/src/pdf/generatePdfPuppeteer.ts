@@ -9,6 +9,15 @@ import remarkSlug from 'remark-slug'
 import remarkAutolinkHeadings from 'remark-autolink-headings'
 import type { ProcessedMarkdown } from '../utils/types.ts'
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 async function markdownToHtml(markdown: string): Promise<string> {
   const file = await unified()
     .use(remarkParse)
@@ -28,18 +37,58 @@ export async function generatePdfWithPuppeteer(
   options?: { outputPath?: string },
 ): Promise<Buffer> {
   const htmlBody = await markdownToHtml(processed.modified)
+  const docTitle = processed.title?.trim() || options?.originalFileName || 'Document'
+  const docSubtitle = processed.subtitle?.trim()
+  const generatedDate = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date())
+  const originalFileName = options?.originalFileName
 
   const html = `
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>${processed.title || 'Document'}</title>
+    <title>${escapeHtml(docTitle)}</title>
     <style>
       body {
         font-family: 'Times New Roman', serif;
         line-height: 1.6;
-        margin: 1in;
+        margin: 0;
+        padding: 0;
+      }
+      .title-page {
+        min-height: calc(100vh - 2in);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        gap: 0.5in;
+        page-break-after: always;
+        padding: 0 1rem;
+      }
+      .title-page__heading {
+        font-size: 42px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .title-page__subtitle {
+        font-size: 20px;
+        max-width: 6.5in;
+      }
+      .title-page__meta {
+        font-size: 14px;
+        color: #4b5563;
+      }
+      .document-body {
+        padding: 0;
+      }
+      .document-body > *:first-child {
+        margin-top: 0;
       }
       a {
         color: #1a56db;
@@ -52,13 +101,26 @@ export async function generatePdfWithPuppeteer(
         max-width: 100%;
         height: auto;
       }
+      .anchor-target {
+        display: block;
+        height: 0;
+      }
       @media print {
         a[href^="#"]::after { content: ""; }
       }
     </style>
   </head>
   <body>
-    ${htmlBody}
+    <section class="title-page">
+      <h1 class="title-page__heading">${escapeHtml(docTitle)}</h1>
+      ${docSubtitle ? `<p class="title-page__subtitle">${escapeHtml(docSubtitle)}</p>` : ''}
+      <p class="title-page__meta">
+        Generated ${escapeHtml(generatedDate)}${originalFileName ? ` • Source: ${escapeHtml(originalFileName)}` : ''}
+      </p>
+    </section>
+    <main class="document-body">
+      ${htmlBody}
+    </main>
   </body>
 </html>`
 
@@ -72,7 +134,9 @@ export async function generatePdfWithPuppeteer(
     await page.setContent(html, { waitUntil: 'networkidle0' })
 
     await page.evaluate(() => {
-      const anchorTargets = Array.from(document.querySelectorAll('a[id]')) as HTMLAnchorElement[]
+      const anchorTargets = Array.from(
+        document.querySelectorAll('a[id]'),
+      ) as HTMLAnchorElement[]
       anchorTargets.forEach((anchor) => {
         const isEmpty =
           anchor.childElementCount === 0 &&
@@ -86,23 +150,23 @@ export async function generatePdfWithPuppeteer(
           return
         }
 
-        const parent = anchor.parentElement
-        if (parent) {
-          if (!parent.id) {
-            parent.id = id
-            anchor.remove()
-            return
-          }
-
-          if (parent.id === id) {
-            anchor.remove()
-            return
-          }
+        const existing = document.getElementById(id)
+        if (existing && existing !== anchor) {
+          anchor.remove()
+          return
         }
 
         const span = document.createElement('span')
         span.id = id
-        anchor.replaceWith(span)
+        span.className = 'anchor-target'
+
+        if (anchor.parentElement) {
+          anchor.parentElement.insertBefore(span, anchor)
+          anchor.remove()
+        } else {
+          document.body.insertBefore(span, document.body.firstChild)
+          anchor.remove()
+        }
       })
     })
 
@@ -146,6 +210,12 @@ export async function generatePdfWithPuppeteer(
       format: 'A4',
       printBackground: true,
       preferCSSPageSize: true,
+      margin: {
+        top: '1in',
+        bottom: '1in',
+        left: '1in',
+        right: '1in',
+      },
     })
 
     return pdfBuffer
