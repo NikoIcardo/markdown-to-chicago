@@ -314,11 +314,9 @@ function renderInline(node: InlineNode, key: string): React.ReactNode {
         if (href.startsWith('#bib-')) {
           // Render as superscript reference
           return (
-            <Text key={key} style={styles.superscript}>
-              <Link src={href} style={styles.link}>
-                {renderInlineChildren(linkNode.children as InlineNode[], key)}
-              </Link>
-            </Text>
+            <Link key={key} src={href} style={[styles.link, styles.superscript]}>
+              {renderInlineChildren(linkNode.children as InlineNode[], key)}
+            </Link>
           )
       }
       
