@@ -194,12 +194,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f1f1',
     padding: 2,
   },
-    anchorMarker: {
-      fontSize: 1,
-      color: 'transparent',
-      lineHeight: 1,
-      marginBottom: 0,
-    },
+  anchorTarget: {
+    height: 0,
+  },
   imageContainer: {
     marginVertical: 12,
     alignItems: 'center',
@@ -395,12 +392,7 @@ function renderImageBlock({
   )
 
   return (
-    <View key={key} style={styles.imageContainer}>
-      {anchorId ? (
-        <Text id={anchorId} style={styles.anchorMarker}>
-          {anchorId}
-        </Text>
-      ) : null}
+    <View key={key} id={anchorId} style={styles.imageContainer}>
       <View style={styles.imageWrapper}>
         {imageElement}
         {references.length ? (
@@ -432,11 +424,7 @@ function renderParagraph(node: Paragraph, key: string, imageMap: Record<string, 
   const { anchorId, remainder } = extractAnchor(node.children as Content[])
   if (!remainder.length) {
     if (anchorId) {
-      return (
-        <Text key={key} id={anchorId} style={styles.anchorMarker}>
-          {anchorId}
-        </Text>
-      )
+      return <View key={key} id={anchorId} style={styles.anchorTarget} />
     }
     return null
   }
@@ -489,13 +477,13 @@ function renderParagraph(node: Paragraph, key: string, imageMap: Record<string, 
   }
 
   const paragraphText = (
-    <Text key={`${key}-text`} id={anchorId} style={styles.paragraph}>
+    <Text key={`${key}-text`} style={styles.paragraph}>
       {renderInlineChildren(remainder as InlineNode[], key)}
     </Text>
   )
 
   return (
-    <View key={key} style={styles.paragraphContainer}>
+    <View key={key} id={anchorId} style={styles.paragraphContainer}>
       {paragraphText}
     </View>
   )
@@ -613,13 +601,9 @@ function renderNodeFactory(
       case 'html': {
         const htmlNode = node as Html
         const anchorMatch = htmlNode.value.match(/<a id="([^"]+)"><\/a>/i)
-        if (anchorMatch) {
-          return (
-            <Text key={key} id={anchorMatch[1]} style={styles.anchorMarker}>
-              {anchorMatch[1]}
-            </Text>
-          )
-        }
+          if (anchorMatch) {
+            return <View key={key} id={anchorMatch[1]} style={styles.anchorTarget} />
+          }
         const superscript = renderSuperscript(htmlNode, key)
         return superscript
       }
