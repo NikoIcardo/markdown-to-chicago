@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm'
 import remarkHtml from 'remark-html'
 import remarkSlug from 'remark-slug'
 import remarkAutolinkHeadings from 'remark-autolink-headings'
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import type { ProcessedMarkdown } from '../utils/types.ts'
 
 function escapeHtml(value: string): string {
@@ -482,76 +483,56 @@ export async function generatePdfWithPuppeteer(
       console.log('ℹ️ No internal anchors detected for validation.')
     }
 
-    const pdfPath = options?.outputPath ?? resolvePath(process.cwd(), 'output.pdf')
-    const debugHtmlPath = resolvePath(process.cwd(), 'debug-output.html')
-    const finalHtml = await page.content()
-    await fs.writeFile(debugHtmlPath, finalHtml, 'utf8')
+      const pdfPath = options?.outputPath
+      const debugHtmlPath = resolvePath(process.cwd(), 'debug-output.html')
+      const finalHtml = await page.content()
+      await fs.writeFile(debugHtmlPath, finalHtml, 'utf8')
 
-    const headerTemplate = `
-    <style>
-      .pdf-header {
-        width: 100%;
-        font-size: 11px;
-        font-family: 'Times New Roman', serif;
-        color: #4b5563;
-        text-align: right;
-        padding: 0.2in 0.25in 0;
+      const rawPdf = await page.pdf({
+        path: pdfPath,
+        format: 'A4',
+        printBackground: true,
+        preferCSSPageSize: true,
+        displayHeaderFooter: false,
+        margin: {
+          top: '1in',
+          bottom: '1in',
+          left: '1in',
+          right: '1in',
+        },
+      })
+
+      const pdfDoc = await PDFDocument.load(rawPdf)
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+      const pages = pdfDoc.getPages()
+      const color = rgb(0.29, 0.33, 0.39)
+      const fontSize = 11
+
+      for (let index = 2; index < pages.length; index += 1) {
+        const page = pages[index]
+        const pageNumber = index - 1
+        const text = String(pageNumber)
+        const { width, height } = page.getSize()
+        const textWidth = font.widthOfTextAtSize(text, fontSize)
+        const x = width - 72 - textWidth
+        const y = height - 54
+        page.drawText(text, {
+          x,
+          y,
+          size: fontSize,
+          font,
+          color,
+        })
       }
-    </style>
-    <div class="pdf-header">
-      <span class="pageNumber"></span>
-      <span class="totalPages" style="display:none;"></span>
-    </div>
-    <script>
-    (function () {
-      var run = function () {
-        var script = document.currentScript;
-        if (!script) {
-          return;
-        }
-        var container = script.parentElement;
-        if (!container) {
-          return;
-        }
-        var pageNumberEl = container.querySelector('.pageNumber');
-        if (!pageNumberEl) {
-          container.style.visibility = 'hidden';
-          return;
-        }
-        var raw = (pageNumberEl.textContent || '').trim();
-        var pageNumber = parseInt(raw, 10);
-        if (!Number.isFinite(pageNumber) || pageNumber <= 2) {
-          container.style.visibility = 'hidden';
-          return;
-        }
-        pageNumberEl.textContent = String(pageNumber - 2);
-      };
-      if (document.readyState === 'complete') {
-        run();
-      } else {
-        setTimeout(run, 0);
+
+      const pdfBytes = await pdfDoc.save()
+      const finalBuffer = Buffer.from(pdfBytes)
+
+      if (pdfPath) {
+        await fs.writeFile(pdfPath, finalBuffer)
       }
-    })();
-    </script>
-    `
 
-    const pdfBuffer = await page.pdf({
-      path: pdfPath,
-      format: 'A4',
-      printBackground: true,
-      preferCSSPageSize: true,
-      displayHeaderFooter: true,
-      headerTemplate,
-      footerTemplate: '<span></span>',
-      margin: {
-        top: '1in',
-        bottom: '1in',
-        left: '1in',
-        right: '1in',
-      },
-    })
-
-    return pdfBuffer
+      return finalBuffer
   } finally {
     await browser.close()
   }
