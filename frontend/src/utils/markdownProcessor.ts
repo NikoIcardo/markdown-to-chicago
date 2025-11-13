@@ -8,7 +8,7 @@ import { visit } from 'unist-util-visit'
 import { visitParents } from 'unist-util-visit-parents'
 import { toString } from 'mdast-util-to-string'
 import yaml from 'js-yaml'
-import type { Content, Heading, Html, Link, List, ListItem, Parent, Paragraph, Root, Text } from 'mdast'
+import type { Code, Content, Heading, Html, Link, List, ListItem, Parent, Paragraph, Root, Text } from 'mdast'
 import type { Node } from 'unist'
 import { fetchSourceMetadata } from './metadataFetcher'
 import type {
@@ -23,6 +23,146 @@ import type {
 const MARKDOWN_URL_REGEX = /(https?:\/\/[^\s<>\]")"}]+)/gi
 
 const processor = unified().use(remarkParse).use(remarkGfm).use(remarkFrontmatter)
+
+function parseListItemsFromMarkdown(markdown: string): ListItem[] {
+  const trimmed = markdown.trim()
+  if (!trimmed) {
+    return []
+  }
+
+  const parsed = processor.parse(`${trimmed}\n`) as Root
+  const items: ListItem[] = []
+
+  parsed.children.forEach((child) => {
+    if (child.type === 'list') {
+      ;(child as List).children.forEach((listItem) => {
+        const clonedItem = cloneNode(listItem as ListItem)
+        clonedItem.spread = false
+        clonedItem.children = clonedItem.children.map((listChild) => {
+          if (listChild.type === 'paragraph') {
+            stripLeadingListNumber(listChild as Paragraph)
+          }
+          return listChild
+        })
+        items.push(clonedItem)
+      })
+    } else if (child.type === 'paragraph') {
+      const listItem = createListItemFromParagraph(child as Paragraph)
+      if (listItem) {
+        items.push(listItem)
+      }
+    }
+  })
+
+  return items
+}
+
+function normalizeTableOfContents(root: Root) {
+  const tocRange = findSectionRange(root, 'table of contents')
+  if (!tocRange) {
+    return
+  }
+
+  const sectionNodes = root.children.slice(tocRange.startIndex + 1, tocRange.endIndex)
+  if (!sectionNodes.length) {
+    return
+  }
+
+  const normalizedList: List = {
+    type: 'list',
+    ordered: true,
+    spread: false,
+    start: 1,
+    children: [],
+  }
+
+  const trailingNodes: Content[] = []
+  let currentTopLevelItem: ListItem | null = null
+
+  const addTopLevelItem = (item: ListItem) => {
+    const clonedItem = cloneNode(item)
+    clonedItem.spread = false
+    clonedItem.children = clonedItem.children.map((child) => {
+      if (child.type === 'paragraph') {
+        stripLeadingListNumber(child as Paragraph)
+      }
+      return child
+    })
+    normalizedList.children.push(clonedItem)
+    currentTopLevelItem = clonedItem
+  }
+
+  const appendNestedItems = (items: ListItem[]) => {
+    if (!items.length) {
+      return
+    }
+
+    if (!currentTopLevelItem) {
+      items.forEach(addTopLevelItem)
+      return
+    }
+
+    let nestedList = currentTopLevelItem.children.find(
+      (child): child is List => child.type === 'list',
+    )
+
+    if (!nestedList) {
+      nestedList = {
+        type: 'list',
+        ordered: true,
+        spread: false,
+        children: [],
+      }
+      currentTopLevelItem.children.push(nestedList)
+    }
+
+    items.forEach((item) => {
+      const clonedItem = cloneNode(item)
+      clonedItem.spread = false
+      clonedItem.children = clonedItem.children.map((child) => {
+        if (child.type === 'paragraph') {
+          stripLeadingListNumber(child as Paragraph)
+        }
+        return child
+      })
+      nestedList!.children.push(clonedItem)
+    })
+  }
+
+  sectionNodes.forEach((node) => {
+    if (node.type === 'list') {
+      ;(node as List).children.forEach((item) => addTopLevelItem(item as ListItem))
+      return
+    }
+
+    if (node.type === 'paragraph') {
+      const listItem = createListItemFromParagraph(node as Paragraph)
+      if (listItem) {
+        addTopLevelItem(listItem)
+      }
+      return
+    }
+
+    if (node.type === 'code') {
+      const nestedItems = parseListItemsFromMarkdown((node as Code).value)
+      appendNestedItems(nestedItems)
+      return
+    }
+
+    trailingNodes.push(node as Content)
+  })
+
+  if (!normalizedList.children.length) {
+    return
+  }
+
+  const replacementNodes: Content[] = [normalizedList, ...trailingNodes]
+  root.children.splice(
+    tocRange.startIndex + 1,
+    tocRange.endIndex - tocRange.startIndex - 1,
+    ...replacementNodes,
+  )
+}
 
 type SectionRange = {
   startIndex: number
@@ -114,6 +254,73 @@ function collectNodesInRange(root: Root, range: SectionRange): Node[] {
   }
 
   return nodes
+}
+
+function cloneNode<T>(node: T): T {
+  return JSON.parse(JSON.stringify(node))
+}
+
+function stripLeadingListNumber(paragraph: Paragraph) {
+  while (paragraph.children.length) {
+    const firstChild = paragraph.children[0]
+    if (firstChild.type !== 'text') {
+      break
+    }
+
+    const textNode = firstChild as Text
+    const match = textNode.value.match(/^\s*(\d+)\.\s*/)
+    if (match) {
+      const remaining = textNode.value.slice(match[0].length)
+      if (remaining) {
+        textNode.value = remaining
+      } else {
+        paragraph.children.shift()
+      }
+    } else if (textNode.value.trim() === '') {
+      paragraph.children.shift()
+    } else {
+      break
+    }
+  }
+}
+
+function createListItemFromParagraph(paragraph: Paragraph): ListItem | null {
+  const clonedParagraph = cloneNode(paragraph)
+  stripLeadingListNumber(clonedParagraph)
+
+  if (!clonedParagraph.children.length) {
+    return null
+  }
+
+  return {
+    type: 'listItem',
+    spread: false,
+    children: [clonedParagraph],
+  }
+}
+
+function removeInitialHeadingMatchingTitle(tree: Root, title?: string | null): boolean {
+  if (!title) {
+    return false
+  }
+  const normalizedTitle = title.trim().toLowerCase()
+  if (!normalizedTitle) {
+    return false
+  }
+
+  for (let i = 0; i < tree.children.length; i += 1) {
+    const node = tree.children[i]
+    if (
+      node.type === 'heading' &&
+      (node as Heading).depth === 1 &&
+      toString(node as Heading).trim().toLowerCase() === normalizedTitle
+    ) {
+      tree.children.splice(i, 1)
+      return true
+    }
+  }
+
+  return false
 }
 
 function addSubtreeToSet(node: Node, set: WeakSet<Node>) {
@@ -255,6 +462,7 @@ export async function processMarkdown(
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
   const tree = processor.parse(markdown) as Root
+  normalizeTableOfContents(tree)
   const diagnostics: ProcessingDiagnostics = { warnings: [], errors: [] }
   const metadataIssues: MetadataIssue[] = []
 
@@ -717,6 +925,25 @@ export async function processMarkdown(
     }
   })
 
+  const { title, subtitle, headings } = extractHeadings(tree)
+
+  tree.children = tree.children.filter((node) => node.type !== 'yaml')
+
+  const removedTitleHeading = removeInitialHeadingMatchingTitle(tree, title)
+
+  let sanitizedHeadings = headings
+  if (removedTitleHeading && title) {
+    const normalizedTitle = title.trim().toLowerCase()
+    sanitizedHeadings = headings.filter(
+      (heading, index) =>
+        !(
+          heading.depth === 1 &&
+          heading.text.trim().toLowerCase() === normalizedTitle &&
+          index === 0
+        ),
+    )
+  }
+
   const stringified = unified()
     .use(remarkStringify, {
       bullet: '-',
@@ -725,8 +952,6 @@ export async function processMarkdown(
     })
     .use(remarkFrontmatter)
     .stringify(tree)
-
-  const { title, subtitle, headings } = extractHeadings(tree)
 
   const bibliographyEntries: BibliographyEntry[] = bibliographyList.children.map((listItem, idx) => {
     const number = (bibliographyList.start ?? 1) + idx
@@ -754,7 +979,7 @@ export async function processMarkdown(
     title,
     subtitle,
     mainHeadingDepth,
-    headings,
+    headings: sanitizedHeadings,
     bibliographyEntries,
     diagnostics,
     metadataIssues,

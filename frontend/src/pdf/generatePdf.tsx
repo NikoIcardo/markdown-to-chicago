@@ -3,6 +3,7 @@ import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkGfm from 'remark-gfm'
 import { toString } from 'mdast-util-to-string'
+import { visit } from 'unist-util-visit'
 import type {
   Content,
   Heading,
@@ -46,9 +47,10 @@ const styles = StyleSheet.create({
   },
   titlePage: {
     flexDirection: 'column',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     height: '100%',
+    paddingTop: 216,
   },
   titleText: {
     fontSize: 24,
@@ -192,18 +194,40 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f1f1',
     padding: 2,
   },
-  anchorMarker: {
-    height: 0.1,
+    anchorTarget: {
+      fontSize: 1,
+      color: 'transparent',
+      lineHeight: 1,
+      marginBottom: 0,
   },
   imageContainer: {
     marginVertical: 12,
     alignItems: 'center',
+    position: 'relative',
   },
   image: {
     maxWidth: '100%',
     maxHeight: 320,
     objectFit: 'contain',
     marginBottom: 4,
+  },
+  imageWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+  },
+  imageReferenceContainer: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    flexDirection: 'row',
+  },
+  imageReferenceText: {
+    fontSize: 10,
+    color: '#1a56db',
+    textDecoration: 'underline',
+  },
+  imageReferenceItem: {
+    marginLeft: 4,
   },
   imageCaption: {
     fontSize: 10,
@@ -287,19 +311,17 @@ function renderInline(node: InlineNode, key: string): React.ReactNode {
       const href = linkNode.url
       
       // Check if this is a bibliography reference link
-      if (href.startsWith('#bib-')) {
-        // Render as superscript reference
-        return (
-          <Text key={key} style={styles.superscript}>
-            <Link src={href} style={styles.link}>
+        if (href.startsWith('#bib-')) {
+          // Render as superscript reference
+          return (
+            <Link key={key} src={href} style={[styles.link, styles.superscript]}>
               {renderInlineChildren(linkNode.children as InlineNode[], key)}
             </Link>
-          </Text>
-        )
+          )
       }
       
       return (
-        <Link key={key} src={href} style={styles.link}>
+          <Link key={key} src={href} style={styles.link}>
           {renderInlineChildren(linkNode.children as InlineNode[], key)}
         </Link>
       )
@@ -330,13 +352,138 @@ function renderInlineChildren(children: InlineNode[], keyPrefix: string): React.
   return children.map((child, index) => renderInline(child, `${keyPrefix}-${index}`)).filter(Boolean)
 }
 
-function renderParagraph(node: Paragraph, key: string) {
+function isBibliographyReferenceLink(node: Content): node is MdLink {
+  return node.type === 'link' && (node as MdLink).url.startsWith('#bib-')
+}
+
+function isImageLinkNode(node: Content): node is MdLink {
+  return (
+    node.type === 'link' &&
+    (node as MdLink).children.some((child) => child.type === 'image')
+  )
+}
+
+function renderImageBlock({
+  imageNode,
+  key,
+  anchorId,
+  linkHref,
+  references,
+  imageMap,
+}: {
+  imageNode: MdImage
+  key: string
+  anchorId?: string
+  linkHref?: string
+  references: MdLink[]
+  imageMap: Record<string, string>
+}) {
+  if (!imageNode.url) {
+    return null
+  }
+
+  const resolvedSrc = imageMap[imageNode.url] ?? imageNode.url
+
+  const imageElement = linkHref ? (
+    <Link src={linkHref}>
+      <Image src={resolvedSrc} style={styles.image} />
+    </Link>
+  ) : (
+    <Image src={resolvedSrc} style={styles.image} />
+  )
+
+  return (
+    <View key={key} style={styles.imageContainer}>
+      {anchorId ? (
+        <Text id={anchorId} style={styles.anchorTarget}>
+          {' '}
+        </Text>
+      ) : null}
+      <View style={styles.imageWrapper}>
+        {imageElement}
+        {references.length ? (
+          <View style={styles.imageReferenceContainer}>
+            {references.map((reference, index) => {
+              const linkStyle =
+                index === 0
+                  ? styles.imageReferenceText
+                  : [styles.imageReferenceText, styles.imageReferenceItem]
+              return (
+                <Link
+                  key={`${key}-ref-${index}`}
+                  src={reference.url}
+                  style={linkStyle}
+                >
+                  {renderInlineChildren(reference.children as InlineNode[], `${key}-ref-${index}`)}
+                </Link>
+              )
+            })}
+          </View>
+        ) : null}
+      </View>
+      {imageNode.alt ? <Text style={styles.imageCaption}>{imageNode.alt}</Text> : null}
+    </View>
+  )
+}
+
+function renderParagraph(node: Paragraph, key: string, imageMap: Record<string, string>) {
   const { anchorId, remainder } = extractAnchor(node.children as Content[])
   if (!remainder.length) {
     if (anchorId) {
-      return <View key={key} id={anchorId} style={styles.anchorMarker} />
+      return (
+        <Text key={key} id={anchorId} style={styles.anchorTarget}>
+          {' '}
+        </Text>
+      )
     }
     return null
+  }
+
+  const cleanedChildren = (remainder as Content[]).filter((child) => {
+    if (child.type === 'text') {
+      return Boolean((child as MdText).value.trim())
+    }
+    return true
+  })
+
+  let imageNode: MdImage | undefined
+  let linkHref: string | undefined
+
+  const imageLink = cleanedChildren.find(isImageLinkNode)
+  if (imageLink) {
+    imageNode = imageLink.children.find((child) => child.type === 'image') as MdImage | undefined
+    linkHref = imageLink.url
+  } else {
+    imageNode = cleanedChildren.find((child): child is MdImage => child.type === 'image')
+  }
+
+  const references = cleanedChildren.filter(isBibliographyReferenceLink)
+
+  const significantChildren = cleanedChildren.filter((child) => {
+    if (isBibliographyReferenceLink(child)) {
+      return false
+    }
+    if (child.type === 'text') {
+      return Boolean((child as MdText).value.trim())
+    }
+    return true
+  })
+
+  const imageOnlyContent =
+    imageNode &&
+    significantChildren.every(
+      (child) => child.type === 'image' || isImageLinkNode(child),
+    )
+
+  if (imageNode && imageOnlyContent) {
+    return renderImageBlock({
+      imageNode,
+      key,
+      anchorId,
+      linkHref,
+      references,
+      imageMap,
+    })
   }
 
   const paragraphText = (
@@ -345,16 +492,13 @@ function renderParagraph(node: Paragraph, key: string) {
     </Text>
   )
 
-  if (anchorId) {
-    return (
-      <View key={key} id={anchorId} style={styles.paragraphContainer}>
-        {paragraphText}
-      </View>
-    )
-  }
-
   return (
     <View key={key} style={styles.paragraphContainer}>
+      {anchorId ? (
+        <Text id={anchorId} style={styles.anchorTarget}>
+          {' '}
+        </Text>
+      ) : null}
       {paragraphText}
     </View>
   )
@@ -372,7 +516,9 @@ function renderListItem(
     <View key={key} style={styles.listItem}>
       <Text style={styles.listMarker}>{marker}</Text>
       <View style={styles.listContent}>
-        {node.children.map((child, idx) => render(child as Content, `${key}-${idx}`, options.depth + 1, true))}
+        {node.children.map((child, idx) =>
+          render(child as Content, `${key}-${idx}`, options.depth + 1, true),
+        )}
       </View>
     </View>
   )
@@ -411,42 +557,46 @@ function renderList(
   )
 }
 
-function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
+function renderNodeFactory(
+  headings: ProcessedMarkdown['headings'],
+  imageMap: Record<string, string>,
+) {
   let headingIndex = 0
 
-  const render = (node: Content, key: string, depth: number = 0, insideList: boolean = false): React.ReactNode => {
+  const render = (
+    node: Content,
+    key: string,
+    depth: number = 0,
+    insideList: boolean = false,
+  ): React.ReactNode => {
     switch (node.type) {
       case 'paragraph':
-        return renderParagraph(node as Paragraph, key)
-      case 'heading': {
-        const headingNode = node as Heading
-        const textContent = headingNode.children
-          .map((child) => ('value' in child ? (child as any).value : ''))
-          .join('')
-        const headingInfo = headings[headingIndex]
-        const slug = headingInfo ? headingInfo.slug : slugify(textContent)
-        headingIndex += 1
-        return (
-          <View key={key} id={slug}>
-            <Text style={headingStyles[headingNode.depth] || styles.heading6}>
-              {renderInlineChildren(headingNode.children as InlineNode[], key)}
-            </Text>
-          </View>
-        )
-      }
+        return renderParagraph(node as Paragraph, key, imageMap)
+        case 'heading': {
+          const headingNode = node as Heading
+          const textContent = headingNode.children
+            .map((child) => ('value' in child ? (child as any).value : ''))
+            .join('')
+          const headingInfo = headings[headingIndex]
+          const slug = headingInfo ? headingInfo.slug : slugify(textContent)
+          headingIndex += 1
+          return (
+            <View key={key}>
+              <Text id={slug} style={styles.anchorTarget}>
+                {' '}
+              </Text>
+              <Text style={headingStyles[headingNode.depth] || styles.heading6}>
+                {renderInlineChildren(headingNode.children as InlineNode[], key)}
+              </Text>
+            </View>
+          )
+        }
       case 'image': {
         const imageNode = node as MdImage
         if (!imageNode.url) {
           return null
         }
-        return (
-          <View key={key} style={styles.imageContainer}>
-            <Image src={imageNode.url} style={styles.image} />
-            {imageNode.alt ? (
-              <Text style={styles.imageCaption}>{imageNode.alt}</Text>
-            ) : null}
-          </View>
-        )
+        return renderImageBlock({ imageNode, key, references: [], imageMap })
       }
       case 'list':
         return renderList(node as List, key, render, depth)
@@ -471,9 +621,13 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
       case 'html': {
         const htmlNode = node as Html
         const anchorMatch = htmlNode.value.match(/<a id="([^"]+)"><\/a>/i)
-        if (anchorMatch) {
-          return <View key={key} id={anchorMatch[1]} style={styles.anchorMarker} />
-        }
+          if (anchorMatch) {
+            return (
+              <Text key={key} id={anchorMatch[1]} style={styles.anchorTarget}>
+                {' '}
+              </Text>
+            )
+          }
         const superscript = renderSuperscript(htmlNode, key)
         return superscript
       }
@@ -496,8 +650,84 @@ function renderNodeFactory(headings: ProcessedMarkdown['headings']) {
 
 const markdownParser = unified().use(remarkParse).use(remarkGfm)
 
-function buildContentElements(tree: Root, headings: ProcessedMarkdown['headings']) {
-  const render = renderNodeFactory(headings)
+function removeInitialTitleHeading(ast: Root, title?: string | null) {
+  if (!title) {
+    return
+  }
+  const normalizedTitle = title.trim().toLowerCase()
+  if (!normalizedTitle) {
+    return
+  }
+
+  let removed = false
+  ast.children = ast.children.filter((node) => {
+    if (
+      !removed &&
+      node.type === 'heading' &&
+      (node as Heading).depth === 1 &&
+      toString(node as Heading).trim().toLowerCase() === normalizedTitle
+    ) {
+      removed = true
+      return false
+    }
+    return true
+  })
+}
+
+function collectImageUrls(tree: Root): string[] {
+  const urls = new Set<string>()
+  visit(tree, 'image', (node: MdImage) => {
+    if (node.url) {
+      urls.add(node.url)
+    }
+  })
+  return Array.from(urls)
+}
+
+async function preloadImages(urls: string[]): Promise<Record<string, string>> {
+  const map: Record<string, string> = {}
+  await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const response = await fetch(url)
+        if (!response.ok) {
+          return
+        }
+        const contentType = response.headers.get('content-type') || 'application/octet-stream'
+        const arrayBuffer = await response.arrayBuffer()
+        const base64 = arrayBufferToBase64(arrayBuffer)
+        map[url] = `data:${contentType};base64,${base64}`
+      } catch (error) {
+        console.warn(`Failed to preload image ${url}:`, error)
+      }
+    }),
+  )
+  return map
+}
+
+function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(arrayBuffer).toString('base64')
+  }
+  let binary = ''
+  const bytes = new Uint8Array(arrayBuffer)
+  const chunkSize = 0x8000
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize)
+    binary += String.fromCharCode(...chunk)
+  }
+  if (typeof btoa !== 'undefined') {
+    return btoa(binary)
+  }
+  throw new Error('No available method to convert ArrayBuffer to base64')
+}
+
+function buildContentElements(
+  tree: Root,
+  headings: ProcessedMarkdown['headings'],
+  imageMap: Record<string, string>,
+) {
+  const render = renderNodeFactory(headings, imageMap)
   return tree.children
     .map((node, index) => render(node as Content, `node-${index}`))
     .filter(Boolean)
@@ -519,8 +749,11 @@ export async function generatePdf(
   
   // Remove YAML frontmatter from AST before building content
   ast.children = ast.children.filter((node) => node.type !== 'yaml')
-  
-  const contentElements = buildContentElements(ast, processed.headings)
+  removeInitialTitleHeading(ast, processed.title)
+
+  const imageUrls = collectImageUrls(ast)
+  const imageMap = await preloadImages(imageUrls)
+  const contentElements = buildContentElements(ast, processed.headings, imageMap)
   const title = processed.title || options?.originalFileName || 'Untitled Document'
   const subtitle = processed.subtitle
 

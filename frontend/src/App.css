@@ -102,6 +102,10 @@
   padding: 0 1.75rem 1.75rem;
 }
 
+.accordion__content--collapsed {
+  transition: padding 0.2s ease;
+}
+
 .file-input {
   display: inline-flex;
   align-items: center;
@@ -215,6 +219,11 @@
 .status--error {
   background-color: rgba(239, 68, 68, 0.12);
   color: #b91c1c;
+}
+
+.status--info {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
 }
 
 .diagnostics {
