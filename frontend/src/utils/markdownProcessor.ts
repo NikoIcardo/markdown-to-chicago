@@ -10,7 +10,7 @@ import { toString } from 'mdast-util-to-string'
 import yaml from 'js-yaml'
 import type { Code, Content, Heading, Html, Link, List, ListItem, Parent, Paragraph, Root, Text } from 'mdast'
 import type { Node } from 'unist'
-import { fetchSourceMetadata } from './metadataFetcher'
+import { fetchSourceMetadata } from './metadataFetcher.ts'
 import type {
   BibliographyEntry,
   ManualMetadataInput,
@@ -18,7 +18,7 @@ import type {
   ProcessedMarkdown,
   ProcessingDiagnostics,
   SourceMetadata,
-} from './types'
+} from './types.ts'
 
 const MARKDOWN_URL_REGEX = /(https?:\/\/[^\s<>\]")"}]+)/gi
 
