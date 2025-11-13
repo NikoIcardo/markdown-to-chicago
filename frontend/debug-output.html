@@ -12,15 +12,16 @@
         min-height: calc(100vh - 2in);
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
         text-align: center;
         gap: 0.5in;
         page-break-after: always;
-        padding: 0 1rem;
+        padding: 2.5in 1rem 0;
+        page: title;
       }
       .title-page__heading {
-        font-size: 42px;
+        font-size: 48px;
         font-weight: 700;
         letter-spacing: 0.04em;
         text-transform: uppercase;
@@ -33,11 +34,43 @@
         font-size: 14px;
         color: #4b5563;
       }
+      .toc-page {
+        page-break-after: always;
+        page: toc;
+      }
+      .toc-page h2,
+      .toc-page h3,
+      .toc-page h4 {
+        margin-top: 0;
+        text-align: left;
+      }
+      .toc-list,
+      .toc-list ol {
+        list-style: decimal;
+        padding-left: 1.25rem;
+      }
+      .toc-list > li {
+        margin-bottom: 0.35rem;
+      }
       .document-body {
         padding: 0;
+        page: content;
       }
       .document-body > *:first-child {
         margin-top: 0;
+      }
+      h1 {
+        font-size: 40px;
+        margin-top: 0;
+      }
+      h2 {
+        font-size: 32px;
+      }
+      h3 {
+        font-size: 26px;
+      }
+      h4 {
+        font-size: 20px;
       }
       a {
         color: #1a56db;
@@ -54,6 +87,26 @@
         display: block;
         height: 0;
       }
+      @page {
+        margin: 1in;
+      }
+      @page title {
+        margin: 1in;
+        @bottom-center { content: none; }
+      }
+      @page toc {
+        margin: 1in;
+        @bottom-center { content: none; }
+      }
+      @page content {
+        margin: 1in;
+        @bottom-center {
+          content: counter(page);
+          font-family: 'Times New Roman', serif;
+          font-size: 12px;
+          color: #4b5563;
+        }
+      }
       @media print {
         a[href^="#"]::after { content: ""; }
       }
@@ -63,60 +116,9 @@
     <section class="title-page">
       <h1 class="title-page__heading">Draft 11.1</h1>
       
-      <p class="title-page__meta">
-        Generated November 13, 2025
-      </p>
     </section>
     <main class="document-body">
-      <h3 id="table-of-contents">Table of Contents<a href="#table-of-contents" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
-<ol>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/introduction">Introduction</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/modern-day-psychological-attacks-on-americans">Modern Day Psychological Attacks on Americans</a>
-<ol>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/russian-election-interferencehttps://concernedcitizen1953.substack.com/i/177690685/russian-election-interference">Russian Election Interference</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/anomalous-health-incidents">Anomalous Health Incidents</a></li>
-</ol>
-</li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/attacking-the-mind">Attacking the Mind</a>
-<ol>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/the-mind-has-no-firewall">The Mind Has No Firewall</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/human-network-attacks">Human Network Attacks</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/voices-and-violence">Voices and Violence</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/why-someone-might-hear-voices">Why someone might hear voices</a></li>
-</ol>
-</li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/the-publics-battle-with-psychological-weapons">The Public’s Battle With Psychological Weapons</a>
-<ol>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/reddit-reports">Reddit Reports</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/scope-of-the-issue">Scope of the Issue</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/websites-and-online-communities">Websites and Online Communities</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/petitionsfund-raisers">Petitions/Fund Raisers</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/court-cases">Court Cases</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/books">Books</a></li>
-<li><a href="http://%E2%88%9A%CE%A9https://concernedcitizen1953.substack.com/i/177690685/legislation">Legislation</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/freedom-of-information-requests-information-requests-and-police-reports">Freedom of Information Requests, Information Requests, and Police Reports</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/crimes">Crimes</a></li>
-</ol>
-</li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/discussion-on-credibility">Discussion on Credibility</a>
-<ol>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/is-it-feasible-for-these-technologies-to-actually-exist">Is it feasible for these technologies to actually exist?</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/who-is-perpetrating-the-use-of-this-technology">Who is perpetrating the use of this technology?</a></li>
-</ol>
-</li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/medical-victimization-of-individuals-experiencing-these-attacks">Medical Victimization of Individuals Experiencing these Attacks</a>
-<ol>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/anomalous-health-incidents-and-the-moscow-embassy-attacks">Anomalous Health Incidents and the Moscow Embassy Attacks</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/the-cias-mkultra-experiments">The CIA’s MKUltra Experiments</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/zersetzung">Zersetzung</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/medical-misdiagnoses-of-modern-psychological-weapon-victims">Medical Misdiagnoses of Modern Psychological Weapon Victims</a></li>
-</ol>
-</li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/summary">Summary</a></li>
-<li><a href="https://concernedcitizen1953.substack.com/i/177690685/notes">Notes</a></li>
-</ol>
-<hr>
-<h3 id="introduction"><strong>Introduction</strong><a href="#introduction" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
+      <section class="toc-page"><h3 id="table-of-contents">Table of Contents<a href="#table-of-contents" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3><ol class="toc-list"><li><a href="#introduction">Introduction</a><ol><li><a href="#modern-day-psychological-attacks-on-americans">Modern Day Psychological Attacks on Americans</a><ol><li><a href="#russian-political-interference">Russian Political Interference</a><ol><li><a href="#anomalous-health-incidents">Anomalous Health Incidents</a></li></ol></li><li><a href="#attacking-the-mind">Attacking the Mind</a><ol><li><a href="#the-mind-has-no-firewall">The Mind Has No Firewall</a></li><li><a href="#human-network-attacks">Human Network Attacks</a></li><li><a href="#voices-and-violence">Voices and Violence</a></li><li><a href="#why-someone-might-hear-voices">Why someone might hear voices</a></li></ol></li><li><a href="#the-publics-battle-with-psychological-weapons">The Public’s Battle With Psychological Weapons</a><ol><li><a href="#reddit-reports">Reddit Reports</a></li><li><a href="#scope-of-the-issue">Scope of the Issue</a></li><li><a href="#websites-and-online-communities">Websites and Online Communities</a><ol><li><a href="#facebook">Facebook</a></li><li><a href="#reddit---weekly-visitors-counted-as-of-102925">Reddit - (weekly visitors counted as of 10/29/25)</a></li><li><a href="#other-online-communities">Other online communities</a></li></ol></li><li><a href="#petitionsfund-raisers">Petitions/Fund Raisers</a></li><li><a href="#court-cases">Court Cases</a></li><li><a href="#books">Books</a></li><li><a href="#legislation">Legislation:</a></li><li><a href="#freedom-of-information-requests-information-requests-and-police-reports">Freedom of Information Requests, Information Requests, and Police Reports:</a></li><li><a href="#crimes">Crimes:</a></li></ol></li><li><a href="#discussion-on-credibility">Discussion on Credibility</a><ol><li><a href="#is-it-feasible-for-these-technologies-to-actually-exist">Is it feasible for these technologies to actually exist?</a><ol><li><a href="#additional-evidence">Additional Evidence</a></li></ol></li><li><a href="#who-is-perpetrating-the-use-of-this-technology">Who is perpetrating the use of this technology?</a></li></ol></li><li><a href="#1-us-constitutional-violations">1. U.S. Constitutional Violations</a><ol><li><span id="fourth-amendment-protection-from-unreasonable-searches-and-seizures" class="anchor-target"></span><a href="#fourth-amendment-protection-from-unreasonable-searches-and-seizures">Fourth Amendment – Protection from Unreasonable Searches and Seizures</a></li><li><span id="fifth-amendment-due-process-self-incrimination" class="anchor-target"></span><a href="#fifth-amendment-due-process-self-incrimination">Fifth Amendment – Due Process &amp; Self-Incrimination</a></li><li><span id="eighth-amendment-cruel-and-unusual-punishment" class="anchor-target"></span><a href="#eighth-amendment-cruel-and-unusual-punishment">Eighth Amendment – Cruel and Unusual Punishment</a></li><li><span id="first-amendment-freedom-of-thought-and-expression" class="anchor-target"></span><a href="#first-amendment-freedom-of-thought-and-expression">First Amendment – Freedom of Thought and Expression</a></li><li><span id="fourteenth-amendment-equal-protection-and-due-process" class="anchor-target"></span><a href="#fourteenth-amendment-equal-protection-and-due-process">Fourteenth Amendment – Equal Protection and Due Process</a></li></ol></li><li><a href="#2-federal-statutes-violated">2. Federal Statutes Violated</a><ol><li><span id="18-usc-23402340a-torture-act" class="anchor-target"></span><a href="#18-usc-23402340a-torture-act">18 U.S.C. § 2340–2340A – Torture Act</a></li><li><span id="18-usc-241-242-conspiracy-against-rights-deprivation-of-rights-under-color-of-law" class="anchor-target"></span><a href="#18-usc-241-242-conspiracy-against-rights-deprivation-of-rights-under-color-of-law">18 U.S.C. § 241 &amp; § 242 – Conspiracy Against Rights / Deprivation of Rights Under Color of Law</a></li><li><span id="45-cfr-46-federal-policy-for-the-protection-of-human-subjects-the-common-rule" class="anchor-target"></span><a href="#45-cfr-46-federal-policy-for-the-protection-of-human-subjects-the-common-rule">45 CFR 46 – Federal Policy for the Protection of Human Subjects (“The Common Rule”)</a></li><li><span id="42-usc-1983-civil-action-for-deprivation-of-rights" class="anchor-target"></span><a href="#42-usc-1983-civil-action-for-deprivation-of-rights">42 U.S.C. § 1983 – Civil Action for Deprivation of Rights</a></li><li><span id="18-usc-2261a-stalking" class="anchor-target"></span><a href="#18-usc-2261a-stalking">18 U.S.C. § 2261A – Stalking</a></li></ol></li><li><a href="#3-international-law-and-human-rights-violations">3. International Law and Human Rights Violations</a><ol><li><a href="#united-nations-convention-against-torture-cat">United Nations Convention Against Torture (CAT)</a></li><li><a href="#nuremberg-code-1947">Nuremberg Code (1947)</a></li><li><a href="#international-covenant-on-civil-and-political-rights-iccpr">International Covenant on Civil and Political Rights (ICCPR)</a></li></ol></li><li><a href="#4-ethical-and-medical-violations">4. Ethical and Medical Violations</a><ol><li><span id="belmont-report-1979-ethical-principles-for-human-research" class="anchor-target"></span><a href="#belmont-report-1979-ethical-principles-for-human-research">Belmont Report (1979) – Ethical Principles for Human Research</a></li><li><a href="#american-psychological-association-apa-and-ama-codes">American Psychological Association (APA) and AMA Codes</a></li></ol></li><li><a href="#5-legal-consequences-if-proven-true">5. Legal Consequences (If Proven True)</a></li><li><a href="#medical-victimization-of-individuals-experiencing-these-attacks">Medical Victimization of Individuals Experiencing these Attacks</a><ol><li><a href="#anomalous-health-incidents-and-the-moscow-embassy-attacks">Anomalous Health Incidents and the Moscow Embassy Attacks</a></li><li><a href="#the-cias-mkultra-experiments">The CIA’s MKUltra Experiments</a></li><li><a href="#zersetzung">Zersetzung</a></li><li><a href="#medical-misdiagnoses-of-modern-psychological-weapon-victims">Medical Misdiagnoses of Modern Psychological Weapon Victims</a></li></ol></li><li><a href="#summary">Summary</a></li><li><a href="#notes">Notes</a></li></ol></li></ol></li><li><a href="#bibliography">Bibliography</a></li></ol></section><h3 id="introduction"><strong>Introduction</strong><a href="#introduction" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h3>
 <hr>
 <p>Psychological warfare has been a staple of military engagement for centuries. It has long been demonstrated that weakening the morale and wellbeing of soldiers and civilians contributes to victory in battle and the demise of nations. Its use has been a prevalent component of conflict in nearly all recent history. Consider this excerpt about <a href="https://info.publicintelligence.net/GermanPropagandaLeaflets.pdf">Psychological Warfare in World War 2</a><a href="#bib-1">[1]</a>:</p>
 <blockquote>
@@ -388,18 +390,14 @@
 <h4 id="websites-and-online-communities">Websites and Online Communities<a href="#websites-and-online-communities" aria-hidden="true" tabindex="-1"><span class="icon icon-link"></span></a></h4>
 <p>Here are a small subset of the online communities dedicated to this issue to draw attention to how large this phenomenon is. Given the overwhelming quantity of websites, social media groups, videos, and posts on this topic, a conservative estimate of people experiencing this in the United States may be around one hundred thousand people evidenced by the hundreds of facebook groups with tens of thousands of members, the tens of thousands of videos available across Youtube, Tiktok, Vimeo, Instagram and the collective body of millions of online posts.</p>
 <p>Websites:</p>
-<blockquote>
-<ul>
-<li></li>
-</ul>
-</blockquote>
+
 <blockquote>
 <p><a href="https://mindjustice.org/">https://mindjustice.org/</a><a href="#bib-63">[63]</a></p>
 <ul>
 <li>
 <p><strong>US - Cheryl Welsh</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -408,7 +406,7 @@
 <li>
 <p><strong>US</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -417,7 +415,7 @@
 <li>
 <p><strong>Targeted Massachusetts</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -426,7 +424,7 @@
 <li>
 <p><strong>Massachusetts</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -435,7 +433,7 @@
 <li>
 <p><strong>Icator International</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -444,7 +442,7 @@
 <li>
 <p><strong>People Against Covert Torture &amp; Surveillance, International</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -453,7 +451,7 @@
 <li>
 <p><strong>VIACTEC – Victimas de Acoso Electrónicomind control: Spain</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -462,7 +460,7 @@
 <li>
 <p><strong>Initiative gegen elektromagnetische Folter Germany</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -474,7 +472,7 @@
 <li>
 <p><a href="http://www.ontarget.co.cc">www.ontarget.co.cc</a> <strong>Greece</strong><a href="#bib-72">[72]</a></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -483,7 +481,7 @@
 <li>
 <p><strong>Stopeg Foundation Netherlands</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -492,7 +490,7 @@
 <li>
 <p><strong>STOPZET Stop Zorganizowanym Elektronicznym Torturom Poland</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -501,7 +499,7 @@
 <li>
 <p><strong>Society for Brain Integrity in Sweden</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -510,7 +508,7 @@
 <li>
 <p><strong>TARGETED UK</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -519,7 +517,7 @@
 <li>
 <p><strong>TARGETED INDIVIDUALS ASSOCIATION</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -528,7 +526,7 @@
 <li>
 <p><strong>COVERT HARASSMENT U.K.</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -540,7 +538,7 @@
 <li>
 <p><strong><a href="https://organizationofmindcontrolvictims.com/">Organization of Victims of Psychotronic (Mind/Body Control) Weapons</a> Organization of Victims Psychotronic (Mind Control) Weapons<a href="#bib-80">[80]</a></strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -549,7 +547,7 @@
 <li>
 <p><strong>The West Coast Society For All Victims Of Organized Stalking And Electronic Harassment</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -558,7 +556,7 @@
 <li>
 <p><strong>New Zeeland</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -573,7 +571,7 @@
 <li>
 <p><strong>TECHNOLOGICAL CRIME VICTIMS NETWORK (TCVN) Japan</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -582,7 +580,7 @@
 <li>
 <p><strong>Peacepink China</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -597,7 +595,7 @@
 <li>
 <p><strong><a href="https://bounceblack.org/2025/04/26/call-to-duty-fighting-back-against-organised-harassment/">https://bounceblack.org/2025/04/26/call-to-duty-fighting-back-against-organised-harassment/</a> US<a href="#bib-87">[87]</a></strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -609,7 +607,7 @@
 <li>
 <p><strong><a href="https://educate-yourself.org/mc/">https://educate-yourself.org/mc/</a> International<a href="#bib-89">[89]</a></strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -621,7 +619,7 @@
 <li>
 <p><strong><a href="https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime">https://discover.hubpages.com/politics/Gangstalking-A-New-Hate-Crime</a> US<a href="#bib-91">[91]</a></strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -630,7 +628,7 @@
 <li>
 <p><strong>US</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -639,7 +637,7 @@
 <li>
 <p><strong>US</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -648,7 +646,7 @@
 <li>
 <p><strong>US</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -657,7 +655,7 @@
 <li>
 <p><strong>US</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
@@ -666,7 +664,7 @@
 <li>
 <p><strong>Germany, Berlin</strong></p>
 </li>
-<li></li>
+
 </ul>
 </blockquote>
 <blockquote>
