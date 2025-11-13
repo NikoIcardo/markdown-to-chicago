@@ -75,7 +75,6 @@ export async function generatePdfWithPuppeteer(
     Math.max(requestedFontSize, MIN_FONT_SIZE),
     MAX_FONT_SIZE,
   )
-  const contentFontSizePx = contentFontSizePt * POINT_TO_PX
   const contentFontFamily = selectedFontConfig.css
   const headingFontFamily = FONT_CONFIG[DEFAULT_FONT].css
 
@@ -117,7 +116,7 @@ export async function generatePdfWithPuppeteer(
         .document-body {
           padding: 0;
           font-family: ${contentFontFamily};
-          font-size: ${contentFontSizePx}px;
+          font-size: ${contentFontSizePt}pt;
         }
         .document-body > *:first-child {
           margin-top: 0;
