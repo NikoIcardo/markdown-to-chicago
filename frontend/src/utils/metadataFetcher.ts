@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import type { SourceMetadata } from './types'
+import type { SourceMetadata } from './types.ts'
 
 let pdfjsModulePromise:
   | Promise<{
