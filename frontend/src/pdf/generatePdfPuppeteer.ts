@@ -31,6 +31,7 @@ const DEFAULT_FONT: FontName = 'Times New Roman'
 const DEFAULT_FONT_SIZE = 12
 const MIN_FONT_SIZE = 8
 const MAX_FONT_SIZE = 20
+const POINT_TO_PX = 96 / 72
 
 function escapeHtml(value: string): string {
   return value
@@ -63,115 +64,120 @@ export async function generatePdfWithPuppeteer(
   const docTitle = processed.title?.trim() || options?.originalFileName || 'Document'
   const docSubtitle = processed.subtitle?.trim()
   const requestedFontKey = options?.fontFamily as FontName | undefined
-  const selectedFontKey = requestedFontKey && FONT_CONFIG[requestedFontKey] ? requestedFontKey : DEFAULT_FONT
+  const selectedFontKey =
+    requestedFontKey && FONT_CONFIG[requestedFontKey] ? requestedFontKey : DEFAULT_FONT
   const selectedFontConfig = FONT_CONFIG[selectedFontKey]
   const requestedFontSize =
     typeof options?.fontSize === 'number' && Number.isFinite(options.fontSize)
       ? Math.round(options.fontSize)
       : DEFAULT_FONT_SIZE
-  const contentFontSize = Math.min(Math.max(requestedFontSize, MIN_FONT_SIZE), MAX_FONT_SIZE)
+  const contentFontSizePt = Math.min(
+    Math.max(requestedFontSize, MIN_FONT_SIZE),
+    MAX_FONT_SIZE,
+  )
+  const contentFontSizePx = contentFontSizePt * POINT_TO_PX
   const contentFontFamily = selectedFontConfig.css
   const headingFontFamily = FONT_CONFIG[DEFAULT_FONT].css
 
-const html = `
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>${escapeHtml(docTitle)}</title>
-    <style>
-      body {
-        font-family: 'Times New Roman', serif;
-        line-height: 1.6;
-        margin: 0;
-        padding: 0;
-      }
-      .title-page {
-        min-height: calc(100vh - 2.5in);
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        text-align: center;
-        gap: 0.5in;
-        page-break-after: always;
-        padding: 2.5in 1rem 0;
-        page: title;
-      }
-      .title-page__heading {
-        font-size: 48px;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-      }
-      .title-page__subtitle {
-        font-size: 20px;
-        max-width: 6.5in;
-      }
-      .document-body {
-        padding: 0;
-        font-family: ${contentFontFamily};
-        font-size: ${contentFontSize}px;
-      }
-      .document-body > *:first-child {
-        margin-top: 0;
-      }
-      h1 {
-        font-size: 40px;
-        margin-top: 0;
-        font-family: ${headingFontFamily};
-      }
-      h2 {
-        font-size: 32px;
-        font-family: ${headingFontFamily};
-      }
-      h3 {
-        font-size: 26px;
-        font-family: ${headingFontFamily};
-      }
-      h4 {
-        font-size: 20px;
-        font-family: ${headingFontFamily};
-      }
-      .main-heading,
-      .first-main-heading {
-        margin-top: 0;
-      }
-      .main-heading-divider,
-      .first-main-heading-divider {
-        break-before: page;
-        display: block;
-      }
-      .main-heading-break,
-      .first-main-heading-break {
-        break-before: page;
-      }
-      a {
-        color: #1a56db;
-        text-decoration: underline;
-      }
-      h1, h2, h3, h4, h5, h6 {
-        scroll-margin-top: 80px;
-      }
-      img {
-        max-width: 100%;
-        height: auto;
-      }
-      .anchor-target {
-        display: block;
-        height: 0;
-      }
-      @media print {
-        a[href^="#"]::after { content: ""; }
-      }
-    </style>
-  </head>
-  <body>
-    <section class="title-page">
-      <h1 class="title-page__heading">${escapeHtml(docTitle)}</h1>
-      ${docSubtitle ? `<p class="title-page__subtitle">${escapeHtml(docSubtitle)}</p>` : ''}
-    </section>
-    <main class="document-body">
+  const html = `
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <title>${escapeHtml(docTitle)}</title>
+      <style>
+        body {
+          font-family: 'Times New Roman', serif;
+          line-height: 1.6;
+          margin: 0;
+          padding: 0;
+        }
+        .title-page {
+          min-height: calc(100vh - 2.5in);
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: center;
+          text-align: center;
+          gap: 0.5in;
+          page-break-after: always;
+          padding: 2.5in 1rem 0;
+          page: title;
+        }
+        .title-page__heading {
+          font-size: 48px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
+        .title-page__subtitle {
+          font-size: 20px;
+          max-width: 6.5in;
+        }
+        .document-body {
+          padding: 0;
+          font-family: ${contentFontFamily};
+          font-size: ${contentFontSizePx}px;
+        }
+        .document-body > *:first-child {
+          margin-top: 0;
+        }
+        h1 {
+          font-size: 40px;
+          margin-top: 0;
+          font-family: ${headingFontFamily};
+        }
+        h2 {
+          font-size: 32px;
+          font-family: ${headingFontFamily};
+        }
+        h3 {
+          font-size: 26px;
+          font-family: ${headingFontFamily};
+        }
+        h4 {
+          font-size: 20px;
+          font-family: ${headingFontFamily};
+        }
+        .main-heading,
+        .first-main-heading {
+          margin-top: 0;
+        }
+        .main-heading-divider,
+        .first-main-heading-divider {
+          break-before: page;
+          display: block;
+        }
+        .main-heading-break,
+        .first-main-heading-break {
+          break-before: page;
+        }
+        a {
+          color: #1a56db;
+          text-decoration: underline;
+        }
+        h1, h2, h3, h4, h5, h6 {
+          scroll-margin-top: 80px;
+        }
+        img {
+          max-width: 100%;
+          height: auto;
+        }
+        .anchor-target {
+          display: block;
+          height: 0;
+        }
+        @media print {
+          a[href^="#"]::after { content: ""; }
+        }
+      </style>
+    </head>
+    <body>
+      <section class="title-page">
+        <h1 class="title-page__heading">${escapeHtml(docTitle)}</h1>
+        ${docSubtitle ? `<p class="title-page__subtitle">${escapeHtml(docSubtitle)}</p>` : ''}
+      </section>
+      <main class="document-body">
       ${htmlBody}
     </main>
   </body>
