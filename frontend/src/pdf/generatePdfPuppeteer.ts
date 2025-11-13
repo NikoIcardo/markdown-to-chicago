@@ -178,8 +178,8 @@ export async function generatePdfWithPuppeteer(
         document.querySelector('h6#table-of-contents')
 
       if (tocHeading) {
-        ;(tocHeading as HTMLElement).style.fontSize = '34px'
-        ;(tocHeading as HTMLElement).style.marginBottom = '1.2rem'
+        ;(tocHeading as HTMLElement).style.fontSize = '30px'
+        ;(tocHeading as HTMLElement).style.marginBottom = '1rem'
 
         const tocNodes: Node[] = []
         let node = tocHeading.nextSibling
@@ -222,9 +222,9 @@ export async function generatePdfWithPuppeteer(
         const tocList = tocHeading.nextElementSibling
         if (tocList && ['OL', 'UL'].includes(tocList.tagName)) {
           const tocListElement = tocList as HTMLElement
-          tocListElement.style.fontSize = '26px'
-          tocListElement.style.lineHeight = '1.8'
-          tocListElement.style.paddingLeft = '1.25rem'
+          tocListElement.style.fontSize = '22px'
+          tocListElement.style.lineHeight = '1.6'
+          tocListElement.style.paddingLeft = '1.15rem'
           tocListElement.style.breakAfter = 'page'
           tocListElement.style.pageBreakAfter = 'always'
         }
