@@ -194,12 +194,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f1f1',
     padding: 2,
   },
-  anchorMarker: {
-    fontSize: 1,
-    color: 'transparent',
-    lineHeight: 1,
-    marginBottom: 0,
-  },
+    anchorMarker: {
+      fontSize: 1,
+      color: 'transparent',
+      lineHeight: 1,
+      marginBottom: 0,
+    },
   imageContainer: {
     marginVertical: 12,
     alignItems: 'center',
@@ -311,19 +311,19 @@ function renderInline(node: InlineNode, key: string): React.ReactNode {
       const href = linkNode.url
       
       // Check if this is a bibliography reference link
-      if (href.startsWith('#bib-')) {
-        // Render as superscript reference
-        return (
-          <Text key={key} style={styles.superscript}>
-            <Link src={href} style={styles.link}>
-              {renderInlineChildren(linkNode.children as InlineNode[], key)}
-            </Link>
-          </Text>
-        )
+        if (href.startsWith('#bib-')) {
+          // Render as superscript reference
+          return (
+            <Text key={key} style={styles.superscript}>
+              <Link src={href} style={styles.link}>
+                {renderInlineChildren(linkNode.children as InlineNode[], key)}
+              </Link>
+            </Text>
+          )
       }
       
       return (
-        <Link key={key} src={href} style={styles.link}>
+          <Link key={key} src={href} style={styles.link}>
           {renderInlineChildren(linkNode.children as InlineNode[], key)}
         </Link>
       )
@@ -384,12 +384,6 @@ function renderImageBlock({
     return null
   }
 
-  const anchorElement = anchorId ? (
-    <Text key={`${key}-anchor`} id={anchorId} style={styles.anchorMarker}>
-      {' '}
-    </Text>
-  ) : null
-
   const resolvedSrc = imageMap[imageNode.url] ?? imageNode.url
 
   const imageElement = linkHref ? (
@@ -402,7 +396,11 @@ function renderImageBlock({
 
   return (
     <View key={key} style={styles.imageContainer}>
-      {anchorElement}
+      {anchorId ? (
+        <Text id={anchorId} style={styles.anchorMarker}>
+          {anchorId}
+        </Text>
+      ) : null}
       <View style={styles.imageWrapper}>
         {imageElement}
         {references.length ? (
@@ -436,7 +434,7 @@ function renderParagraph(node: Paragraph, key: string, imageMap: Record<string, 
     if (anchorId) {
       return (
         <Text key={key} id={anchorId} style={styles.anchorMarker}>
-          {' '}
+          {anchorId}
         </Text>
       )
     }
@@ -491,21 +489,10 @@ function renderParagraph(node: Paragraph, key: string, imageMap: Record<string, 
   }
 
   const paragraphText = (
-    <Text key={`${key}-text`} style={styles.paragraph}>
+    <Text key={`${key}-text`} id={anchorId} style={styles.paragraph}>
       {renderInlineChildren(remainder as InlineNode[], key)}
     </Text>
   )
-
-  if (anchorId) {
-    return (
-      <View key={key} style={styles.paragraphContainer}>
-        <Text id={anchorId} style={styles.anchorMarker}>
-          {' '}
-        </Text>
-        {paragraphText}
-      </View>
-    )
-  }
 
   return (
     <View key={key} style={styles.paragraphContainer}>
@@ -629,7 +616,7 @@ function renderNodeFactory(
         if (anchorMatch) {
           return (
             <Text key={key} id={anchorMatch[1]} style={styles.anchorMarker}>
-              {' '}
+              {anchorMatch[1]}
             </Text>
           )
         }
