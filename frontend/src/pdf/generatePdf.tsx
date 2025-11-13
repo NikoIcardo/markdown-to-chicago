@@ -194,8 +194,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f1f1',
     padding: 2,
   },
-  anchorTarget: {
-    height: 0,
+    anchorTarget: {
+      fontSize: 1,
+      color: 'transparent',
+      lineHeight: 1,
+      marginBottom: 0,
   },
   imageContainer: {
     marginVertical: 12,
@@ -392,7 +395,12 @@ function renderImageBlock({
   )
 
   return (
-    <View key={key} id={anchorId} style={styles.imageContainer}>
+    <View key={key} style={styles.imageContainer}>
+      {anchorId ? (
+        <Text id={anchorId} style={styles.anchorTarget}>
+          {' '}
+        </Text>
+      ) : null}
       <View style={styles.imageWrapper}>
         {imageElement}
         {references.length ? (
@@ -424,7 +432,11 @@ function renderParagraph(node: Paragraph, key: string, imageMap: Record<string, 
   const { anchorId, remainder } = extractAnchor(node.children as Content[])
   if (!remainder.length) {
     if (anchorId) {
-      return <View key={key} id={anchorId} style={styles.anchorTarget} />
+      return (
+        <Text key={key} id={anchorId} style={styles.anchorTarget}>
+          {' '}
+        </Text>
+      )
     }
     return null
   }
@@ -483,7 +495,12 @@ function renderParagraph(node: Paragraph, key: string, imageMap: Record<string, 
   )
 
   return (
-    <View key={key} id={anchorId} style={styles.paragraphContainer}>
+    <View key={key} style={styles.paragraphContainer}>
+      {anchorId ? (
+        <Text id={anchorId} style={styles.anchorTarget}>
+          {' '}
+        </Text>
+      ) : null}
       {paragraphText}
     </View>
   )
@@ -557,20 +574,25 @@ function renderNodeFactory(
     switch (node.type) {
       case 'paragraph':
         return renderParagraph(node as Paragraph, key, imageMap)
-      case 'heading': {
-        const headingNode = node as Heading
-        const textContent = headingNode.children
-          .map((child) => ('value' in child ? (child as any).value : ''))
-          .join('')
-        const headingInfo = headings[headingIndex]
-        const slug = headingInfo ? headingInfo.slug : slugify(textContent)
-        headingIndex += 1
-        return (
-          <Text key={key} id={slug} style={headingStyles[headingNode.depth] || styles.heading6}>
-            {renderInlineChildren(headingNode.children as InlineNode[], key)}
-          </Text>
-        )
-      }
+        case 'heading': {
+          const headingNode = node as Heading
+          const textContent = headingNode.children
+            .map((child) => ('value' in child ? (child as any).value : ''))
+            .join('')
+          const headingInfo = headings[headingIndex]
+          const slug = headingInfo ? headingInfo.slug : slugify(textContent)
+          headingIndex += 1
+          return (
+            <View key={key}>
+              <Text id={slug} style={styles.anchorTarget}>
+                {' '}
+              </Text>
+              <Text style={headingStyles[headingNode.depth] || styles.heading6}>
+                {renderInlineChildren(headingNode.children as InlineNode[], key)}
+              </Text>
+            </View>
+          )
+        }
       case 'image': {
         const imageNode = node as MdImage
         if (!imageNode.url) {
@@ -602,7 +624,11 @@ function renderNodeFactory(
         const htmlNode = node as Html
         const anchorMatch = htmlNode.value.match(/<a id="([^"]+)"><\/a>/i)
           if (anchorMatch) {
-            return <View key={key} id={anchorMatch[1]} style={styles.anchorTarget} />
+            return (
+              <Text key={key} id={anchorMatch[1]} style={styles.anchorTarget}>
+                {' '}
+              </Text>
+            )
           }
         const superscript = renderSuperscript(htmlNode, key)
         return superscript
