@@ -504,25 +504,33 @@ export async function generatePdfWithPuppeteer(
     </div>
     <script>
     (function () {
-      var containers = document.querySelectorAll('.pdf-header');
-      if (!containers.length) {
-        return;
+      var run = function () {
+        var script = document.currentScript;
+        if (!script) {
+          return;
+        }
+        var container = script.parentElement;
+        if (!container) {
+          return;
+        }
+        var pageNumberEl = container.querySelector('.pageNumber');
+        if (!pageNumberEl) {
+          container.style.visibility = 'hidden';
+          return;
+        }
+        var raw = (pageNumberEl.textContent || '').trim();
+        var pageNumber = parseInt(raw, 10);
+        if (!Number.isFinite(pageNumber) || pageNumber <= 2) {
+          container.style.visibility = 'hidden';
+          return;
+        }
+        pageNumberEl.textContent = String(pageNumber - 2);
+      };
+      if (document.readyState === 'complete') {
+        run();
+      } else {
+        setTimeout(run, 0);
       }
-      var container = containers[containers.length - 1];
-      if (!container) {
-        return;
-      }
-      var pageNumberEl = container.querySelector('.pageNumber');
-      if (!pageNumberEl) {
-        return;
-      }
-      var raw = container.getAttribute('data-page-number') || pageNumberEl.textContent || '0';
-      var pageNumber = parseInt(raw, 10);
-      if (!Number.isFinite(pageNumber) || pageNumber <= 2) {
-        container.style.visibility = 'hidden';
-        return;
-      }
-      pageNumberEl.textContent = String(pageNumber - 2);
     })();
     </script>
     `
