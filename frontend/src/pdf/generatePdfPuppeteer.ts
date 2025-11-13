@@ -32,6 +32,7 @@ const DEFAULT_FONT_SIZE = 12
 const MIN_FONT_SIZE = 8
 const MAX_FONT_SIZE = 20
 const POINT_TO_PX = 96 / 72
+const FONT_SIZE_CORRECTION_FACTOR = 1.7
 
 function escapeHtml(value: string): string {
   return value
@@ -75,6 +76,8 @@ export async function generatePdfWithPuppeteer(
     Math.max(requestedFontSize, MIN_FONT_SIZE),
     MAX_FONT_SIZE,
   )
+  const adjustedContentFontSizePt = contentFontSizePt * FONT_SIZE_CORRECTION_FACTOR
+  const contentFontSizePx = adjustedContentFontSizePt * POINT_TO_PX
   const contentFontFamily = selectedFontConfig.css
   const headingFontFamily = FONT_CONFIG[DEFAULT_FONT].css
 
@@ -90,6 +93,8 @@ export async function generatePdfWithPuppeteer(
           line-height: 1.6;
           margin: 0;
           padding: 0;
+          font-size: ${contentFontSizePx}px;
+          font-size: ${adjustedContentFontSizePt}pt;
         }
         .title-page {
           min-height: calc(100vh - 2.5in);
@@ -116,7 +121,8 @@ export async function generatePdfWithPuppeteer(
         .document-body {
           padding: 0;
           font-family: ${contentFontFamily};
-          font-size: ${contentFontSizePt}pt;
+          font-size: ${contentFontSizePx}px;
+          font-size: ${adjustedContentFontSizePt}pt;
         }
         .document-body > *:first-child {
           margin-top: 0;
