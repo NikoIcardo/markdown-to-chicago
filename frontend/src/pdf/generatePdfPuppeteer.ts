@@ -94,9 +94,6 @@ export async function generatePdfWithPuppeteer(
       h4 {
         font-size: 20px;
       }
-      .toc-break {
-        page-break-after: always;
-      }
       .main-heading,
       .first-main-heading {
         page-break-before: always;
@@ -180,11 +177,6 @@ export async function generatePdfWithPuppeteer(
         document.querySelector('h6#table-of-contents')
 
       if (tocHeading) {
-        const tocListCandidate = tocHeading.nextElementSibling
-        if (tocListCandidate && ['OL', 'UL'].includes(tocListCandidate.tagName)) {
-          tocListCandidate.classList.add('toc-break')
-        }
-
         const tocNodes = []
         let node = tocHeading.nextSibling
         while (node) {
@@ -223,7 +215,6 @@ export async function generatePdfWithPuppeteer(
           }
         })
       }
-
       const listItems = Array.from(document.querySelectorAll('li'))
       listItems.forEach((li) => {
         const contentText = li.textContent?.replace(/\s+/g, '') ?? ''
@@ -295,7 +286,33 @@ export async function generatePdfWithPuppeteer(
         }
       }
 
-      sectionsToExclude.forEach(collectSectionUrls)
+      const isExcludedBibliographyItem = (itemLinks) =>
+        itemLinks.some((href) => {
+          if (!href) {
+            return false
+          }
+          if (urlsToExclude.has(href)) {
+            return true
+          }
+          const normalized = href.toLowerCase()
+          return normalized.includes('facebook.com') || normalized.includes('reddit.com')
+        })
+
+      sectionsToExclude.forEach((slug) => {
+        collectSectionUrls(slug)
+        const sectionHeading = document.getElementById(slug)
+        if (sectionHeading) {
+          const sectionLinks = Array.from(
+            sectionHeading.parentElement?.querySelectorAll(`#${slug} ~ a[href]`) ?? [],
+          )
+          sectionLinks.forEach((link) => {
+            const href = link.getAttribute('href')
+            if (href) {
+              urlsToExclude.add(href)
+            }
+          })
+        }
+      })
 
       const bibliographyHeading = document.getElementById('bibliography')
       if (bibliographyHeading) {
@@ -314,7 +331,7 @@ export async function generatePdfWithPuppeteer(
             const itemLinks = Array.from(item.querySelectorAll('a[href]')).map((anchor) =>
               anchor.getAttribute('href'),
             )
-            if (itemLinks.some((href) => href && urlsToExclude.has(href))) {
+            if (isExcludedBibliographyItem(itemLinks)) {
               item.remove()
             }
           })
@@ -414,7 +431,37 @@ export async function generatePdfWithPuppeteer(
     })
 
     try {
-      await page.waitForSelector('a[href^="#"]', { timeout: 2000 })
+      const introHeading = await page.waitForSelector('#introduction', {
+        timeout: 2000,
+      })
+      if (introHeading) {
+        await page.evaluate((headingSelector) => {
+          const heading = document.querySelector(headingSelector)
+          if (!heading) {
+            return
+          }
+          let previous = heading.previousSibling
+          while (previous) {
+            const isDivider =
+              previous.nodeType === Node.ELEMENT_NODE &&
+              /^HR$/i.test((previous as HTMLElement).tagName)
+            if (isDivider) {
+              ;(previous as HTMLElement).remove()
+            }
+            if (
+              previous.nodeType === Node.ELEMENT_NODE &&
+              !/^HR$/i.test((previous as HTMLElement).tagName)
+            ) {
+              break
+            }
+            previous = previous.previousSibling
+          }
+          const dividerTop = document.createElement('hr')
+          const dividerBottom = document.createElement('hr')
+          heading.parentNode?.insertBefore(dividerTop, heading)
+          heading.parentNode?.insertBefore(dividerBottom, heading.nextSibling)
+        }, '#introduction')
+      }
     } catch {
       // no internal anchors detected; continue without validation
     }
