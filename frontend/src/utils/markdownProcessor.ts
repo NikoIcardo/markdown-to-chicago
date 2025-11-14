@@ -164,6 +164,47 @@ function normalizeTableOfContents(root: Root) {
   )
 }
 
+function ensureBibliographyInTableOfContents(root: Root) {
+  const tocRange = findSectionRange(root, 'table of contents')
+  if (!tocRange) {
+    return
+  }
+
+  const tocNodes = collectNodesInRange(root, tocRange)
+  const tocList = tocNodes.find((node): node is List => node.type === 'list')
+  if (!tocList) {
+    return
+  }
+
+  const alreadyPresent = tocList.children.some((item) => {
+    const text = toString(item).trim().toLowerCase()
+    return text === 'bibliography' || text.includes('bibliography')
+  })
+
+  if (alreadyPresent) {
+    return
+  }
+
+  const bibliographyListItem: ListItem = {
+    type: 'listItem',
+    spread: false,
+    children: [
+      {
+        type: 'paragraph',
+        children: [
+          {
+            type: 'link',
+            url: '#bibliography',
+            children: [{ type: 'text', value: 'Bibliography' }],
+          },
+        ],
+      } as Paragraph,
+    ],
+  }
+
+  tocList.children.push(bibliographyListItem)
+}
+
 type SectionRange = {
   startIndex: number
   endIndex: number
@@ -543,6 +584,8 @@ export async function processMarkdown(
     }
     rootChildren.splice(bibliographyRange!.endIndex, 0, bibliographyList)
   }
+
+  ensureBibliographyInTableOfContents(tree)
 
   bibliographyList.ordered = true
   bibliographyList.start = bibliographyList.start ?? 1
