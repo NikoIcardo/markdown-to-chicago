@@ -438,7 +438,42 @@ export async function generatePdfWithPuppeteer(
         }
       })
 
-      const internalLinks = Array.from(document.querySelectorAll('a[href^="#"]'))
+        if (bibliographyHeading) {
+          const bibliographyElement = bibliographyHeading as HTMLElement
+          const alreadyMarkedAsMain =
+            bibliographyElement.classList.contains('main-heading') ||
+            bibliographyElement.classList.contains('first-main-heading')
+
+          if (!alreadyMarkedAsMain) {
+            const referenceHeading =
+              mainHeadingNodes.find((node) => node !== bibliographyElement) ?? mainHeadingNodes[0]
+
+            if (referenceHeading instanceof HTMLElement) {
+              const referenceStyles = window.getComputedStyle(referenceHeading)
+              bibliographyElement.style.fontFamily = referenceStyles.fontFamily
+              bibliographyElement.style.fontSize = referenceStyles.fontSize
+              bibliographyElement.style.fontWeight = referenceStyles.fontWeight
+              bibliographyElement.style.letterSpacing = referenceStyles.letterSpacing
+              bibliographyElement.style.textTransform = referenceStyles.textTransform
+              bibliographyElement.style.marginTop = referenceStyles.marginTop
+              bibliographyElement.style.marginBottom = referenceStyles.marginBottom
+              bibliographyElement.style.color = referenceStyles.color
+              bibliographyElement.style.textAlign = referenceStyles.textAlign
+            }
+
+            bibliographyElement.classList.add(
+              mainHeadingNodes.length === 0 ? 'first-main-heading' : 'main-heading',
+            )
+          }
+
+          bibliographyElement.classList.add(
+            bibliographyElement.classList.contains('first-main-heading')
+              ? 'first-main-heading-break'
+              : 'main-heading-break',
+          )
+        }
+
+        const internalLinks = Array.from(document.querySelectorAll('a[href^="#"]'))
       internalLinks.forEach((link) => {
         const rawHref = link.getAttribute('href') ?? ''
         const targetId = rawHref.replace(/^#/, '')
