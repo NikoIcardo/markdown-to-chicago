@@ -240,24 +240,47 @@ type ExistingEntryInfo = {
 
 const excludedAncestorTypes = new Set(['code', 'inlineCode', 'definition'])
 
-function sanitizeUrlString(raw: string): string {
-  let value = raw.trim()
-  while (value.length > 0 && ')]}>.,;!?:\'"'.includes(value[value.length - 1])) {
-    value = value.slice(0, -1)
-  }
-  return value
-}
-
 function normalizeUrl(url: string): string {
-  const sanitized = sanitizeUrlString(url)
   try {
-    const parsed = new URL(sanitized)
+    const parsed = new URL(url.trim())
     parsed.hash = ''
     const normalised = parsed.toString()
     return normalised.endsWith('/') ? normalised.slice(0, -1) : normalised
   } catch {
-    return sanitized
+    return url.trim()
   }
+}
+
+function stripTrailingPunctuationFromUrl(value: string): string {
+  let result = value.trim()
+  const removable = '.,;:!?\'"'
+  const pairLookup: Record<string, string> = {
+    ')': '(',
+    ']': '[',
+    '}': '{',
+  }
+
+  while (result.length > 0) {
+    const lastChar = result[result.length - 1]
+    if (removable.includes(lastChar)) {
+      result = result.slice(0, -1)
+      continue
+    }
+
+    const counterpart = pairLookup[lastChar]
+    if (counterpart) {
+      const openCount = (result.match(new RegExp(`\\${counterpart}`, 'g')) || []).length
+      const closeCount = (result.match(new RegExp(`\\${lastChar}`, 'g')) || []).length
+      if (closeCount > openCount) {
+        result = result.slice(0, -1)
+        continue
+      }
+    }
+
+    break
+  }
+
+  return result
 }
 
 function slugify(value: string): string {
@@ -365,7 +388,7 @@ function extractUrlFromListItem(listItem: ListItem): string | undefined {
   const textValue = toString(listItem)
   const match = textValue.match(/https?:\/\/[^\s<>\]")'}]+/i)
   if (match) {
-    return normalizeUrl(match[0])
+    return normalizeUrl(stripTrailingPunctuationFromUrl(match[0]))
   }
 
   return undefined
@@ -716,51 +739,52 @@ export async function processMarkdown(
         return
       }
 
-        const matches: Array<{ start: number; end: number; url: string }> = []
-        const text = node.value
-        let match: RegExpExecArray | null
-        MARKDOWN_URL_REGEX.lastIndex = 0
-        while ((match = MARKDOWN_URL_REGEX.exec(text))) {
-          const url = match[1]
-          matches.push({
-            start: match.index,
-            end: match.index + url.length,
-            url,
-          })
-        }
+      const matches: Array<{ start: number; end: number; url: string }> = []
+      const text = node.value
+      let match: RegExpExecArray | null
+      MARKDOWN_URL_REGEX.lastIndex = 0
+      while ((match = MARKDOWN_URL_REGEX.exec(text))) {
+        const rawUrl = match[1]
+        const cleanedUrl = stripTrailingPunctuationFromUrl(rawUrl)
+        const removed = rawUrl.length - cleanedUrl.length
+        matches.push({
+          start: match.index,
+          end: match.index + rawUrl.length - removed,
+          url: cleanedUrl,
+        })
+      }
 
-        if (matches.length) {
-          bareTextOccurrences.push({
+      if (matches.length) {
+        bareTextOccurrences.push({
+          node,
+          parent,
+          matches: matches.map((m) => ({ ...m })),
+        })
+
+        const perUrlMatches = new Map<string, Array<{ start: number; end: number }>>()
+        matches.forEach((m) => {
+          const normalised = normalizeUrl(m.url)
+          const position = occurrenceCounter++
+          if (!urlFirstOccurrence.has(normalised)) {
+            urlFirstOccurrence.set(normalised, position)
+          }
+          const list = perUrlMatches.get(normalised) || []
+          list.push({ start: m.start, end: m.end })
+          perUrlMatches.set(normalised, list)
+        })
+
+        perUrlMatches.forEach((matchList, normalised) => {
+          const list = urlOccurrences.get(normalised) || []
+          list.push({
+            type: 'bare',
             node,
             parent,
-            matches: matches.map((m) => ({ ...m })),
+            index: parent.children.indexOf(node as Content),
+            matches: matchList,
           })
-
-          const perUrlMatches = new Map<string, Array<{ start: number; end: number }>>()
-          matches.forEach((m) => {
-            const normalised = normalizeUrl(m.url)
-            const position = occurrenceCounter++
-            if (!urlFirstOccurrence.has(normalised)) {
-              urlFirstOccurrence.set(normalised, position)
-            }
-            const list = perUrlMatches.get(normalised) || []
-            list.push({ start: m.start, end: m.end })
-            perUrlMatches.set(normalised, list)
-          })
-
-          perUrlMatches.forEach((matchList, normalised) => {
-            const list = urlOccurrences.get(normalised) || []
-            list.push({
-              type: 'bare',
-              node,
-              parent,
-              index: parent.children.indexOf(node as Content),
-              matches: matchList,
-            })
-            urlOccurrences.set(normalised, list)
-          })
-        }
-    }
+          urlOccurrences.set(normalised, list)
+        })
+      }
   })
 
   const newUrls: string[] = []
