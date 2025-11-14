@@ -785,6 +785,7 @@ export async function processMarkdown(
           urlOccurrences.set(normalised, list)
         })
       }
+    }
   })
 
   const newUrls: string[] = []
