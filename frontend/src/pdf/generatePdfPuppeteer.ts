@@ -503,6 +503,36 @@ export async function generatePdfWithPuppeteer(
           }
 
           bibliographyElement.classList.remove(breakClass)
+
+          let nextSibling = bibliographyElement.nextSibling
+          let trailingDivider: HTMLElement | null = null
+          while (nextSibling) {
+            if (nextSibling.nodeType === Node.TEXT_NODE) {
+              if ((nextSibling.textContent ?? '').trim().length === 0) {
+                nextSibling = nextSibling.nextSibling
+                continue
+              }
+              break
+            }
+
+            if (
+              nextSibling.nodeType === Node.ELEMENT_NODE &&
+              (nextSibling as HTMLElement).tagName === 'HR'
+            ) {
+              trailingDivider = nextSibling as HTMLElement
+            }
+            break
+          }
+
+          if (!trailingDivider) {
+            trailingDivider = document.createElement('hr')
+            const parent = bibliographyElement.parentElement ?? document.body
+            if (bibliographyElement.nextSibling) {
+              parent.insertBefore(trailingDivider, bibliographyElement.nextSibling)
+            } else {
+              parent.appendChild(trailingDivider)
+            }
+          }
         }
 
         const internalLinks = Array.from(document.querySelectorAll('a[href^="#"]'))
