@@ -164,6 +164,47 @@ function normalizeTableOfContents(root: Root) {
   )
 }
 
+function ensureBibliographyInTableOfContents(root: Root) {
+  const tocRange = findSectionRange(root, 'table of contents')
+  if (!tocRange) {
+    return
+  }
+
+  const tocNodes = collectNodesInRange(root, tocRange)
+  const tocList = tocNodes.find((node): node is List => node.type === 'list')
+  if (!tocList) {
+    return
+  }
+
+  const alreadyPresent = tocList.children.some((item) => {
+    const text = toString(item).trim().toLowerCase()
+    return text === 'bibliography' || text.includes('bibliography')
+  })
+
+  if (alreadyPresent) {
+    return
+  }
+
+  const bibliographyListItem: ListItem = {
+    type: 'listItem',
+    spread: false,
+    children: [
+      {
+        type: 'paragraph',
+        children: [
+          {
+            type: 'link',
+            url: '#bibliography',
+            children: [{ type: 'text', value: 'Bibliography' }],
+          },
+        ],
+      } as Paragraph,
+    ],
+  }
+
+  tocList.children.push(bibliographyListItem)
+}
+
 type SectionRange = {
   startIndex: number
   endIndex: number
@@ -208,6 +249,38 @@ function normalizeUrl(url: string): string {
   } catch {
     return url.trim()
   }
+}
+
+function stripTrailingPunctuationFromUrl(value: string): string {
+  let result = value.trim()
+  const removable = '.,;:!?\'"'
+  const pairLookup: Record<string, string> = {
+    ')': '(',
+    ']': '[',
+    '}': '{',
+  }
+
+  while (result.length > 0) {
+    const lastChar = result[result.length - 1]
+    if (removable.includes(lastChar)) {
+      result = result.slice(0, -1)
+      continue
+    }
+
+    const counterpart = pairLookup[lastChar]
+    if (counterpart) {
+      const openCount = (result.match(new RegExp(`\\${counterpart}`, 'g')) || []).length
+      const closeCount = (result.match(new RegExp(`\\${lastChar}`, 'g')) || []).length
+      if (closeCount > openCount) {
+        result = result.slice(0, -1)
+        continue
+      }
+    }
+
+    break
+  }
+
+  return result
 }
 
 function slugify(value: string): string {
@@ -299,6 +372,28 @@ function createListItemFromParagraph(paragraph: Paragraph): ListItem | null {
   }
 }
 
+function extractUrlFromListItem(listItem: ListItem): string | undefined {
+  let extracted: string | undefined
+
+  visit(listItem, 'link', (node: Link) => {
+    if (!extracted && typeof node.url === 'string' && node.url.trim().length > 0) {
+      extracted = normalizeUrl(node.url)
+    }
+  })
+
+  if (extracted) {
+    return extracted
+  }
+
+  const textValue = toString(listItem)
+  const match = textValue.match(/https?:\/\/[^\s<>\]")'}]+/i)
+  if (match) {
+    return normalizeUrl(stripTrailingPunctuationFromUrl(match[0]))
+  }
+
+  return undefined
+}
+
 function removeInitialHeadingMatchingTitle(tree: Root, title?: string | null): boolean {
   if (!title) {
     return false
@@ -382,7 +477,7 @@ function formatAuthors(authors: string[]): string {
   return `${first}, ${rest.join(', ')}, and ${last}.`
 }
 
-function formatCitation(metadata: SourceMetadata): string {
+function formatCitationText(metadata: SourceMetadata): string {
   const parts: string[] = []
   const authorsPart = formatAuthors(metadata.authors)
   if (authorsPart) {
@@ -400,9 +495,29 @@ function formatCitation(metadata: SourceMetadata): string {
   }
 
   parts.push(`Accessed ${metadata.accessDate}.`)
-  parts.push(metadata.url.endsWith('.') ? metadata.url : `${metadata.url}.`)
 
   return parts.join(' ').replace(/\s+/g, ' ').trim()
+}
+
+function buildCitationContent(metadata: SourceMetadata): Content[] {
+  const nodes: Content[] = []
+  const prefix = formatCitationText(metadata)
+  if (prefix) {
+    nodes.push({
+      type: 'text',
+      value: `${prefix} `,
+    } as Text)
+  }
+  nodes.push({
+    type: 'link',
+    url: metadata.url,
+    children: [{ type: 'text', value: metadata.url } as Text],
+  } as Link)
+  nodes.push({
+    type: 'text',
+    value: '.',
+  } as Text)
+  return nodes
 }
 
 function createReferenceNode(number: number, anchorId: string): Link {
@@ -544,6 +659,8 @@ export async function processMarkdown(
     rootChildren.splice(bibliographyRange!.endIndex, 0, bibliographyList)
   }
 
+  ensureBibliographyInTableOfContents(tree)
+
   bibliographyList.ordered = true
   bibliographyList.start = bibliographyList.start ?? 1
 
@@ -555,9 +672,7 @@ export async function processMarkdown(
     const number = (bibliographyList!.start ?? 1) + idx
     const anchorId = `bib-${number}`
     ensureListItemAnchor(listItem, anchorId)
-    const textValue = toString(listItem)
-    const urlMatch = textValue.match(/https?:\/\/[^\s)]+/i)
-    const normalised = urlMatch ? normalizeUrl(urlMatch[0]) : undefined
+    const normalised = extractUrlFromListItem(listItem)
     const entry: ExistingEntryInfo = {
       number,
       normalizedUrl: normalised,
@@ -624,50 +739,52 @@ export async function processMarkdown(
         return
       }
 
-        const matches: Array<{ start: number; end: number; url: string }> = []
-        const text = node.value
-        let match: RegExpExecArray | null
-        MARKDOWN_URL_REGEX.lastIndex = 0
-        while ((match = MARKDOWN_URL_REGEX.exec(text))) {
-          const url = match[1]
-          matches.push({
-            start: match.index,
-            end: match.index + url.length,
-            url,
-          })
-        }
+      const matches: Array<{ start: number; end: number; url: string }> = []
+      const text = node.value
+      let match: RegExpExecArray | null
+      MARKDOWN_URL_REGEX.lastIndex = 0
+      while ((match = MARKDOWN_URL_REGEX.exec(text))) {
+        const rawUrl = match[1]
+        const cleanedUrl = stripTrailingPunctuationFromUrl(rawUrl)
+        const removed = rawUrl.length - cleanedUrl.length
+        matches.push({
+          start: match.index,
+          end: match.index + rawUrl.length - removed,
+          url: cleanedUrl,
+        })
+      }
 
-        if (matches.length) {
-          bareTextOccurrences.push({
+      if (matches.length) {
+        bareTextOccurrences.push({
+          node,
+          parent,
+          matches: matches.map((m) => ({ ...m })),
+        })
+
+        const perUrlMatches = new Map<string, Array<{ start: number; end: number }>>()
+        matches.forEach((m) => {
+          const normalised = normalizeUrl(m.url)
+          const position = occurrenceCounter++
+          if (!urlFirstOccurrence.has(normalised)) {
+            urlFirstOccurrence.set(normalised, position)
+          }
+          const list = perUrlMatches.get(normalised) || []
+          list.push({ start: m.start, end: m.end })
+          perUrlMatches.set(normalised, list)
+        })
+
+        perUrlMatches.forEach((matchList, normalised) => {
+          const list = urlOccurrences.get(normalised) || []
+          list.push({
+            type: 'bare',
             node,
             parent,
-            matches: matches.map((m) => ({ ...m })),
+            index: parent.children.indexOf(node as Content),
+            matches: matchList,
           })
-
-          const perUrlMatches = new Map<string, Array<{ start: number; end: number }>>()
-          matches.forEach((m) => {
-            const normalised = normalizeUrl(m.url)
-            const position = occurrenceCounter++
-            if (!urlFirstOccurrence.has(normalised)) {
-              urlFirstOccurrence.set(normalised, position)
-            }
-            const list = perUrlMatches.get(normalised) || []
-            list.push({ start: m.start, end: m.end })
-            perUrlMatches.set(normalised, list)
-          })
-
-          perUrlMatches.forEach((matchList, normalised) => {
-            const list = urlOccurrences.get(normalised) || []
-            list.push({
-              type: 'bare',
-              node,
-              parent,
-              index: parent.children.indexOf(node as Content),
-              matches: matchList,
-            })
-            urlOccurrences.set(normalised, list)
-          })
-        }
+          urlOccurrences.set(normalised, list)
+        })
+      }
     }
   })
 
@@ -724,7 +841,6 @@ export async function processMarkdown(
       if (!metadata) {
         return
       }
-      const citation = formatCitation(metadata)
       const listItem: ListItem = {
         type: 'listItem',
         spread: false,
@@ -733,7 +849,7 @@ export async function processMarkdown(
             type: 'paragraph',
             children: [
               { type: 'html', value: '<a id=""></a>' } as Html,
-              { type: 'text', value: citation } as Text,
+              ...buildCitationContent(metadata),
             ],
           },
         ],
