@@ -471,6 +471,38 @@ export async function generatePdfWithPuppeteer(
               ? 'first-main-heading-break'
               : 'main-heading-break',
           )
+
+          const isFirstHeading = bibliographyElement.classList.contains('first-main-heading')
+          const breakClass = isFirstHeading ? 'first-main-heading-break' : 'main-heading-break'
+          const dividerClass = isFirstHeading ? 'first-main-heading-divider' : 'main-heading-divider'
+
+          let previous = bibliographyElement.previousSibling
+          let divider: HTMLElement | null = null
+          while (previous) {
+            if (previous.nodeType === Node.ELEMENT_NODE && (previous as HTMLElement).tagName === 'HR') {
+              divider = previous as HTMLElement
+              break
+            }
+            if (previous.nodeType === Node.ELEMENT_NODE && (previous as HTMLElement).tagName !== 'HR') {
+              break
+            }
+            previous = previous.previousSibling
+          }
+
+          if (!divider) {
+            divider = document.createElement('hr')
+            if (bibliographyElement.parentElement) {
+              bibliographyElement.parentElement.insertBefore(divider, bibliographyElement)
+            } else {
+              document.body.insertBefore(divider, bibliographyElement)
+            }
+          }
+
+          if (divider) {
+            markDivider(divider, dividerClass)
+          }
+
+          bibliographyElement.classList.remove(breakClass)
         }
 
         const internalLinks = Array.from(document.querySelectorAll('a[href^="#"]'))
