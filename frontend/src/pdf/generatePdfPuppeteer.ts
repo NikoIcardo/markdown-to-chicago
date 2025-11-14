@@ -127,6 +127,21 @@ export async function generatePdfWithPuppeteer(
         .document-body > *:first-child {
           margin-top: 0;
         }
+        .document-body ol,
+        .document-body ul {
+          list-style-position: outside;
+          padding-left: 3.5em;
+          margin: 0 0 1.2em 0;
+        }
+        .document-body ol li,
+        .document-body ul li {
+          padding-inline-start: 0.35em;
+        }
+        .document-body ol li::marker,
+        .document-body ul li::marker {
+          font-variant-numeric: tabular-nums;
+          font-feature-settings: 'tnum';
+        }
         h1 {
           font-size: 40px;
           margin-top: 0;
