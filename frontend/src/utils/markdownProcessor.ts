@@ -240,14 +240,23 @@ type ExistingEntryInfo = {
 
 const excludedAncestorTypes = new Set(['code', 'inlineCode', 'definition'])
 
+function sanitizeUrlString(raw: string): string {
+  let value = raw.trim()
+  while (value.length > 0 && ')]}>.,;!?:\'"'.includes(value[value.length - 1])) {
+    value = value.slice(0, -1)
+  }
+  return value
+}
+
 function normalizeUrl(url: string): string {
+  const sanitized = sanitizeUrlString(url)
   try {
-    const parsed = new URL(url.trim())
+    const parsed = new URL(sanitized)
     parsed.hash = ''
     const normalised = parsed.toString()
     return normalised.endsWith('/') ? normalised.slice(0, -1) : normalised
   } catch {
-    return url.trim()
+    return sanitized
   }
 }
 
@@ -340,6 +349,28 @@ function createListItemFromParagraph(paragraph: Paragraph): ListItem | null {
   }
 }
 
+function extractUrlFromListItem(listItem: ListItem): string | undefined {
+  let extracted: string | undefined
+
+  visit(listItem, 'link', (node: Link) => {
+    if (!extracted && typeof node.url === 'string' && node.url.trim().length > 0) {
+      extracted = normalizeUrl(node.url)
+    }
+  })
+
+  if (extracted) {
+    return extracted
+  }
+
+  const textValue = toString(listItem)
+  const match = textValue.match(/https?:\/\/[^\s<>\]")'}]+/i)
+  if (match) {
+    return normalizeUrl(match[0])
+  }
+
+  return undefined
+}
+
 function removeInitialHeadingMatchingTitle(tree: Root, title?: string | null): boolean {
   if (!title) {
     return false
@@ -423,7 +454,7 @@ function formatAuthors(authors: string[]): string {
   return `${first}, ${rest.join(', ')}, and ${last}.`
 }
 
-function formatCitation(metadata: SourceMetadata): string {
+function formatCitationText(metadata: SourceMetadata): string {
   const parts: string[] = []
   const authorsPart = formatAuthors(metadata.authors)
   if (authorsPart) {
@@ -441,9 +472,29 @@ function formatCitation(metadata: SourceMetadata): string {
   }
 
   parts.push(`Accessed ${metadata.accessDate}.`)
-  parts.push(metadata.url.endsWith('.') ? metadata.url : `${metadata.url}.`)
 
   return parts.join(' ').replace(/\s+/g, ' ').trim()
+}
+
+function buildCitationContent(metadata: SourceMetadata): Content[] {
+  const nodes: Content[] = []
+  const prefix = formatCitationText(metadata)
+  if (prefix) {
+    nodes.push({
+      type: 'text',
+      value: `${prefix} `,
+    } as Text)
+  }
+  nodes.push({
+    type: 'link',
+    url: metadata.url,
+    children: [{ type: 'text', value: metadata.url } as Text],
+  } as Link)
+  nodes.push({
+    type: 'text',
+    value: '.',
+  } as Text)
+  return nodes
 }
 
 function createReferenceNode(number: number, anchorId: string): Link {
@@ -598,9 +649,7 @@ export async function processMarkdown(
     const number = (bibliographyList!.start ?? 1) + idx
     const anchorId = `bib-${number}`
     ensureListItemAnchor(listItem, anchorId)
-    const textValue = toString(listItem)
-    const urlMatch = textValue.match(/https?:\/\/[^\s)]+/i)
-    const normalised = urlMatch ? normalizeUrl(urlMatch[0]) : undefined
+    const normalised = extractUrlFromListItem(listItem)
     const entry: ExistingEntryInfo = {
       number,
       normalizedUrl: normalised,
@@ -767,7 +816,6 @@ export async function processMarkdown(
       if (!metadata) {
         return
       }
-      const citation = formatCitation(metadata)
       const listItem: ListItem = {
         type: 'listItem',
         spread: false,
@@ -776,7 +824,7 @@ export async function processMarkdown(
             type: 'paragraph',
             children: [
               { type: 'html', value: '<a id=""></a>' } as Html,
-              { type: 'text', value: citation } as Text,
+              ...buildCitationContent(metadata),
             ],
           },
         ],
