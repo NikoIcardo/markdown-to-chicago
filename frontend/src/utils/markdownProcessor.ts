@@ -4,7 +4,7 @@ import remarkParse from 'remark-parse'
 import remarkStringify from 'remark-stringify'
 import remarkGfm from 'remark-gfm'
 import remarkFrontmatter from 'remark-frontmatter'
-import { visit } from 'unist-util-visit'
+import { visit, SKIP } from 'unist-util-visit'
 import { visitParents } from 'unist-util-visit-parents'
 import { toString } from 'mdast-util-to-string'
 import yaml from 'js-yaml'
@@ -691,22 +691,20 @@ export async function processMarkdown(
     allEntries.push(entry)
   })
 
-  // Remove all existing citation links (links to #bib-*) before reprocessing
-  const citationLinksToRemove: Array<{ parent: Parent; index: number }> = []
-  visitParents(tree, 'link', (node, ancestors) => {
-    const linkNode = node as Link
-    if (linkNode.url && /^#bib-\d+$/.test(linkNode.url)) {
-      const parent = ancestors[ancestors.length - 1] as Parent
-      const index = parent.children.indexOf(node as Content)
-      if (index !== -1) {
-        citationLinksToRemove.push({ parent, index })
+  // Track existing citation links to update them later with correct numbers
+  const existingCitationLinks: Array<{ 
+    linkNode: Link; 
+    oldNumber: number;
+  }> = []
+  
+  visit(tree, 'link', (node: Link) => {
+    if (node.url) {
+      const match = node.url.match(/^#bib-(\d+)$/)
+      if (match) {
+        const oldNumber = parseInt(match[1], 10)
+        existingCitationLinks.push({ linkNode: node, oldNumber })
       }
     }
-  })
-
-  // Remove citation links in reverse order to maintain correct indices
-  citationLinksToRemove.reverse().forEach(({ parent, index }) => {
-    parent.children.splice(index, 1)
   })
 
   const urlOccurrences = new Map<string, UrlOccurrence[]>()
@@ -952,6 +950,16 @@ export async function processMarkdown(
   urlToExistingNumber.clear()
   numberToEntry.clear()
 
+  // Build mapping from old numbers to new numbers and URLs
+  const oldNumberToNewEntry = new Map<number, ExistingEntryInfo>()
+  allEntries.forEach((entry) => {
+    const oldNumber = entry.number
+    const filteredEntry = filteredEntries.find(fe => fe.normalizedUrl === entry.normalizedUrl)
+    if (filteredEntry) {
+      oldNumberToNewEntry.set(oldNumber, filteredEntry)
+    }
+  })
+
   filteredEntries.forEach((entry, idx) => {
     const number = (bibliographyList.start ?? 1) + idx
     entry.number = number
@@ -962,6 +970,32 @@ export async function processMarkdown(
       urlToExistingNumber.set(entry.normalizedUrl, entry)
     }
     numberToEntry.set(number, entry)
+  })
+
+  // Update or remove existing citation links based on filtering
+  const citationLinksToRemove: Link[] = []
+  existingCitationLinks.forEach(({ linkNode, oldNumber }) => {
+    const newEntry = oldNumberToNewEntry.get(oldNumber)
+    if (newEntry) {
+      // Update the link with the new number and anchor
+      linkNode.url = `#${newEntry.anchorId}`
+      if (linkNode.children && linkNode.children.length > 0 && linkNode.children[0].type === 'text') {
+        (linkNode.children[0] as Text).value = `[${newEntry.number}]`
+      }
+    } else {
+      // This entry was filtered out, mark link for removal
+      citationLinksToRemove.push(linkNode)
+    }
+  })
+
+  // Remove citation links that point to filtered-out entries
+  citationLinksToRemove.forEach((linkToRemove) => {
+    visit(tree, (node, index, parent) => {
+      if (node === linkToRemove && parent && typeof index === 'number') {
+        (parent as Parent).children.splice(index, 1)
+        return [SKIP]
+      }
+    })
   })
 
   // Group occurrences by parent and find sentence boundaries
