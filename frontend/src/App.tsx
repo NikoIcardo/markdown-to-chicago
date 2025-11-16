@@ -11,26 +11,37 @@ import { processMarkdown } from './utils/markdownProcessor'
 import { generatePdf } from './pdf/generatePdf'
 import { generateDocx } from './doc/generateDocx'
 
-// Helper function to save files to repo root in dev mode
+// Helper function to save files to output/ directory in dev mode
 async function saveFileToRepo(blob: Blob, filename: string) {
+  console.log(`[SAVE] Starting save for ${filename}`)
+  console.log(`[SAVE] Environment mode:`, import.meta.env.MODE)
+  console.log(`[SAVE] Is DEV:`, import.meta.env.DEV)
+  
   try {
     // Create a form data to send the file
     const formData = new FormData()
     formData.append('file', blob, filename)
     
-    // Try to save to a local endpoint (this would need a simple dev server endpoint)
+    console.log(`[SAVE] Sending request to /api/save-file for ${filename}`)
+    
+    // Try to save to output directory via the dev server endpoint
     const response = await fetch('/api/save-file', {
       method: 'POST',
       body: formData,
     })
     
+    console.log(`[SAVE] Response status: ${response.status}`)
+    
     if (!response.ok) {
-      console.warn('Could not save file to repo root (no /api/save-file endpoint)')
+      console.error(`[SAVE] ❌ Failed to save ${filename}: ${response.status} ${response.statusText}`)
+      const errorText = await response.text()
+      console.error(`[SAVE] Error details:`, errorText)
     } else {
-      console.log(`Saved ${filename} to repo root`)
+      const result = await response.json()
+      console.log(`[SAVE] ✓ Successfully saved ${filename} to output/`, result)
     }
   } catch (error) {
-    console.warn('Could not save file to repo root:', error)
+    console.error('[SAVE] ❌ Exception during save:', error)
   }
 }
 
@@ -91,6 +102,7 @@ type ProcessingState = 'idle' | 'processing' | 'processed' | 'error'
 
 const FONT_OPTIONS = ['Times New Roman', 'Helvetica', 'Courier New'] as const
 type FontOption = typeof FONT_OPTIONS[number]
+type Theme = 'light' | 'dark'
 
 function App() {
   const [fileName, setFileName] = useState<string | null>(null)
@@ -120,6 +132,14 @@ function App() {
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
   const [showDiagnosticsNotice, setShowDiagnosticsNotice] = useState(false)
   const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
+  const [theme, setTheme] = useState<Theme>('dark')
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return
+    }
+    document.documentElement.dataset.theme = theme
+  }, [theme])
 
   useEffect(() => {
     if (processed) {
@@ -255,7 +275,7 @@ function App() {
     link.remove()
     URL.revokeObjectURL(url)
     
-    // In dev mode, also save to repo root for reference
+    // In dev mode, also save to output/ for testing
     if (import.meta.env.DEV) {
       saveFileToRepo(blob, downloadFileName)
     }
@@ -280,7 +300,7 @@ function App() {
       link.remove()
       URL.revokeObjectURL(url)
       
-      // In dev mode, also save to repo root for reference
+      // In dev mode, also save to output/ for testing
       if (import.meta.env.DEV) {
         saveFileToRepo(blob, downloadFileName)
       }
@@ -309,7 +329,7 @@ function App() {
       link.remove()
       URL.revokeObjectURL(url)
       
-      // In dev mode, also save to repo root for reference
+      // In dev mode, also save to output/ for testing
       if (import.meta.env.DEV) {
         saveFileToRepo(blob, downloadFileName)
       }
@@ -331,14 +351,38 @@ function App() {
     : undefined
 
   return (
-    <div className="app">
+    <div className={`app app--${theme}`}>
       <header className="app__header">
-        <div>
+        <div className="app__header-content">
           <h1>Markdown to Formatted PDF Converter</h1>
           <p className="app__subtitle">
-            Upload a markdown document to automatically generate a bibliography and export a
-            paginated PDF with title and table of contents pages.
+            Upload a markdown document to automatically generate a bibliography and export a paginated
+            PDF with title and table of contents pages.
           </p>
+        </div>
+        <div className="theme-slider" role="group" aria-label="Interface theme selection">
+          <span
+            className={`theme-slider__label ${theme === 'light' ? 'theme-slider__label--active' : ''}`}
+          >
+            Light
+          </span>
+          <label className="theme-slider__control">
+            <input
+              type="checkbox"
+              role="switch"
+              aria-label="Toggle dark theme"
+              checked={theme === 'dark'}
+              onChange={(event) => setTheme(event.target.checked ? 'dark' : 'light')}
+            />
+            <span className="theme-slider__rail">
+              <span className="theme-slider__thumb" />
+            </span>
+          </label>
+          <span
+            className={`theme-slider__label ${theme === 'dark' ? 'theme-slider__label--active' : ''}`}
+          >
+            Dark
+          </span>
         </div>
       </header>
 

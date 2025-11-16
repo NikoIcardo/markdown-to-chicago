@@ -1,20 +1,106 @@
 :root {
+  --color-bg: #0b0614;
+  --color-surface: #1d1530;
+  --color-panel-outline: rgba(196, 255, 77, 0.12);
+  --panel-shadow: 0 25px 50px rgba(5, 2, 12, 0.55);
+  --color-text-primary: #f7f5ff;
+  --color-text-secondary: #c7c0e8;
+  --color-text-muted: #a89fce;
+  --color-accent: #c4ff4d;
+  --color-accent-hover: #d8ff8f;
+  --color-accent-contrast: #12240a;
+  --color-accent-soft-glow: rgba(196, 255, 77, 0.35);
+  --color-accent-disabled: #3e4523;
+  --color-chip-bg: rgba(196, 255, 77, 0.25);
+  --color-chip-text: #e7ff9b;
+  --color-accordion-hover: rgba(196, 255, 77, 0.08);
+  --color-toggle-track: #2a2238;
+  --color-toggle-checked: #c4ff4d;
+  --color-toggle-thumb: #120f1c;
+  --color-slider-track: #2f2440;
+  --color-slider-border: rgba(196, 255, 77, 0.4);
+  --color-muted-surface: rgba(255, 255, 255, 0.04);
+  --color-muted-surface-strong: rgba(196, 255, 77, 0.08);
+  --color-muted-border: rgba(196, 255, 77, 0.35);
+  --color-status-processing-bg: rgba(153, 123, 255, 0.22);
+  --color-status-processing-text: #dccbff;
+  --color-status-success-bg: rgba(196, 255, 77, 0.22);
+  --color-status-success-text: #d8ff9b;
+  --color-status-error-bg: rgba(255, 99, 132, 0.25);
+  --color-status-error-text: #ffb5c7;
+  --color-status-info-bg: rgba(196, 255, 77, 0.15);
+  --color-status-info-text: #c4ff4d;
+  --color-warning-text: #ffc886;
+  --color-modal-backdrop: rgba(5, 3, 10, 0.8);
+  --color-modal-bg: #251a38;
+  --color-border-soft: rgba(255, 255, 255, 0.25);
+  --color-code-bg: #08050f;
+  --color-code-text: #f1ecff;
+  --color-preview-markdown-bg: rgba(255, 255, 255, 0.04);
+  --color-secondary-button-bg: #2e2344;
+  --color-secondary-button-hover: #3a2d56;
+
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.6;
   font-weight: 400;
-  color: #111827;
-  background-color: #f3f4f6;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root[data-theme='light'] {
+  --color-bg: #f3f4f6;
+  --color-surface: #ffffff;
+  --color-panel-outline: rgba(15, 23, 42, 0.08);
+  --panel-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #6b7280;
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-contrast: #ffffff;
+  --color-accent-soft-glow: rgba(37, 99, 235, 0.15);
+  --color-accent-disabled: #93c5fd;
+  --color-chip-bg: rgba(37, 99, 235, 0.15);
+  --color-chip-text: #1d4ed8;
+  --color-accordion-hover: rgba(37, 99, 235, 0.08);
+  --color-toggle-track: #d1d5db;
+  --color-toggle-checked: #2563eb;
+  --color-toggle-thumb: #ffffff;
+  --color-slider-track: rgba(17, 24, 39, 0.12);
+  --color-slider-border: rgba(17, 24, 39, 0.25);
+  --color-muted-surface: #f9fafb;
+  --color-muted-surface-strong: rgba(219, 234, 254, 0.8);
+  --color-muted-border: rgba(37, 99, 235, 0.35);
+  --color-status-processing-bg: rgba(49, 46, 129, 0.08);
+  --color-status-processing-text: #312e81;
+  --color-status-success-bg: rgba(16, 185, 129, 0.1);
+  --color-status-success-text: #047857;
+  --color-status-error-bg: rgba(239, 68, 68, 0.12);
+  --color-status-error-text: #b91c1c;
+  --color-status-info-bg: rgba(59, 130, 246, 0.1);
+  --color-status-info-text: #1d4ed8;
+  --color-warning-text: #b45309;
+  --color-modal-backdrop: rgba(17, 24, 39, 0.55);
+  --color-modal-bg: #ffffff;
+  --color-border-soft: rgba(148, 163, 184, 0.6);
+  --color-code-bg: #111827;
+  --color-code-text: #f3f4f6;
+  --color-preview-markdown-bg: #f9fafb;
+  --color-secondary-button-bg: #e5e7eb;
+  --color-secondary-button-hover: #d1d5db;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: inherit;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 a {

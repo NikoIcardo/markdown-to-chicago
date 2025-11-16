@@ -31,6 +31,8 @@ const DEFAULT_FONT: FontName = 'Times New Roman'
 const DEFAULT_FONT_SIZE = 12
 const MIN_FONT_SIZE = 8
 const MAX_FONT_SIZE = 20
+const POINT_TO_PX = 96 / 72
+const FONT_SIZE_CORRECTION_FACTOR = 1.7
 
 function escapeHtml(value: string): string {
   return value
@@ -63,115 +65,139 @@ export async function generatePdfWithPuppeteer(
   const docTitle = processed.title?.trim() || options?.originalFileName || 'Document'
   const docSubtitle = processed.subtitle?.trim()
   const requestedFontKey = options?.fontFamily as FontName | undefined
-  const selectedFontKey = requestedFontKey && FONT_CONFIG[requestedFontKey] ? requestedFontKey : DEFAULT_FONT
+  const selectedFontKey =
+    requestedFontKey && FONT_CONFIG[requestedFontKey] ? requestedFontKey : DEFAULT_FONT
   const selectedFontConfig = FONT_CONFIG[selectedFontKey]
   const requestedFontSize =
     typeof options?.fontSize === 'number' && Number.isFinite(options.fontSize)
       ? Math.round(options.fontSize)
       : DEFAULT_FONT_SIZE
-  const contentFontSize = Math.min(Math.max(requestedFontSize, MIN_FONT_SIZE), MAX_FONT_SIZE)
+  const contentFontSizePt = Math.min(
+    Math.max(requestedFontSize, MIN_FONT_SIZE),
+    MAX_FONT_SIZE,
+  )
+  const adjustedContentFontSizePt = contentFontSizePt * FONT_SIZE_CORRECTION_FACTOR
+  const contentFontSizePx = adjustedContentFontSizePt * POINT_TO_PX
   const contentFontFamily = selectedFontConfig.css
   const headingFontFamily = FONT_CONFIG[DEFAULT_FONT].css
 
-const html = `
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>${escapeHtml(docTitle)}</title>
-    <style>
-      body {
-        font-family: 'Times New Roman', serif;
-        line-height: 1.6;
-        margin: 0;
-        padding: 0;
-      }
-      .title-page {
-        min-height: calc(100vh - 2.5in);
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        text-align: center;
-        gap: 0.5in;
-        page-break-after: always;
-        padding: 2.5in 1rem 0;
-        page: title;
-      }
-      .title-page__heading {
-        font-size: 48px;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-      }
-      .title-page__subtitle {
-        font-size: 20px;
-        max-width: 6.5in;
-      }
-      .document-body {
-        padding: 0;
-        font-family: ${contentFontFamily};
-        font-size: ${contentFontSize}px;
-      }
-      .document-body > *:first-child {
-        margin-top: 0;
-      }
-      h1 {
-        font-size: 40px;
-        margin-top: 0;
-        font-family: ${headingFontFamily};
-      }
-      h2 {
-        font-size: 32px;
-        font-family: ${headingFontFamily};
-      }
-      h3 {
-        font-size: 26px;
-        font-family: ${headingFontFamily};
-      }
-      h4 {
-        font-size: 20px;
-        font-family: ${headingFontFamily};
-      }
-      .main-heading,
-      .first-main-heading {
-        margin-top: 0;
-      }
-      .main-heading-divider,
-      .first-main-heading-divider {
-        break-before: page;
-        display: block;
-      }
-      .main-heading-break,
-      .first-main-heading-break {
-        break-before: page;
-      }
-      a {
-        color: #1a56db;
-        text-decoration: underline;
-      }
-      h1, h2, h3, h4, h5, h6 {
-        scroll-margin-top: 80px;
-      }
-      img {
-        max-width: 100%;
-        height: auto;
-      }
-      .anchor-target {
-        display: block;
-        height: 0;
-      }
-      @media print {
-        a[href^="#"]::after { content: ""; }
-      }
-    </style>
-  </head>
-  <body>
-    <section class="title-page">
-      <h1 class="title-page__heading">${escapeHtml(docTitle)}</h1>
-      ${docSubtitle ? `<p class="title-page__subtitle">${escapeHtml(docSubtitle)}</p>` : ''}
-    </section>
-    <main class="document-body">
+  const html = `
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <title>${escapeHtml(docTitle)}</title>
+      <style>
+        body {
+          font-family: 'Times New Roman', serif;
+          line-height: 1.6;
+          margin: 0;
+          padding: 0;
+          font-size: ${contentFontSizePx}px;
+          font-size: ${adjustedContentFontSizePt}pt;
+        }
+        .title-page {
+          min-height: calc(100vh - 2.5in);
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: center;
+          text-align: center;
+          gap: 0.5in;
+          page-break-after: always;
+          padding: 2.5in 1rem 0;
+          page: title;
+        }
+        .title-page__heading {
+          font-size: 48px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
+        .title-page__subtitle {
+          font-size: 20px;
+          max-width: 6.5in;
+        }
+        .document-body {
+          padding: 0;
+          font-family: ${contentFontFamily};
+          font-size: ${contentFontSizePx}px;
+          font-size: ${adjustedContentFontSizePt}pt;
+        }
+        .document-body > *:first-child {
+          margin-top: 0;
+        }
+        .document-body ol,
+        .document-body ul {
+          list-style-position: outside;
+          padding-left: 3.5em;
+          margin: 0 0 1.2em 0;
+        }
+        .document-body ol li,
+        .document-body ul li {
+          padding-inline-start: 0.35em;
+        }
+        .document-body ol li::marker,
+        .document-body ul li::marker {
+          font-variant-numeric: tabular-nums;
+          font-feature-settings: 'tnum';
+        }
+        h1 {
+          font-size: 40px;
+          margin-top: 0;
+          font-family: ${headingFontFamily};
+        }
+        h2 {
+          font-size: 32px;
+          font-family: ${headingFontFamily};
+        }
+        h3 {
+          font-size: 26px;
+          font-family: ${headingFontFamily};
+        }
+        h4 {
+          font-size: 20px;
+          font-family: ${headingFontFamily};
+        }
+        .main-heading,
+        .first-main-heading {
+          margin-top: 0;
+        }
+        .main-heading-divider,
+        .first-main-heading-divider {
+          break-before: page;
+          display: block;
+        }
+        .main-heading-break,
+        .first-main-heading-break {
+          break-before: page;
+        }
+        a {
+          color: #1a56db;
+          text-decoration: underline;
+        }
+        h1, h2, h3, h4, h5, h6 {
+          scroll-margin-top: 80px;
+        }
+        img {
+          max-width: 100%;
+          height: auto;
+        }
+        .anchor-target {
+          display: block;
+          height: 0;
+        }
+        @media print {
+          a[href^="#"]::after { content: ""; }
+        }
+      </style>
+    </head>
+    <body>
+      <section class="title-page">
+        <h1 class="title-page__heading">${escapeHtml(docTitle)}</h1>
+        ${docSubtitle ? `<p class="title-page__subtitle">${escapeHtml(docSubtitle)}</p>` : ''}
+      </section>
+      <main class="document-body">
       ${htmlBody}
     </main>
   </body>
@@ -308,81 +334,9 @@ const html = `
         }
       })
 
-      const sectionsToExclude = [
-        'websites-and-online-communities',
-        'petitionsfund-raisers',
-        'court-cases',
-      ]
-      const urlsToExclude = new Set<string>()
-
-      const collectSectionUrls = (slug: string) => {
-        const heading = document.getElementById(slug)
-        if (!heading) {
-          return
-        }
-        const depth = Number((heading.tagName || '').replace(/[^\d]/g, '')) || 6
-        let cursor = heading.nextSibling
-        while (cursor) {
-          if (cursor.nodeType === Node.ELEMENT_NODE && /^H[1-6]$/i.test((cursor as HTMLElement).tagName)) {
-            const nodeDepth = Number(((cursor as HTMLElement).tagName || '').replace(/[^\d]/g, '')) || 6
-            if (nodeDepth <= depth) {
-              break
-            }
-          }
-
-          if (cursor.nodeType === Node.ELEMENT_NODE) {
-            ;(cursor as HTMLElement)
-              .querySelectorAll('a[href]')
-              .forEach((anchor) => {
-                const href = anchor.getAttribute('href')
-                if (href) {
-                  urlsToExclude.add(href)
-                }
-              })
-          }
-
-          cursor = cursor.nextSibling
-        }
-      }
-
-      const isExcludedBibliographyItem = (itemLinks: (string | null)[]) =>
-        itemLinks.some((href) => {
-          if (!href) {
-            return false
-          }
-          if (urlsToExclude.has(href)) {
-            return true
-          }
-          const normalized = href.toLowerCase()
-          return normalized.includes('facebook.com') || normalized.includes('reddit.com')
-        })
-
-      sectionsToExclude.forEach((slug) => {
-        collectSectionUrls(slug)
-      })
-
+      // Bibliography filtering is now handled in markdownProcessor.ts before numbering
+      // This ensures citation numbers match the filtered bibliography count
       const bibliographyHeading = document.getElementById('bibliography')
-      if (bibliographyHeading) {
-        let cursor = bibliographyHeading.nextSibling
-        let bibliographyList = null
-        while (cursor) {
-          if (cursor.nodeType === Node.ELEMENT_NODE && (cursor as HTMLElement).tagName === 'OL') {
-            bibliographyList = cursor as HTMLElement
-            break
-          }
-          cursor = cursor.nextSibling
-        }
-        if (bibliographyList) {
-          bibliographyList.querySelectorAll('li').forEach((item) => {
-            const itemLinks = Array.from(item.querySelectorAll('a[href]')).map((anchor) =>
-              anchor.getAttribute('href'),
-            )
-            if (isExcludedBibliographyItem(itemLinks)) {
-              item.remove()
-            }
-          })
-        }
-      }
 
       const desiredDepth = Number(mainHeadingDepth)
       const headingDepths = (headings ?? [])
@@ -433,7 +387,104 @@ const html = `
         }
       })
 
-      const internalLinks = Array.from(document.querySelectorAll('a[href^="#"]'))
+        if (bibliographyHeading) {
+          const bibliographyElement = bibliographyHeading as HTMLElement
+          const alreadyMarkedAsMain =
+            bibliographyElement.classList.contains('main-heading') ||
+            bibliographyElement.classList.contains('first-main-heading')
+
+          if (!alreadyMarkedAsMain) {
+            const referenceHeading =
+              mainHeadingNodes.find((node) => node !== bibliographyElement) ?? mainHeadingNodes[0]
+
+            if (referenceHeading instanceof HTMLElement) {
+              const referenceStyles = window.getComputedStyle(referenceHeading)
+              bibliographyElement.style.fontFamily = referenceStyles.fontFamily
+              bibliographyElement.style.fontSize = referenceStyles.fontSize
+              bibliographyElement.style.fontWeight = referenceStyles.fontWeight
+              bibliographyElement.style.letterSpacing = referenceStyles.letterSpacing
+              bibliographyElement.style.textTransform = referenceStyles.textTransform
+              bibliographyElement.style.marginTop = referenceStyles.marginTop
+              bibliographyElement.style.marginBottom = referenceStyles.marginBottom
+              bibliographyElement.style.color = referenceStyles.color
+              bibliographyElement.style.textAlign = referenceStyles.textAlign
+            }
+
+            bibliographyElement.classList.add(
+              mainHeadingNodes.length === 0 ? 'first-main-heading' : 'main-heading',
+            )
+          }
+
+          bibliographyElement.classList.add(
+            bibliographyElement.classList.contains('first-main-heading')
+              ? 'first-main-heading-break'
+              : 'main-heading-break',
+          )
+
+          const isFirstHeading = bibliographyElement.classList.contains('first-main-heading')
+          const breakClass = isFirstHeading ? 'first-main-heading-break' : 'main-heading-break'
+          const dividerClass = isFirstHeading ? 'first-main-heading-divider' : 'main-heading-divider'
+
+          let previous = bibliographyElement.previousSibling
+          let divider: HTMLElement | null = null
+          while (previous) {
+            if (previous.nodeType === Node.ELEMENT_NODE && (previous as HTMLElement).tagName === 'HR') {
+              divider = previous as HTMLElement
+              break
+            }
+            if (previous.nodeType === Node.ELEMENT_NODE && (previous as HTMLElement).tagName !== 'HR') {
+              break
+            }
+            previous = previous.previousSibling
+          }
+
+          if (!divider) {
+            divider = document.createElement('hr')
+            if (bibliographyElement.parentElement) {
+              bibliographyElement.parentElement.insertBefore(divider, bibliographyElement)
+            } else {
+              document.body.insertBefore(divider, bibliographyElement)
+            }
+          }
+
+          if (divider) {
+            markDivider(divider, dividerClass)
+          }
+
+          bibliographyElement.classList.remove(breakClass)
+
+          let nextSibling = bibliographyElement.nextSibling
+          let trailingDivider: HTMLElement | null = null
+          while (nextSibling) {
+            if (nextSibling.nodeType === Node.TEXT_NODE) {
+              if ((nextSibling.textContent ?? '').trim().length === 0) {
+                nextSibling = nextSibling.nextSibling
+                continue
+              }
+              break
+            }
+
+            if (
+              nextSibling.nodeType === Node.ELEMENT_NODE &&
+              (nextSibling as HTMLElement).tagName === 'HR'
+            ) {
+              trailingDivider = nextSibling as HTMLElement
+            }
+            break
+          }
+
+          if (!trailingDivider) {
+            trailingDivider = document.createElement('hr')
+            const parent = bibliographyElement.parentElement ?? document.body
+            if (bibliographyElement.nextSibling) {
+              parent.insertBefore(trailingDivider, bibliographyElement.nextSibling)
+            } else {
+              parent.appendChild(trailingDivider)
+            }
+          }
+        }
+
+        const internalLinks = Array.from(document.querySelectorAll('a[href^="#"]'))
       internalLinks.forEach((link) => {
         const rawHref = link.getAttribute('href') ?? ''
         const targetId = rawHref.replace(/^#/, '')
