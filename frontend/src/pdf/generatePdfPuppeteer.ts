@@ -57,7 +57,7 @@ async function markdownToHtml(markdown: string): Promise<string> {
 
 export async function generatePdfWithPuppeteer(
   processed: ProcessedMarkdown,
-  options?: { outputPath?: string; fontFamily?: string; fontSize?: number },
+  options?: { outputPath?: string; fontFamily?: string; fontSize?: number; originalFileName?: string },
 ): Promise<Buffer> {
   const htmlBody = await markdownToHtml(processed.modified)
   const docTitle = processed.title?.trim() || options?.originalFileName || 'Document'
@@ -179,7 +179,13 @@ const html = `
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox'],
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/nix/store/qa9cnw4v5xkxyip6mb9kxqfq1z4x2dx1-chromium-138.0.7204.100/bin/chromium-browser',
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+    ],
   })
 
   try {
