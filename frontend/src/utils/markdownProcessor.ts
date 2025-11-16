@@ -878,7 +878,51 @@ export async function processMarkdown(
     }
   })
 
-  allEntries.sort((a, b) => {
+  // Collect URLs from sections that should be excluded from bibliography
+  const sectionsToExclude = [
+    'websites-and-online-communities',
+    'petitionsfund-raisers',
+    'court-cases'
+  ]
+  
+  const urlsToExclude = new Set<string>()
+  
+  sectionsToExclude.forEach((sectionSlug) => {
+    const sectionRange = findSectionRange(tree, sectionSlug)
+    if (!sectionRange) {
+      return
+    }
+    const sectionNodes = collectNodesInRange(tree, sectionRange)
+    sectionNodes.forEach((node) => {
+      visit(node, 'link', (linkNode: Link) => {
+        if (linkNode.url && /^https?:\/\//i.test(linkNode.url)) {
+          urlsToExclude.add(normalizeUrl(linkNode.url))
+        }
+      })
+    })
+  })
+
+  // Filter out excluded entries
+  const filteredEntries = allEntries.filter((entry) => {
+    if (!entry.normalizedUrl) {
+      return true // Keep entries without URLs
+    }
+    
+    // Exclude if URL is in excluded sections
+    if (urlsToExclude.has(entry.normalizedUrl)) {
+      return false
+    }
+    
+    // Exclude facebook.com and reddit.com
+    const lowerUrl = entry.normalizedUrl.toLowerCase()
+    if (lowerUrl.includes('facebook.com') || lowerUrl.includes('reddit.com')) {
+      return false
+    }
+    
+    return true
+  })
+
+  filteredEntries.sort((a, b) => {
     if (a.firstOccurrence !== b.firstOccurrence) {
       return a.firstOccurrence - b.firstOccurrence
     }
@@ -890,7 +934,7 @@ export async function processMarkdown(
   urlToExistingNumber.clear()
   numberToEntry.clear()
 
-  allEntries.forEach((entry, idx) => {
+  filteredEntries.forEach((entry, idx) => {
     const number = (bibliographyList.start ?? 1) + idx
     entry.number = number
     entry.anchorId = `bib-${number}`
