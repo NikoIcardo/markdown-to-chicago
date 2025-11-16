@@ -91,6 +91,7 @@ type ProcessingState = 'idle' | 'processing' | 'processed' | 'error'
 
 const FONT_OPTIONS = ['Times New Roman', 'Helvetica', 'Courier New'] as const
 type FontOption = typeof FONT_OPTIONS[number]
+type Theme = 'light' | 'dark'
 
 function App() {
   const [fileName, setFileName] = useState<string | null>(null)
@@ -120,6 +121,14 @@ function App() {
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
   const [showDiagnosticsNotice, setShowDiagnosticsNotice] = useState(false)
   const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
+  const [theme, setTheme] = useState<Theme>('dark')
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return
+    }
+    document.documentElement.dataset.theme = theme
+  }, [theme])
 
   useEffect(() => {
     if (processed) {
@@ -331,14 +340,38 @@ function App() {
     : undefined
 
   return (
-    <div className="app">
+    <div className={`app app--${theme}`}>
       <header className="app__header">
-        <div>
+        <div className="app__header-content">
           <h1>Markdown to Formatted PDF Converter</h1>
           <p className="app__subtitle">
-            Upload a markdown document to automatically generate a bibliography and export a
-            paginated PDF with title and table of contents pages.
+            Upload a markdown document to automatically generate a bibliography and export a paginated
+            PDF with title and table of contents pages.
           </p>
+        </div>
+        <div className="theme-slider" role="group" aria-label="Interface theme selection">
+          <span
+            className={`theme-slider__label ${theme === 'light' ? 'theme-slider__label--active' : ''}`}
+          >
+            Light
+          </span>
+          <label className="theme-slider__control">
+            <input
+              type="checkbox"
+              role="switch"
+              aria-label="Toggle dark theme"
+              checked={theme === 'dark'}
+              onChange={(event) => setTheme(event.target.checked ? 'dark' : 'light')}
+            />
+            <span className="theme-slider__rail">
+              <span className="theme-slider__thumb" />
+            </span>
+          </label>
+          <span
+            className={`theme-slider__label ${theme === 'dark' ? 'theme-slider__label--active' : ''}`}
+          >
+            Dark
+          </span>
         </div>
       </header>
 
