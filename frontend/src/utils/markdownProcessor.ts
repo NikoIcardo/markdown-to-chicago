@@ -691,6 +691,24 @@ export async function processMarkdown(
     allEntries.push(entry)
   })
 
+  // Remove all existing citation links (links to #bib-*) before reprocessing
+  const citationLinksToRemove: Array<{ parent: Parent; index: number }> = []
+  visitParents(tree, 'link', (node, ancestors) => {
+    const linkNode = node as Link
+    if (linkNode.url && /^#bib-\d+$/.test(linkNode.url)) {
+      const parent = ancestors[ancestors.length - 1] as Parent
+      const index = parent.children.indexOf(node as Content)
+      if (index !== -1) {
+        citationLinksToRemove.push({ parent, index })
+      }
+    }
+  })
+
+  // Remove citation links in reverse order to maintain correct indices
+  citationLinksToRemove.reverse().forEach(({ parent, index }) => {
+    parent.children.splice(index, 1)
+  })
+
   const urlOccurrences = new Map<string, UrlOccurrence[]>()
   const urlFirstOccurrence = new Map<string, number>()
   let occurrenceCounter = 0
