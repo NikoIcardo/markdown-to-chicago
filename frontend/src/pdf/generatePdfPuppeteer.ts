@@ -334,81 +334,8 @@ export async function generatePdfWithPuppeteer(
         }
       })
 
-      const sectionsToExclude = [
-        'websites-and-online-communities',
-        'petitionsfund-raisers',
-        'court-cases',
-      ]
-      const urlsToExclude = new Set<string>()
-
-      const collectSectionUrls = (slug: string) => {
-        const heading = document.getElementById(slug)
-        if (!heading) {
-          return
-        }
-        const depth = Number((heading.tagName || '').replace(/[^\d]/g, '')) || 6
-        let cursor = heading.nextSibling
-        while (cursor) {
-          if (cursor.nodeType === Node.ELEMENT_NODE && /^H[1-6]$/i.test((cursor as HTMLElement).tagName)) {
-            const nodeDepth = Number(((cursor as HTMLElement).tagName || '').replace(/[^\d]/g, '')) || 6
-            if (nodeDepth <= depth) {
-              break
-            }
-          }
-
-          if (cursor.nodeType === Node.ELEMENT_NODE) {
-            ;(cursor as HTMLElement)
-              .querySelectorAll('a[href]')
-              .forEach((anchor) => {
-                const href = anchor.getAttribute('href')
-                if (href) {
-                  urlsToExclude.add(href)
-                }
-              })
-          }
-
-          cursor = cursor.nextSibling
-        }
-      }
-
-      const isExcludedBibliographyItem = (itemLinks: (string | null)[]) =>
-        itemLinks.some((href) => {
-          if (!href) {
-            return false
-          }
-          if (urlsToExclude.has(href)) {
-            return true
-          }
-          const normalized = href.toLowerCase()
-          return normalized.includes('facebook.com') || normalized.includes('reddit.com')
-        })
-
-      sectionsToExclude.forEach((slug) => {
-        collectSectionUrls(slug)
-      })
-
-      const bibliographyHeading = document.getElementById('bibliography')
-      if (bibliographyHeading) {
-        let cursor = bibliographyHeading.nextSibling
-        let bibliographyList = null
-        while (cursor) {
-          if (cursor.nodeType === Node.ELEMENT_NODE && (cursor as HTMLElement).tagName === 'OL') {
-            bibliographyList = cursor as HTMLElement
-            break
-          }
-          cursor = cursor.nextSibling
-        }
-        if (bibliographyList) {
-          bibliographyList.querySelectorAll('li').forEach((item) => {
-            const itemLinks = Array.from(item.querySelectorAll('a[href]')).map((anchor) =>
-              anchor.getAttribute('href'),
-            )
-            if (isExcludedBibliographyItem(itemLinks)) {
-              item.remove()
-            }
-          })
-        }
-      }
+      // Bibliography filtering is now handled in markdownProcessor.ts before numbering
+      // This ensures citation numbers match the filtered bibliography count
 
       const desiredDepth = Number(mainHeadingDepth)
       const headingDepths = (headings ?? [])
