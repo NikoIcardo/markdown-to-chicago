@@ -11,26 +11,28 @@ import { processMarkdown } from './utils/markdownProcessor'
 import { generatePdf } from './pdf/generatePdf'
 import { generateDocx } from './doc/generateDocx'
 
-// Helper function to save files to repo root in dev mode
+// Helper function to save files to output/ directory in dev mode
 async function saveFileToRepo(blob: Blob, filename: string) {
+  console.log(`[DEV] Attempting to save ${filename} to output/...`)
   try {
     // Create a form data to send the file
     const formData = new FormData()
     formData.append('file', blob, filename)
     
-    // Try to save to a local endpoint (this would need a simple dev server endpoint)
+    // Try to save to output directory via the dev server endpoint
     const response = await fetch('/api/save-file', {
       method: 'POST',
       body: formData,
     })
     
     if (!response.ok) {
-      console.warn('Could not save file to repo root (no /api/save-file endpoint)')
+      console.error(`Failed to save ${filename} to output/: ${response.status} ${response.statusText}`)
     } else {
-      console.log(`Saved ${filename} to repo root`)
+      const result = await response.json()
+      console.log(`✓ Saved ${filename} to output/`, result)
     }
   } catch (error) {
-    console.warn('Could not save file to repo root:', error)
+    console.error('Error saving file to output/:', error)
   }
 }
 
@@ -264,7 +266,7 @@ function App() {
     link.remove()
     URL.revokeObjectURL(url)
     
-    // In dev mode, also save to repo root for reference
+    // In dev mode, also save to output/ for testing
     if (import.meta.env.DEV) {
       saveFileToRepo(blob, downloadFileName)
     }
@@ -289,7 +291,7 @@ function App() {
       link.remove()
       URL.revokeObjectURL(url)
       
-      // In dev mode, also save to repo root for reference
+      // In dev mode, also save to output/ for testing
       if (import.meta.env.DEV) {
         saveFileToRepo(blob, downloadFileName)
       }
@@ -318,7 +320,7 @@ function App() {
       link.remove()
       URL.revokeObjectURL(url)
       
-      // In dev mode, also save to repo root for reference
+      // In dev mode, also save to output/ for testing
       if (import.meta.env.DEV) {
         saveFileToRepo(blob, downloadFileName)
       }
