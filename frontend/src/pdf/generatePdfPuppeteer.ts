@@ -336,6 +336,7 @@ export async function generatePdfWithPuppeteer(
 
       // Bibliography filtering is now handled in markdownProcessor.ts before numbering
       // This ensures citation numbers match the filtered bibliography count
+      const bibliographyHeading = document.getElementById('bibliography')
 
       const desiredDepth = Number(mainHeadingDepth)
       const headingDepths = (headings ?? [])
