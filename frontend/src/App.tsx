@@ -13,11 +13,16 @@ import { generateDocx } from './doc/generateDocx'
 
 // Helper function to save files to output/ directory in dev mode
 async function saveFileToRepo(blob: Blob, filename: string) {
-  console.log(`[DEV] Attempting to save ${filename} to output/...`)
+  console.log(`[SAVE] Starting save for ${filename}`)
+  console.log(`[SAVE] Environment mode:`, import.meta.env.MODE)
+  console.log(`[SAVE] Is DEV:`, import.meta.env.DEV)
+  
   try {
     // Create a form data to send the file
     const formData = new FormData()
     formData.append('file', blob, filename)
+    
+    console.log(`[SAVE] Sending request to /api/save-file for ${filename}`)
     
     // Try to save to output directory via the dev server endpoint
     const response = await fetch('/api/save-file', {
@@ -25,14 +30,18 @@ async function saveFileToRepo(blob: Blob, filename: string) {
       body: formData,
     })
     
+    console.log(`[SAVE] Response status: ${response.status}`)
+    
     if (!response.ok) {
-      console.error(`Failed to save ${filename} to output/: ${response.status} ${response.statusText}`)
+      console.error(`[SAVE] ❌ Failed to save ${filename}: ${response.status} ${response.statusText}`)
+      const errorText = await response.text()
+      console.error(`[SAVE] Error details:`, errorText)
     } else {
       const result = await response.json()
-      console.log(`✓ Saved ${filename} to output/`, result)
+      console.log(`[SAVE] ✓ Successfully saved ${filename} to output/`, result)
     }
   } catch (error) {
-    console.error('Error saving file to output/:', error)
+    console.error('[SAVE] ❌ Exception during save:', error)
   }
 }
 
