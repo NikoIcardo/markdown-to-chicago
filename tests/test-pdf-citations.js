@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function findLatestPdf() {
-  const outputDir = path.join(__dirname, 'output');
+  const outputDir = path.join(__dirname, '..', 'output');
   
   try {
     const files = await fs.readdir(outputDir);
