@@ -11,26 +11,37 @@ import { processMarkdown } from './utils/markdownProcessor'
 import { generatePdf } from './pdf/generatePdf'
 import { generateDocx } from './doc/generateDocx'
 
-// Helper function to save files to repo root in dev mode
+// Helper function to save files to output/ directory in dev mode
 async function saveFileToRepo(blob: Blob, filename: string) {
+  console.log(`[SAVE] Starting save for ${filename}`)
+  console.log(`[SAVE] Environment mode:`, import.meta.env.MODE)
+  console.log(`[SAVE] Is DEV:`, import.meta.env.DEV)
+  
   try {
     // Create a form data to send the file
     const formData = new FormData()
     formData.append('file', blob, filename)
     
-    // Try to save to a local endpoint (this would need a simple dev server endpoint)
+    console.log(`[SAVE] Sending request to /api/save-file for ${filename}`)
+    
+    // Try to save to output directory via the dev server endpoint
     const response = await fetch('/api/save-file', {
       method: 'POST',
       body: formData,
     })
     
+    console.log(`[SAVE] Response status: ${response.status}`)
+    
     if (!response.ok) {
-      console.warn('Could not save file to repo root (no /api/save-file endpoint)')
+      console.error(`[SAVE] ❌ Failed to save ${filename}: ${response.status} ${response.statusText}`)
+      const errorText = await response.text()
+      console.error(`[SAVE] Error details:`, errorText)
     } else {
-      console.log(`Saved ${filename} to repo root`)
+      const result = await response.json()
+      console.log(`[SAVE] ✓ Successfully saved ${filename} to output/`, result)
     }
   } catch (error) {
-    console.warn('Could not save file to repo root:', error)
+    console.error('[SAVE] ❌ Exception during save:', error)
   }
 }
 
@@ -264,7 +275,7 @@ function App() {
     link.remove()
     URL.revokeObjectURL(url)
     
-    // In dev mode, also save to repo root for reference
+    // In dev mode, also save to output/ for testing
     if (import.meta.env.DEV) {
       saveFileToRepo(blob, downloadFileName)
     }
@@ -289,7 +300,7 @@ function App() {
       link.remove()
       URL.revokeObjectURL(url)
       
-      // In dev mode, also save to repo root for reference
+      // In dev mode, also save to output/ for testing
       if (import.meta.env.DEV) {
         saveFileToRepo(blob, downloadFileName)
       }
@@ -318,7 +329,7 @@ function App() {
       link.remove()
       URL.revokeObjectURL(url)
       
-      // In dev mode, also save to repo root for reference
+      // In dev mode, also save to output/ for testing
       if (import.meta.env.DEV) {
         saveFileToRepo(blob, downloadFileName)
       }

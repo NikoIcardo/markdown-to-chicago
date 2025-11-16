@@ -50,9 +50,13 @@ function saveFilesToRoot() {
                     const contentEnd = part.lastIndexOf('\r\n')
                     if (contentStart > 3 && contentEnd > contentStart) {
                       const content = part.substring(contentStart, contentEnd)
-                      const filePath = path.join(process.cwd(), '..', filename)
+                      const outputDir = path.join(process.cwd(), '..', 'output')
+                      if (!fs.existsSync(outputDir)) {
+                        fs.mkdirSync(outputDir, { recursive: true })
+                      }
+                      const filePath = path.join(outputDir, filename)
                       fs.writeFileSync(filePath, content, 'binary')
-                      console.log(`✓ Saved ${filename} to repo root`)
+                      console.log(`✓ Saved ${filename} to output/`)
                     }
                   }
                 }
@@ -136,4 +140,14 @@ function saveFilesToRoot() {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), saveFilesToRoot()],
+  server: {
+    host: '0.0.0.0',
+    port: 5000,
+    strictPort: true,
+    allowedHosts: true,
+    hmr: {
+      clientPort: 443,
+      protocol: 'wss',
+    },
+  },
 })
