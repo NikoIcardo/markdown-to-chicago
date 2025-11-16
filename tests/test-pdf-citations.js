@@ -6,10 +6,22 @@ import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+let PDFParse;
+try {
+  const pdfParseModule = await import('pdf-parse');
+  PDFParse = pdfParseModule.PDFParse;
+  if (!PDFParse) {
+    console.error('PDFParse class not found in module');
+    process.exit(1);
+  }
+} catch (e) {
+  console.error('Failed to load pdf-parse:', e);
+  process.exit(1);
+}
 
 async function findLatestPdf() {
   const outputDir = path.join(__dirname, '..', 'output');
@@ -44,8 +56,9 @@ async function testPdfCitations(pdfPath) {
   
   try {
     const dataBuffer = await fs.readFile(pdfPath);
-    const data = await pdfParse(dataBuffer);
-    const text = data.text;
+    const parser = new PDFParse({ data: dataBuffer });
+    const result = await parser.getText();
+    const text = result.text;
     
     const bibliographyMatch = text.match(/Bibliography\s*([\s\S]*?)(?:\n\s*\n|$)/i);
     
