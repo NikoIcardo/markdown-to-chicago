@@ -138,7 +138,8 @@ function App() {
   const [theme, setTheme] = useState<Theme>('dark')
 
   // Helper to persist manual metadata immediately (since refs don't trigger useEffect)
-  const persistManualMetadata = useCallback(() => {
+  // Use useRef to avoid recreating this function on every render
+  const persistManualMetadata = useRef(() => {
     if (!fileName && !originalMarkdown && !processed) {
       return
     }
@@ -151,6 +152,24 @@ function App() {
       bodyFontSize,
       promptForManualMetadata,
     })
+  })
+  
+  // Update the ref function when dependencies change
+  useEffect(() => {
+    persistManualMetadata.current = () => {
+      if (!fileName && !originalMarkdown && !processed) {
+        return
+      }
+      savePersistedSession({
+        fileName,
+        originalMarkdown,
+        processed,
+        manualMetadataOverrides: manualMetadataOverridesRef.current,
+        selectedFontFamily,
+        bodyFontSize,
+        promptForManualMetadata,
+      })
+    }
   }, [fileName, originalMarkdown, processed, selectedFontFamily, bodyFontSize, promptForManualMetadata])
 
   // Restore persisted session on mount
@@ -172,27 +191,21 @@ function App() {
     }
   }, [])
 
-  // Persist state changes to localStorage (debounced to prevent lag)
+  // Persist critical state changes to localStorage (only when they actually change, not during typing)
   useEffect(() => {
     if (!fileName && !originalMarkdown && !processed) {
-      // Nothing to persist yet
       return
     }
 
-    // Debounce persistence to avoid blocking UI during typing
-    const timeoutId = setTimeout(() => {
-      savePersistedSession({
-        fileName,
-        originalMarkdown,
-        processed,
-        manualMetadataOverrides: manualMetadataOverridesRef.current,
-        selectedFontFamily,
-        bodyFontSize,
-        promptForManualMetadata,
-      })
-    }, 500) // Wait 500ms after last change before saving
-
-    return () => clearTimeout(timeoutId)
+    savePersistedSession({
+      fileName,
+      originalMarkdown,
+      processed,
+      manualMetadataOverrides: manualMetadataOverridesRef.current,
+      selectedFontFamily,
+      bodyFontSize,
+      promptForManualMetadata,
+    })
   }, [fileName, originalMarkdown, processed, selectedFontFamily, bodyFontSize, promptForManualMetadata])
 
   useEffect(() => {
@@ -404,6 +417,12 @@ function App() {
 
   const bibliographyEntries = useMemo(() => processed?.bibliographyEntries ?? [], [processed])
 
+  // Memoize expensive markdown preview to prevent re-renders during form typing
+  const markdownPreview = useMemo(() => {
+    if (!processed) return null
+    return <ReactMarkdown remarkPlugins={[remarkGfm]}>{processed.modified}</ReactMarkdown>
+  }, [processed])
+
   const currentManualIssue = manualMetadataModalOpen
     ? manualMetadataQueue[currentManualIndex]
     : undefined
@@ -588,7 +607,7 @@ function App() {
                 <div className="preview__column">
                   <h3>Processed Markdown Preview</h3>
                   <div className="preview__markdown">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{processed.modified}</ReactMarkdown>
+                    {markdownPreview}
                   </div>
                 </div>
               </div>
@@ -630,7 +649,7 @@ function App() {
                   accessDate: manualFormState.accessDate || undefined,
                 }
                 // Persist manual metadata immediately
-                persistManualMetadata()
+                persistManualMetadata.current()
                 
                 if (currentManualIndex + 1 < manualMetadataQueue.length) {
                   setCurrentManualIndex((index) => index + 1)
