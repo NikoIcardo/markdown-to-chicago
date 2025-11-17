@@ -232,10 +232,10 @@ function App() {
       const issue = manualMetadataQueue[currentManualIndex]
       setManualFormState({
         url: issue.url,
-        title: '',
-        authors: '',
-        siteName: '',
-        accessDate: '',
+        title: issue.partialMetadata?.title || '',
+        authors: issue.partialMetadata?.authors || '',
+        siteName: issue.partialMetadata?.siteName || '',
+        accessDate: issue.partialMetadata?.accessDate || '',
       })
     }
   }, [manualMetadataModalOpen, manualMetadataQueue, currentManualIndex])

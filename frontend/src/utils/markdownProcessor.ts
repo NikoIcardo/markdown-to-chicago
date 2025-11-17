@@ -393,6 +393,69 @@ function extractUrlFromListItem(listItem: ListItem): string | undefined {
   return undefined
 }
 
+function parseExistingCitationMetadata(citationText: string, url: string): {
+  title?: string
+  authors?: string
+  siteName?: string
+  accessDate?: string
+} {
+  // Remove list numbering and URL from the text
+  let cleaned = citationText
+    .replace(/^\d+\.\s*/, '')
+    .replace(url, '')
+    .replace(/https?:\/\/[^\s<>\]")'}]+/gi, '')
+    .trim()
+  
+  const metadata: {
+    title?: string
+    authors?: string
+    siteName?: string
+    accessDate?: string
+  } = {}
+
+  // Try to extract date (various formats)
+  const datePatterns = [
+    /(\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b)/i,
+    /(\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+\d{1,2},?\s+\d{4}\b)/i,
+    /(\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b)/i,
+    /(\b\d{4}\b)/
+  ]
+  
+  for (const pattern of datePatterns) {
+    const dateMatch = cleaned.match(pattern)
+    if (dateMatch) {
+      metadata.accessDate = dateMatch[1].trim()
+      cleaned = cleaned.replace(dateMatch[0], '').trim()
+      break
+    }
+  }
+
+  // Try to extract title (text in quotes or italics)
+  const titleMatch = cleaned.match(/"([^"]+)"|'([^']+)'|\*([^*]+)\*|_([^_]+)_/)
+  if (titleMatch) {
+    metadata.title = (titleMatch[1] || titleMatch[2] || titleMatch[3] || titleMatch[4]).trim()
+    cleaned = cleaned.replace(titleMatch[0], '').trim()
+  }
+
+  // Try to extract authors (names before title, often with periods or commas)
+  const authorMatch = cleaned.match(/^([A-Z][a-z]+(?:,?\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+)?(?:\s*,\s*[A-Z][a-z]+(?:,?\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+)?)*)[.,]/)
+  if (authorMatch) {
+    metadata.authors = authorMatch[1].trim()
+    cleaned = cleaned.replace(authorMatch[0], '').trim()
+  }
+
+  // Remaining text might be publisher/site name
+  if (cleaned.length > 0 && cleaned.length < 100) {
+    // Remove common punctuation
+    cleaned = cleaned.replace(/^[.,;:\s]+|[.,;:\s]+$/g, '').trim()
+    if (cleaned.length > 0) {
+      metadata.siteName = cleaned
+    }
+  }
+
+  return metadata
+}
+
 function removeInitialHeadingMatchingTitle(tree: Root, title?: string | null): boolean {
   if (!title) {
     return false
@@ -705,9 +768,13 @@ export async function processMarkdown(
         cleanedCitation.length < normalised.length + 20
       
       if (isIncomplete && !manualMetadataMap.has(normalised)) {
+        // Parse any existing metadata from the citation text
+        const partialMetadata = parseExistingCitationMetadata(citationText, normalised)
+        
         metadataIssues.push({
           url: normalised,
           message: 'Incomplete citation entry. Please add title, authors, and other details.',
+          partialMetadata,
         })
       }
     }

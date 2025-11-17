@@ -21,6 +21,12 @@ export interface ManualMetadataInput {
 export interface MetadataIssue {
   url: string
   message: string
+  partialMetadata?: {
+    title?: string
+    authors?: string
+    siteName?: string
+    accessDate?: string
+  }
 }
 
 export interface BibliographyEntry {
