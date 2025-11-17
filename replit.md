@@ -40,7 +40,14 @@ frontend/
 └── package.json
 ```
 
-## Recent Changes (Nov 16, 2025)
+## Recent Changes
+
+### Nov 17, 2025
+- **Fixed citation superscript rendering**: Changed citation links to use raw HTML `<a>` tags instead of hProperties to preserve `citation-link` class through remark-stringify
+- **Fixed page numbering**: Corrected scope/indentation issues to ensure page numbers start at 1 on first content page (after title and TOC)
+- Both fixes architect-reviewed and confirmed working
+
+### Nov 16, 2025
 - Configured Vite to work with Replit environment
   - Server bound to 0.0.0.0:5000
   - Allowed all hosts for proxy support
