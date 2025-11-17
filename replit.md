@@ -48,11 +48,15 @@ frontend/
 ## Recent Changes
 
 ### Nov 17, 2025 (Latest)
-- **Smart Citation Parsing**: Enhanced metadata extraction from existing bibliography entries
+- **Smart Citation Parsing with HTML Stripping**: Enhanced metadata extraction from existing bibliography entries
+  - Strips HTML anchor tags (`<a id="bib-X"></a>`) before parsing to support re-uploading processed markdown
   - Parses titles (quoted, italicized, or plain text), authors, dates, and publisher/site names
+  - Extracts titles BEFORE stripping access markers to preserve titles containing "Accessed/Retrieved/Viewed"
+  - Removes trailing punctuation from extracted titles (prevents double periods in citations)
+  - Strips standalone "Accessed/Retrieved/Viewed" markers only at end of text (preserves site names starting with these words)
   - Pre-fills metadata form with any existing information found
-  - Prioritizes title extraction - plain text titles no longer misclassified as publisher
   - Supports various date formats (full dates, month-year, year only)
+  - **Download → Re-upload flow**: Processed markdown files can be re-uploaded without data corruption
 - **Automatic File Backup**: Uploaded markdown files now automatically saved to `output/` folder
   - Original markdown preserved for reference alongside generated PDFs
   - Uses existing `/api/save-file` endpoint

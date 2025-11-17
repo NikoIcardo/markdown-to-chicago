@@ -399,9 +399,10 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
   siteName?: string
   accessDate?: string
 } {
-  // Remove list numbering and URL from the text
+  // Remove list numbering, HTML tags (especially anchor tags like <a id="bib-1"></a>), and URLs from the text
   let cleaned = citationText
     .replace(/^\d+\.\s*/, '')
+    .replace(/<[^>]+>/g, '') // Strip all HTML tags
     .replace(url, '')
     .replace(/https?:\/\/[^\s<>\]")'}]+/gi, '')
     .trim()
@@ -412,6 +413,15 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
     siteName?: string
     accessDate?: string
   } = {}
+
+  // Try to extract title FIRST (text in quotes or italics) before stripping keywords
+  const titleMatch = cleaned.match(/"([^"]+)"|'([^']+)'|\*([^*]+)\*|_([^_]+)_/)
+  if (titleMatch) {
+    metadata.title = (titleMatch[1] || titleMatch[2] || titleMatch[3] || titleMatch[4])
+      .trim()
+      .replace(/[.,;:]+$/, '') // Remove trailing punctuation
+    cleaned = cleaned.replace(titleMatch[0], '').trim()
+  }
 
   // Try to extract date (various formats)
   const datePatterns = [
@@ -429,13 +439,10 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
       break
     }
   }
-
-  // Try to extract title (text in quotes or italics)
-  const titleMatch = cleaned.match(/"([^"]+)"|'([^']+)'|\*([^*]+)\*|_([^_]+)_/)
-  if (titleMatch) {
-    metadata.title = (titleMatch[1] || titleMatch[2] || titleMatch[3] || titleMatch[4]).trim()
-    cleaned = cleaned.replace(titleMatch[0], '').trim()
-  }
+  
+  // Now remove standalone "Accessed" keyword that appears before the date (now just leftover marker)
+  // Strip only at the end to avoid corrupting site names that start with these words
+  cleaned = cleaned.replace(/\b(?:Accessed|Retrieved|Viewed)(?:\s*[.,;:])?\s*$/i, '').trim()
 
   // Try to extract authors (names before title, often with periods or commas)
   const authorMatch = cleaned.match(/^([A-Z][a-z]+(?:,?\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+)?(?:\s*,\s*[A-Z][a-z]+(?:,?\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+)?)*)[.,]/)
@@ -446,7 +453,7 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
 
   // If no title was found yet and we have remaining text, treat it as the title
   if (!metadata.title && cleaned.length > 0 && cleaned.length < 200) {
-    // Remove common punctuation
+    // Remove common punctuation from beginning and end
     cleaned = cleaned.replace(/^[.,;:\s]+|[.,;:\s]+$/g, '').trim()
     if (cleaned.length > 0) {
       metadata.title = cleaned
