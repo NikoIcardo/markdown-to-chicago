@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["chromium", "nss", "freetype", "harfbuzz", "cacert", "fontconfig", "xorg.libX11", "xorg.libXcomposite", "xorg.libXcursor", "xorg.libXdamage", "xorg.libXext", "xorg.libXfixes", "xorg.libXi", "xorg.libXrandr", "xorg.libXrender", "xorg.libXtst", "xorg.libxcb", "xorg.libxshmfence", "mesa", "pango", "cairo", "cups", "dbus", "at-spi2-atk", "at-spi2-core", "gtk3", "gdk-pixbuf", "libdrm", "expat", "alsa-lib"]
+packages = ["chromium", "nss", "freetype", "harfbuzz", "cacert", "fontconfig", "xorg.libX11", "xorg.libXcomposite", "xorg.libXcursor", "xorg.libXdamage", "xorg.libXext", "xorg.libXfixes", "xorg.libXi", "xorg.libXrandr", "xorg.libXrender", "xorg.libXtst", "xorg.libxcb", "xorg.libxshmfence", "mesa", "pango", "cairo", "cups", "dbus", "at-spi2-atk", "at-spi2-core", "gtk3", "gdk-pixbuf", "libdrm", "expat", "alsa-lib", "unixtools.ping"]
 
 [workflows]
 runButton = "Project"
@@ -41,10 +41,6 @@ localPort = 5173
 localPort = 5174
 externalPort = 6800
 exposeLocalhost = true
-
-[[ports]]
-localPort = 36489
-externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"
