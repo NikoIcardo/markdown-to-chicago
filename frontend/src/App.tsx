@@ -45,7 +45,7 @@ async function saveFileToRepo(blob: Blob, filename: string) {
   }
 }
 
-type SectionKey = 'upload' | 'diagnostics' | 'bibliography' | 'preview'
+type SectionKey = 'upload' | 'bibliography' | 'preview'
 
 interface AccordionSectionProps {
   title: string
@@ -93,7 +93,6 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
 
 const initialSectionState: Record<SectionKey, boolean> = {
   upload: true,
-  diagnostics: false,
   bibliography: false,
   preview: false,
 }
@@ -130,7 +129,6 @@ function App() {
     accessDate: '',
   })
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
-  const [showDiagnosticsNotice, setShowDiagnosticsNotice] = useState(false)
   const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
 
@@ -143,14 +141,12 @@ function App() {
 
   useEffect(() => {
     if (processed) {
-      setShowDiagnosticsNotice(true)
       setShowBibliographyNotice(true)
       setExpandedSections((prev) => ({
         ...prev,
         preview: true,
       }))
     } else {
-      setShowDiagnosticsNotice(false)
       setShowBibliographyNotice(false)
     }
   }, [processed])
@@ -176,9 +172,7 @@ function App() {
         [section]: newValue,
       }
       if (newValue) {
-        if (section === 'diagnostics') {
-          setShowDiagnosticsNotice(false)
-        } else if (section === 'bibliography') {
+        if (section === 'bibliography') {
           setShowBibliographyNotice(false)
         }
       }
@@ -238,7 +232,6 @@ function App() {
       setErrorMessage(null)
       setProcessed(null)
       setFileName(file.name)
-      setShowDiagnosticsNotice(false)
       setShowBibliographyNotice(false)
 
       const text = await file.text()
@@ -343,7 +336,6 @@ function App() {
     }
   }, [processed, fileName])
 
-  const diagnostics = useMemo(() => processed?.diagnostics, [processed])
   const bibliographyEntries = useMemo(() => processed?.bibliographyEntries ?? [], [processed])
 
   const currentManualIssue = manualMetadataModalOpen
@@ -409,12 +401,12 @@ function App() {
             <div className="toggle__text">
               <span className="toggle__title">Prompt for manual citation details</span>
               <span className="toggle__description">
-                When enabled, you can fill in metadata if automatic retrieval fails.
+                When enabled, you can manually add metadata for each source (title, authors, etc.).
               </span>
             </div>
           </div>
           {processingState === 'processing' && (
-            <div className="status status--processing">Processing markdown and fetching sources…</div>
+            <div className="status status--processing">Processing markdown…</div>
           )}
           {processingState === 'error' && errorMessage && (
             <div className="status status--error">{errorMessage}</div>
@@ -425,43 +417,7 @@ function App() {
         </AccordionSection>
 
         <AccordionSection
-          title="2. Diagnostics"
-          isOpen={expandedSections.diagnostics}
-          onToggle={() => toggleSection('diagnostics')}
-          badge={
-            diagnostics?.warnings?.length
-              ? <span>{diagnostics.warnings.length}</span>
-              : undefined
-          }
-          collapsedNotice={
-            processed && showDiagnosticsNotice
-              ? (
-                <div className="status status--info">
-                  Diagnostics Ready to View, Click the Drop Down
-                </div>
-              )
-              : !processed
-                ? <p>Diagnostics will appear here once a document has been processed.</p>
-                : null
-          }
-        >
-          {processed ? (
-            diagnostics?.warnings?.length ? (
-              <ul className="diagnostics diagnostics--warning">
-                {diagnostics.warnings.map((warning, index) => (
-                  <li key={`warning-${index}`}>{warning}</li>
-                ))}
-              </ul>
-            ) : (
-              <p>No warnings detected during processing.</p>
-            )
-          ) : (
-            <p>Diagnostics will appear here once a document has been processed.</p>
-          )}
-        </AccordionSection>
-
-        <AccordionSection
-          title="3. Bibliography Summary"
+          title="2. Bibliography Summary"
           isOpen={expandedSections.bibliography}
           onToggle={() => toggleSection('bibliography')}
           badge={
@@ -505,7 +461,7 @@ function App() {
         </AccordionSection>
 
         <AccordionSection
-          title="4. Preview & Export"
+          title="3. Preview & Export"
           isOpen={expandedSections.preview}
           onToggle={() => toggleSection('preview')}
         >

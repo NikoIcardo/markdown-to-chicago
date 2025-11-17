@@ -10,7 +10,6 @@ import { toString } from 'mdast-util-to-string'
 import yaml from 'js-yaml'
 import type { Code, Content, Heading, Html, Link, List, ListItem, Parent, Paragraph, Root, Text } from 'mdast'
 import type { Node } from 'unist'
-import { fetchSourceMetadata } from './metadataFetcher.ts'
 import type {
   BibliographyEntry,
   ManualMetadataInput,
@@ -841,19 +840,21 @@ export async function processMarkdown(
     for (let i = 0; i < metadataRecords.length; i += 1) {
       const record = metadataRecords[i]
       if (!record.metadata) {
-        const fetchedMetadata = await fetchSourceMetadata(record.normalizedUrl)
-        record.metadata = fetchedMetadata
-        if (fetchedMetadata.retrievalError) {
-          const issueMessage = fetchedMetadata.retrievalError
-          metadataIssues.push({
-            url: fetchedMetadata.url,
-            message: issueMessage,
-          })
-          diagnostics.warnings.push(
-            `Could not fully retrieve metadata for ${record.normalizedUrl}: ${issueMessage}`,
-          )
+        // Automatic metadata fetching removed - users can provide metadata manually
+        metadataIssues.push({
+          url: record.normalizedUrl,
+          message: 'Metadata not provided. You can add details manually or skip.',
+        })
+        // Create a default metadata record using the URL
+        const defaultMetadata: SourceMetadata = {
+          url: record.normalizedUrl,
+          title: record.normalizedUrl,
+          authors: [],
+          siteName: undefined,
+          isPdf: false,
+          accessDate: format(new Date(), 'MMMM d, yyyy'),
         }
-        record.metadata = fetchedMetadata
+        record.metadata = defaultMetadata
       }
     }
 
