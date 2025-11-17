@@ -651,9 +651,13 @@ export async function generatePdfWithPuppeteer(
         },
     })
 
-    // TEMPORARY: Hardcode to test - Introduction appears on page 4 (0-indexed = 3)
-    const firstContentPageIndex = 3
-    console.log(`📄 Using hardcoded firstContentPageIndex = ${firstContentPageIndex} for testing`)
+    // Estimate the first content page index based on TOC length
+    // Title page: 1 page (index 0)
+    // TOC: Estimate ~25 entries per page (can vary based on title length)
+    const tocEntryCount = processed.headings.length
+    const estimatedTocPages = Math.max(1, Math.ceil(tocEntryCount / 25))
+    const firstContentPageIndex = 1 + estimatedTocPages // title page + TOC pages
+    console.log(`📄 TOC has ${tocEntryCount} entries, estimated ${estimatedTocPages} pages. First content page index: ${firstContentPageIndex}`)
     
     const pdfDoc = await PDFDocument.load(rawPdf)
     const font = await pdfDoc.embedFont(selectedFontConfig.pdf)
