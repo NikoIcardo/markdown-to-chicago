@@ -46,13 +46,13 @@ function escapeHtml(value: string): string {
 
 /**
  * Find which page contains the specified marker text in a PDF
- * @param pdfBuffer The PDF file as a Buffer
+ * @param pdfData The PDF file as a Uint8Array
  * @param markerText The text marker to search for
  * @returns The 0-indexed page number containing the marker, or -1 if not found
  */
-async function findMarkerPageInPdf(pdfBuffer: Buffer, markerText: string): Promise<number> {
+async function findMarkerPageInPdf(pdfData: Uint8Array, markerText: string): Promise<number> {
   try {
-    const loadingTask = pdfjs.getDocument({ data: pdfBuffer })
+    const loadingTask = pdfjs.getDocument({ data: pdfData })
     const pdf = await loadingTask.promise
     const numPages = pdf.numPages
 
@@ -62,10 +62,12 @@ async function findMarkerPageInPdf(pdfBuffer: Buffer, markerText: string): Promi
       const pageText = textContent.items.map((item: any) => item.str).join(' ')
       
       if (pageText.includes(markerText)) {
+        console.log(`✅ Found marker on page ${pageNum} (0-indexed: ${pageNum - 1})`)
         return pageNum - 1 // Return 0-indexed page number
       }
     }
     
+    console.warn('⚠️ Marker text not found in any page')
     return -1 // Marker not found
   } catch (error) {
     console.error('Error parsing PDF for marker:', error)
@@ -649,11 +651,8 @@ export async function generatePdfWithPuppeteer(
         },
     })
 
-    // Convert Uint8Array to Buffer for compatibility
-    const pdfBuffer = Buffer.from(rawPdf)
-    
     // Use pdfjs-dist to find which page contains the marker
-    const markerPageIndex = await findMarkerPageInPdf(pdfBuffer, MARKER_TEXT)
+    const markerPageIndex = await findMarkerPageInPdf(rawPdf, MARKER_TEXT)
     
     // Fallback: if marker not found, use heuristic (title page + TOC)
     let firstContentPageIndex = markerPageIndex
