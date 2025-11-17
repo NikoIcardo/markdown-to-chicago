@@ -808,6 +808,30 @@ export async function processMarkdown(
     }
   })
 
+  // Collect URLs from sections that should be excluded from bibliography FIRST
+  const sectionsToExclude = [
+    'websites-and-online-communities',
+    'petitionsfund-raisers',
+    'court-cases'
+  ]
+  
+  const urlsToExclude = new Set<string>()
+  
+  sectionsToExclude.forEach((sectionSlug) => {
+    const sectionRange = findSectionRange(tree, sectionSlug)
+    if (!sectionRange) {
+      return
+    }
+    const sectionNodes = collectNodesInRange(tree, sectionRange)
+    sectionNodes.forEach((node) => {
+      visit(node, 'link', (linkNode: Link) => {
+        if (linkNode.url && /^https?:\/\//i.test(linkNode.url)) {
+          urlsToExclude.add(normalizeUrl(linkNode.url))
+        }
+      })
+    })
+  })
+
   const newUrls: string[] = []
 
   urlOccurrences.forEach((_occurrences, url) => {
@@ -840,11 +864,21 @@ export async function processMarkdown(
     for (let i = 0; i < metadataRecords.length; i += 1) {
       const record = metadataRecords[i]
       if (!record.metadata) {
-        // Automatic metadata fetching removed - users can provide metadata manually
-        metadataIssues.push({
-          url: record.normalizedUrl,
-          message: 'Metadata not provided. You can add details manually or skip.',
-        })
+        // Check if this URL should be excluded
+        const shouldExclude = 
+          urlsToExclude.has(record.normalizedUrl) ||
+          record.normalizedUrl.toLowerCase().includes('facebook.com') ||
+          record.normalizedUrl.toLowerCase().includes('reddit.com')
+        
+        // Only add to metadataIssues if it won't be excluded from final bibliography
+        if (!shouldExclude) {
+          // Automatic metadata fetching removed - users can provide metadata manually
+          metadataIssues.push({
+            url: record.normalizedUrl,
+            message: 'Metadata not provided. You can add details manually or skip.',
+          })
+        }
+        
         // Create a default metadata record using the URL
         const defaultMetadata: SourceMetadata = {
           url: record.normalizedUrl,
@@ -900,31 +934,7 @@ export async function processMarkdown(
     }
   })
 
-  // Collect URLs from sections that should be excluded from bibliography
-  const sectionsToExclude = [
-    'websites-and-online-communities',
-    'petitionsfund-raisers',
-    'court-cases'
-  ]
-  
-  const urlsToExclude = new Set<string>()
-  
-  sectionsToExclude.forEach((sectionSlug) => {
-    const sectionRange = findSectionRange(tree, sectionSlug)
-    if (!sectionRange) {
-      return
-    }
-    const sectionNodes = collectNodesInRange(tree, sectionRange)
-    sectionNodes.forEach((node) => {
-      visit(node, 'link', (linkNode: Link) => {
-        if (linkNode.url && /^https?:\/\//i.test(linkNode.url)) {
-          urlsToExclude.add(normalizeUrl(linkNode.url))
-        }
-      })
-    })
-  })
-
-  // Filter out excluded entries
+  // Filter out excluded entries (exclusion collection logic moved earlier)
   const filteredEntries = allEntries.filter((entry) => {
     if (!entry.normalizedUrl) {
       return true // Keep entries without URLs
