@@ -172,22 +172,27 @@ function App() {
     }
   }, [])
 
-  // Persist state changes to localStorage
+  // Persist state changes to localStorage (debounced to prevent lag)
   useEffect(() => {
     if (!fileName && !originalMarkdown && !processed) {
       // Nothing to persist yet
       return
     }
 
-    savePersistedSession({
-      fileName,
-      originalMarkdown,
-      processed,
-      manualMetadataOverrides: manualMetadataOverridesRef.current,
-      selectedFontFamily,
-      bodyFontSize,
-      promptForManualMetadata,
-    })
+    // Debounce persistence to avoid blocking UI during typing
+    const timeoutId = setTimeout(() => {
+      savePersistedSession({
+        fileName,
+        originalMarkdown,
+        processed,
+        manualMetadataOverrides: manualMetadataOverridesRef.current,
+        selectedFontFamily,
+        bodyFontSize,
+        promptForManualMetadata,
+      })
+    }, 500) // Wait 500ms after last change before saving
+
+    return () => clearTimeout(timeoutId)
   }, [fileName, originalMarkdown, processed, selectedFontFamily, bodyFontSize, promptForManualMetadata])
 
   useEffect(() => {
