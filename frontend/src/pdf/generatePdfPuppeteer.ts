@@ -8,6 +8,7 @@ import remarkHtml from 'remark-html'
 import remarkSlug from 'remark-slug'
 import remarkAutolinkHeadings from 'remark-autolink-headings'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
 import type { ProcessedMarkdown } from '../utils/types.ts'
 
 const FONT_CONFIG = {
@@ -41,6 +42,35 @@ function escapeHtml(value: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+/**
+ * Find which page contains the specified marker text in a PDF
+ * @param pdfBuffer The PDF file as a Buffer
+ * @param markerText The text marker to search for
+ * @returns The 0-indexed page number containing the marker, or -1 if not found
+ */
+async function findMarkerPageInPdf(pdfBuffer: Buffer, markerText: string): Promise<number> {
+  try {
+    const loadingTask = pdfjs.getDocument({ data: pdfBuffer })
+    const pdf = await loadingTask.promise
+    const numPages = pdf.numPages
+
+    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum)
+      const textContent = await page.getTextContent()
+      const pageText = textContent.items.map((item: any) => item.str).join(' ')
+      
+      if (pageText.includes(markerText)) {
+        return pageNum - 1 // Return 0-indexed page number
+      }
+    }
+    
+    return -1 // Marker not found
+  } catch (error) {
+    console.error('Error parsing PDF for marker:', error)
+    return -1
+  }
 }
 
 async function markdownToHtml(markdown: string): Promise<string> {
@@ -584,36 +614,21 @@ export async function generatePdfWithPuppeteer(
       console.log('ℹ️ No internal anchors detected for validation.')
     }
 
-    // Detect where the first content heading actually appears AFTER CSS page breaks are applied
-    const firstContentPageIndex = await page.evaluate(() => {
-      // Find the first main heading (which has break-before: page applied)
-      const firstMainHeading = document.querySelector('.first-main-heading') as HTMLElement
-      
-      if (!firstMainHeading) {
-        // Fallback: no main heading found, assume content starts at page 1
-        return 1
+    // Add an invisible text marker before the first main heading
+    // This marker will be in the PDF but invisible to readers
+    const MARKER_TEXT = '___FIRST_CONTENT_PAGE_MARKER___'
+    await page.evaluate((markerText) => {
+      const firstMainHeading = document.querySelector('.first-main-heading')
+      if (firstMainHeading && firstMainHeading.parentElement) {
+        const marker = document.createElement('span')
+        marker.textContent = markerText
+        marker.style.cssText = 'opacity: 0; position: absolute; font-size: 1px; pointer-events: none;'
+        firstMainHeading.parentElement.insertBefore(marker, firstMainHeading)
       }
-      
-      // Get the vertical position of this heading
-      const rect = firstMainHeading.getBoundingClientRect()
-      const yPosition = rect.top + window.scrollY
-      
-      // A4 page dimensions in pixels at 96 DPI
-      // A4 is 210mm x 297mm = 8.27in x 11.69in
-      // At 96 DPI: 794px x 1123px
-      // With 1in margins (96px top + 96px bottom), content height per page = 1123 - 192 = 931px
-      const pageHeight = 1123 // A4 height in pixels
-      const topMargin = 96 // 1 inch in pixels
-      const bottomMargin = 96
-      const contentHeightPerPage = pageHeight - topMargin - bottomMargin
-      
-      // Calculate which page this element is on (0-indexed)
-      const pageIndex = Math.floor(yPosition / pageHeight)
-      
-      return pageIndex
-    })
-    
-    console.log(`📄 First content heading detected at page index: ${firstContentPageIndex}`)
+    }, MARKER_TEXT)
+
+    // Use print media emulation for accurate pagination
+    await page.emulateMediaType('print')
 
     const pdfPath = options?.outputPath
     const debugHtmlPath = resolvePath(process.cwd(), 'debug-output.html')
@@ -634,11 +649,27 @@ export async function generatePdfWithPuppeteer(
         },
     })
 
+    // Use pdfjs-dist to find which page contains the marker
+    const markerPageIndex = await findMarkerPageInPdf(rawPdf, MARKER_TEXT)
+    
+    // Fallback: if marker not found, use heuristic (title page + TOC)
+    let firstContentPageIndex = markerPageIndex
+    if (markerPageIndex === -1) {
+      console.warn('⚠️ Marker not found in PDF, using fallback heuristic')
+      const hasToc = await page.evaluate(() => {
+        return !!document.querySelector('#table-of-contents')
+      })
+      firstContentPageIndex = hasToc ? 2 : 1
+    }
+    
     const pdfDoc = await PDFDocument.load(rawPdf)
     const font = await pdfDoc.embedFont(selectedFontConfig.pdf)
     const pages = pdfDoc.getPages()
+    const totalPages = pages.length
     const color = rgb(0.29, 0.33, 0.39)
     const fontSize = 11
+    
+    console.log(`📄 Total pages: ${totalPages}, First content page index: ${firstContentPageIndex} (${markerPageIndex === -1 ? 'fallback' : 'detected'})`)
 
     // Start numbering from the first main heading page
     for (let index = firstContentPageIndex; index < pages.length; index += 1) {
