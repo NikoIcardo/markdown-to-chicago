@@ -584,55 +584,36 @@ export async function generatePdfWithPuppeteer(
       console.log('ℹ️ No internal anchors detected for validation.')
     }
 
-    // Detect where content actually starts BEFORE generating PDF
-    const { hasToc, hasBibliography, firstContentPageIndex } = await page.evaluate(() => {
-      // Check for TOC
-      const tocHeading =
-        document.querySelector('h1#table-of-contents') ||
-        document.querySelector('h2#table-of-contents') ||
-        document.querySelector('h3#table-of-contents') ||
-        document.querySelector('h4#table-of-contents') ||
-        document.querySelector('h5#table-of-contents') ||
-        document.querySelector('h6#table-of-contents')
+    // Detect where the first content heading actually appears AFTER CSS page breaks are applied
+    const firstContentPageIndex = await page.evaluate(() => {
+      // Find the first main heading (which has break-before: page applied)
+      const firstMainHeading = document.querySelector('.first-main-heading') as HTMLElement
       
-      // Check for Bibliography
-      const bibHeading =
-        document.querySelector('h1#bibliography') ||
-        document.querySelector('h2#bibliography') ||
-        document.querySelector('h3#bibliography') ||
-        document.querySelector('h4#bibliography') ||
-        document.querySelector('h5#bibliography') ||
-        document.querySelector('h6#bibliography')
-      
-      // Find the first actual content heading (not title, TOC, or bibliography)
-      const allHeadings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
-      const firstContentHeading = allHeadings.find((h) => {
-        const id = h.id?.toLowerCase() || ''
-        const text = h.textContent?.toLowerCase() || ''
-        // Skip title page, TOC, and bibliography headings
-        return id !== 'table-of-contents' && 
-               id !== 'bibliography' &&
-               !text.includes('table of contents') &&
-               !text.includes('bibliography')
-      })
-      
-      // Calculate page index based on structure
-      // Page 0: Title
-      // Page 1: TOC (if exists)
-      // Page 2+: Content starts
-      let contentStartIndex = 1 // Default: no TOC, content starts at page 1
-      if (!!tocHeading) {
-        contentStartIndex = 2 // TOC exists, content starts at page 2
+      if (!firstMainHeading) {
+        // Fallback: no main heading found, assume content starts at page 1
+        return 1
       }
       
-      return {
-        hasToc: !!tocHeading,
-        hasBibliography: !!bibHeading,
-        firstContentPageIndex: contentStartIndex
-      }
+      // Get the vertical position of this heading
+      const rect = firstMainHeading.getBoundingClientRect()
+      const yPosition = rect.top + window.scrollY
+      
+      // A4 page dimensions in pixels at 96 DPI
+      // A4 is 210mm x 297mm = 8.27in x 11.69in
+      // At 96 DPI: 794px x 1123px
+      // With 1in margins (96px top + 96px bottom), content height per page = 1123 - 192 = 931px
+      const pageHeight = 1123 // A4 height in pixels
+      const topMargin = 96 // 1 inch in pixels
+      const bottomMargin = 96
+      const contentHeightPerPage = pageHeight - topMargin - bottomMargin
+      
+      // Calculate which page this element is on (0-indexed)
+      const pageIndex = Math.floor(yPosition / pageHeight)
+      
+      return pageIndex
     })
     
-    console.log(`📄 Page structure detected: TOC=${hasToc}, Bibliography=${hasBibliography}, First content page=${firstContentPageIndex}`)
+    console.log(`📄 First content heading detected at page index: ${firstContentPageIndex}`)
 
     const pdfPath = options?.outputPath
     const debugHtmlPath = resolvePath(process.cwd(), 'debug-output.html')
