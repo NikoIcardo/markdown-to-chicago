@@ -618,7 +618,7 @@ function App() {
                 Accessed Date
                 <input
                   name="accessDate"
-                  placeholder="e.g. March 15, 2025"
+                  placeholder="e.g. October, 2025 or March 15, 2025"
                   value={manualFormState.accessDate}
                   onChange={(event) =>
                     setManualFormState((prev) => ({
