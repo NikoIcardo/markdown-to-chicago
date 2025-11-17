@@ -584,75 +584,75 @@ export async function generatePdfWithPuppeteer(
       console.log('ℹ️ No internal anchors detected for validation.')
     }
 
-      const pdfPath = options?.outputPath
-      const debugHtmlPath = resolvePath(process.cwd(), 'debug-output.html')
-      const finalHtml = await page.content()
-      await fs.writeFile(debugHtmlPath, finalHtml, 'utf8')
+    // Detect where the first main heading page is BEFORE generating PDF
+    const hasToc = await page.evaluate(() => {
+      const tocHeading =
+        document.querySelector('h1#table-of-contents') ||
+        document.querySelector('h2#table-of-contents') ||
+        document.querySelector('h3#table-of-contents') ||
+        document.querySelector('h4#table-of-contents') ||
+        document.querySelector('h5#table-of-contents') ||
+        document.querySelector('h6#table-of-contents')
+      return !!tocHeading
+    })
 
-      const rawPdf = await page.pdf({
-        path: pdfPath,
-        format: 'A4',
-        printBackground: true,
-        preferCSSPageSize: true,
-        displayHeaderFooter: false,
-        margin: {
-          top: '1in',
-          bottom: '1in',
-          left: '1in',
-          right: '1in',
+    // Calculate starting page index for numbering
+    // Title page is always page 0
+    // If TOC exists, it's on page 1 and first main heading is on page 2
+    // If no TOC, first main heading is on page 1
+    const firstContentPageIndex = hasToc ? 2 : 1
+
+    const pdfPath = options?.outputPath
+    const debugHtmlPath = resolvePath(process.cwd(), 'debug-output.html')
+    const finalHtml = await page.content()
+    await fs.writeFile(debugHtmlPath, finalHtml, 'utf8')
+
+    const rawPdf = await page.pdf({
+      path: pdfPath,
+      format: 'A4',
+      printBackground: true,
+      preferCSSPageSize: true,
+      displayHeaderFooter: false,
+      margin: {
+        top: '1in',
+        bottom: '1in',
+        left: '1in',
+        right: '1in',
         },
+    })
+
+    const pdfDoc = await PDFDocument.load(rawPdf)
+    const font = await pdfDoc.embedFont(selectedFontConfig.pdf)
+    const pages = pdfDoc.getPages()
+    const color = rgb(0.29, 0.33, 0.39)
+    const fontSize = 11
+
+    // Start numbering from the first main heading page
+    for (let index = firstContentPageIndex; index < pages.length; index += 1) {
+      const page = pages[index]
+      const pageNumber = index - firstContentPageIndex + 1
+      const text = String(pageNumber)
+      const { width, height } = page.getSize()
+      const textWidth = font.widthOfTextAtSize(text, fontSize)
+      const x = width - 72 - textWidth
+      const y = height - 54
+      page.drawText(text, {
+        x,
+        y,
+        size: fontSize,
+        font,
+        color,
       })
+    }
 
-      // Detect where the first main heading page is
-      const hasToc = await page.evaluate(() => {
-        const tocHeading =
-          document.querySelector('h1#table-of-contents') ||
-          document.querySelector('h2#table-of-contents') ||
-          document.querySelector('h3#table-of-contents') ||
-          document.querySelector('h4#table-of-contents') ||
-          document.querySelector('h5#table-of-contents') ||
-          document.querySelector('h6#table-of-contents')
-        return !!tocHeading
-      })
+    const pdfBytes = await pdfDoc.save()
+    const finalBuffer = Buffer.from(pdfBytes)
 
-      // Calculate starting page index for numbering
-      // Title page is always page 0
-      // If TOC exists, it's on page 1 and first main heading is on page 2
-      // If no TOC, first main heading is on page 1
-      const firstContentPageIndex = hasToc ? 2 : 1
+    if (pdfPath) {
+      await fs.writeFile(pdfPath, finalBuffer)
+    }
 
-      const pdfDoc = await PDFDocument.load(rawPdf)
-      const font = await pdfDoc.embedFont(selectedFontConfig.pdf)
-      const pages = pdfDoc.getPages()
-      const color = rgb(0.29, 0.33, 0.39)
-      const fontSize = 11
-
-      // Start numbering from the first main heading page
-      for (let index = firstContentPageIndex; index < pages.length; index += 1) {
-        const page = pages[index]
-        const pageNumber = index - firstContentPageIndex + 1
-        const text = String(pageNumber)
-        const { width, height } = page.getSize()
-        const textWidth = font.widthOfTextAtSize(text, fontSize)
-        const x = width - 72 - textWidth
-        const y = height - 54
-        page.drawText(text, {
-          x,
-          y,
-          size: fontSize,
-          font,
-          color,
-        })
-      }
-
-      const pdfBytes = await pdfDoc.save()
-      const finalBuffer = Buffer.from(pdfBytes)
-
-      if (pdfPath) {
-        await fs.writeFile(pdfPath, finalBuffer)
-      }
-
-      return finalBuffer
+    return finalBuffer
   } finally {
     await browser.close()
   }

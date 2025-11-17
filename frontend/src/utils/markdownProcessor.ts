@@ -519,17 +519,12 @@ function buildCitationContent(metadata: SourceMetadata): Content[] {
   return nodes
 }
 
-function createReferenceNode(number: number, anchorId: string): Link {
+function createReferenceNode(number: number, anchorId: string): Html {
+  // Use raw HTML to preserve the citation-link class through remark-stringify
   return {
-    type: 'link',
-    url: `#${anchorId}`,
-    children: [{ type: 'text', value: `[${number}]` }],
-    data: {
-      hProperties: {
-        className: ['citation-link'],
-      },
-    },
-  } as Link
+    type: 'html',
+    value: `<a href="#${anchorId}" class="citation-link">[${number}]</a>`,
+  } as Html
 }
 
 function extractHeadings(root: Root): { title: string; subtitle: string; headings: ProcessedMarkdown['headings'] } {
