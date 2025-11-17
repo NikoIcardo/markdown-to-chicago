@@ -653,9 +653,9 @@ export async function generatePdfWithPuppeteer(
 
     // Estimate the first content page index based on TOC length
     // Title page: 1 page (index 0)
-    // TOC: Estimate ~25 entries per page (can vary based on title length)
+    // TOC: Estimate ~30 entries per page (can vary based on title length)
     const tocEntryCount = processed.headings.length
-    const estimatedTocPages = Math.max(1, Math.ceil(tocEntryCount / 25))
+    const estimatedTocPages = Math.max(1, Math.ceil(tocEntryCount / 30))
     const firstContentPageIndex = 1 + estimatedTocPages // title page + TOC pages
     console.log(`📄 TOC has ${tocEntryCount} entries, estimated ${estimatedTocPages} pages. First content page index: ${firstContentPageIndex}`)
     
