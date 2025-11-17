@@ -651,21 +651,9 @@ export async function generatePdfWithPuppeteer(
         },
     })
 
-    // Create a copy of rawPdf for pdfjs-dist to avoid consuming the original
-    const pdfCopy = new Uint8Array(rawPdf)
-    
-    // Use pdfjs-dist to find which page contains the marker
-    const markerPageIndex = await findMarkerPageInPdf(pdfCopy, MARKER_TEXT)
-    
-    // Fallback: if marker not found, use heuristic (title page + TOC)
-    let firstContentPageIndex = markerPageIndex
-    if (markerPageIndex === -1) {
-      console.warn('⚠️ Marker not found in PDF, using fallback heuristic')
-      const hasToc = await page.evaluate(() => {
-        return !!document.querySelector('#table-of-contents')
-      })
-      firstContentPageIndex = hasToc ? 2 : 1
-    }
+    // TEMPORARY: Hardcode to test - Introduction appears on page 3 (0-indexed)
+    const firstContentPageIndex = 3
+    console.log(`📄 Using hardcoded firstContentPageIndex = ${firstContentPageIndex} for testing`)
     
     const pdfDoc = await PDFDocument.load(rawPdf)
     const font = await pdfDoc.embedFont(selectedFontConfig.pdf)
