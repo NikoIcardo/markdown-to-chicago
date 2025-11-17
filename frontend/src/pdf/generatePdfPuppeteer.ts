@@ -651,7 +651,7 @@ export async function generatePdfWithPuppeteer(
         },
     })
 
-    // TEMPORARY: Hardcode to test - Introduction appears on page 3 (0-indexed)
+    // TEMPORARY: Hardcode to test - Introduction appears on page 4 (0-indexed = 3)
     const firstContentPageIndex = 3
     console.log(`📄 Using hardcoded firstContentPageIndex = ${firstContentPageIndex} for testing`)
     
@@ -662,7 +662,7 @@ export async function generatePdfWithPuppeteer(
     const color = rgb(0.29, 0.33, 0.39)
     const fontSize = 11
     
-    console.log(`📄 Total pages: ${totalPages}, First content page index: ${firstContentPageIndex} (${markerPageIndex === -1 ? 'fallback' : 'detected'})`)
+    console.log(`📄 Total pages: ${totalPages}, First content starts at page index: ${firstContentPageIndex} (hardcoded for testing)`)
 
     // Start numbering from the first main heading page
     for (let index = firstContentPageIndex; index < pages.length; index += 1) {
