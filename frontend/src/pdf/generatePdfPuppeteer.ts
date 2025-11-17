@@ -649,8 +649,11 @@ export async function generatePdfWithPuppeteer(
         },
     })
 
+    // Convert Uint8Array to Buffer for compatibility
+    const pdfBuffer = Buffer.from(rawPdf)
+    
     // Use pdfjs-dist to find which page contains the marker
-    const markerPageIndex = await findMarkerPageInPdf(rawPdf, MARKER_TEXT)
+    const markerPageIndex = await findMarkerPageInPdf(pdfBuffer, MARKER_TEXT)
     
     // Fallback: if marker not found, use heuristic (title page + TOC)
     let firstContentPageIndex = markerPageIndex
