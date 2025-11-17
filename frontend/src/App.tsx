@@ -539,7 +539,7 @@ function App() {
           <div className="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="metadata-modal-title">
             <h3 id="metadata-modal-title">Provide Source Details</h3>
             <p>
-              We couldn’t retrieve metadata for{' '}
+              Please enter citation details for{' '}
               <a href={currentManualIssue.url} target="_blank" rel="noreferrer">
                 {currentManualIssue.url}
               </a>
