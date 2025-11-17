@@ -316,6 +316,18 @@ function App() {
       const text = await file.text()
       setOriginalMarkdown(text)
 
+      // Save the original markdown file to output folder
+      try {
+        const formData = new FormData()
+        formData.append('file', new Blob([text], { type: 'text/markdown' }), file.name)
+        await fetch('/api/save-file', {
+          method: 'POST',
+          body: formData,
+        })
+      } catch (saveError) {
+        console.warn('Could not save markdown to output folder:', saveError)
+      }
+
       const result = await processMarkdown(text, {
         manualMetadata: manualMetadataOverridesRef.current,
       })

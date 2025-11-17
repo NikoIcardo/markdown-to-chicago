@@ -47,7 +47,17 @@ frontend/
 
 ## Recent Changes
 
-### Nov 17, 2025
+### Nov 17, 2025 (Latest)
+- **Smart Citation Parsing**: Enhanced metadata extraction from existing bibliography entries
+  - Parses titles (quoted, italicized, or plain text), authors, dates, and publisher/site names
+  - Pre-fills metadata form with any existing information found
+  - Prioritizes title extraction - plain text titles no longer misclassified as publisher
+  - Supports various date formats (full dates, month-year, year only)
+- **Automatic File Backup**: Uploaded markdown files now automatically saved to `output/` folder
+  - Original markdown preserved for reference alongside generated PDFs
+  - Uses existing `/api/save-file` endpoint
+
+### Nov 17, 2025 (Earlier)
 - **Session Persistence**: Added localStorage integration to preserve work across page refreshes
   - Uploaded files, processed markdown, and manual citations are now automatically saved
   - Session clears only when uploading a new file
@@ -61,6 +71,7 @@ frontend/
   - No more hardcoded values
 - **Fixed citation superscript rendering**: Changed citation links to use raw HTML `<a>` tags instead of hProperties to preserve `citation-link` class through remark-stringify
 - **Fixed page numbering**: Corrected scope/indentation issues to ensure page numbers start at 1 on first content page (after title and TOC)
+- **Incomplete Citation Detection**: System checks existing bibliography entries and prompts for missing metadata
 
 ### Nov 16, 2025
 - Configured Vite to work with Replit environment

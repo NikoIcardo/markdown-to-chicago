@@ -8,7 +8,7 @@ import { visit, SKIP } from 'unist-util-visit'
 import { visitParents } from 'unist-util-visit-parents'
 import { toString } from 'mdast-util-to-string'
 import yaml from 'js-yaml'
-import type { Code, Content, Heading, Html, Link, List, ListItem, Parent, Paragraph, Root, Text } from 'mdast'
+import type { Code, Content, Heading, Html, Link, List, ListItem, Parent, Paragraph, PhrasingContent, Root, Text } from 'mdast'
 import type { Node } from 'unist'
 import type {
   BibliographyEntry,
@@ -444,9 +444,18 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
     cleaned = cleaned.replace(authorMatch[0], '').trim()
   }
 
-  // Remaining text might be publisher/site name
-  if (cleaned.length > 0 && cleaned.length < 100) {
+  // If no title was found yet and we have remaining text, treat it as the title
+  if (!metadata.title && cleaned.length > 0 && cleaned.length < 200) {
     // Remove common punctuation
+    cleaned = cleaned.replace(/^[.,;:\s]+|[.,;:\s]+$/g, '').trim()
+    if (cleaned.length > 0) {
+      metadata.title = cleaned
+      cleaned = '' // Clear so it doesn't also get assigned to siteName
+    }
+  }
+
+  // Any additional remaining text might be publisher/site name
+  if (cleaned.length > 0 && cleaned.length < 100) {
     cleaned = cleaned.replace(/^[.,;:\s]+|[.,;:\s]+$/g, '').trim()
     if (cleaned.length > 0) {
       metadata.siteName = cleaned
@@ -561,8 +570,8 @@ function formatCitationText(metadata: SourceMetadata): string {
   return parts.join(' ').replace(/\s+/g, ' ').trim()
 }
 
-function buildCitationContent(metadata: SourceMetadata): Content[] {
-  const nodes: Content[] = []
+function buildCitationContent(metadata: SourceMetadata): PhrasingContent[] {
+  const nodes: PhrasingContent[] = []
   const prefix = formatCitationText(metadata)
   if (prefix) {
     nodes.push({
