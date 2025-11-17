@@ -442,7 +442,8 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
   
   // Now remove standalone "Accessed" keyword that appears before the date (now just leftover marker)
   // Strip only at the end to avoid corrupting site names that start with these words
-  cleaned = cleaned.replace(/\b(?:Accessed|Retrieved|Viewed)(?:\s*[.,;:])?\s*$/i, '').trim()
+  // Allow multiple trailing punctuation marks (e.g., "Accessed . ." after URL removal)
+  cleaned = cleaned.replace(/\b(?:Accessed|Retrieved|Viewed)(?:\s*[.,;:])*\s*$/i, '').trim()
 
   // Try to extract authors (names before title, often with periods or commas)
   const authorMatch = cleaned.match(/^([A-Z][a-z]+(?:,?\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+)?(?:\s*,\s*[A-Z][a-z]+(?:,?\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+)?)*)[.,]/)
