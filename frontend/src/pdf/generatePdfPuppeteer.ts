@@ -176,6 +176,12 @@ export async function generatePdfWithPuppeteer(
           color: #1a56db;
           text-decoration: underline;
         }
+        /* Citation links as superscript */
+        a.citation-link {
+          vertical-align: super;
+          font-size: 0.75em;
+          line-height: 0;
+        }
         h1, h2, h3, h4, h5, h6 {
           scroll-margin-top: 80px;
         }
@@ -597,15 +603,34 @@ export async function generatePdfWithPuppeteer(
         },
       })
 
+      // Detect where the first main heading page is
+      const hasToc = await page.evaluate(() => {
+        const tocHeading =
+          document.querySelector('h1#table-of-contents') ||
+          document.querySelector('h2#table-of-contents') ||
+          document.querySelector('h3#table-of-contents') ||
+          document.querySelector('h4#table-of-contents') ||
+          document.querySelector('h5#table-of-contents') ||
+          document.querySelector('h6#table-of-contents')
+        return !!tocHeading
+      })
+
+      // Calculate starting page index for numbering
+      // Title page is always page 0
+      // If TOC exists, it's on page 1 and first main heading is on page 2
+      // If no TOC, first main heading is on page 1
+      const firstContentPageIndex = hasToc ? 2 : 1
+
       const pdfDoc = await PDFDocument.load(rawPdf)
       const font = await pdfDoc.embedFont(selectedFontConfig.pdf)
       const pages = pdfDoc.getPages()
       const color = rgb(0.29, 0.33, 0.39)
       const fontSize = 11
 
-      for (let index = 2; index < pages.length; index += 1) {
+      // Start numbering from the first main heading page
+      for (let index = firstContentPageIndex; index < pages.length; index += 1) {
         const page = pages[index]
-        const pageNumber = index - 1
+        const pageNumber = index - firstContentPageIndex + 1
         const text = String(pageNumber)
         const { width, height } = page.getSize()
         const textWidth = font.widthOfTextAtSize(text, fontSize)

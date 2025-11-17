@@ -525,6 +525,11 @@ function createReferenceNode(number: number, anchorId: string): Link {
     type: 'link',
     url: `#${anchorId}`,
     children: [{ type: 'text', value: `[${number}]` }],
+    data: {
+      hProperties: {
+        className: ['citation-link'],
+      },
+    },
   } as Link
 }
 
