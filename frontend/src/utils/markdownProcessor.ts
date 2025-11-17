@@ -688,6 +688,29 @@ export async function processMarkdown(
     }
     numberToEntry.set(number, entry)
     allEntries.push(entry)
+    
+    // Check if existing entry is incomplete (just a bare URL without proper citation info)
+    if (normalised) {
+      const citationText = toString(listItem).trim()
+      // Remove common URL decorations to check if it's essentially just the URL
+      const cleanedCitation = citationText
+        .replace(/^\d+\.\s*/, '') // Remove list numbering
+        .replace(/^[\[\(]?\d+[\]\)]?\s*/, '') // Remove reference numbers
+        .trim()
+      
+      // Check if citation is just the URL or very minimal (< 20 chars more than URL)
+      const isIncomplete = 
+        cleanedCitation === normalised ||
+        cleanedCitation.includes(normalised.replace(/^https?:\/\//, '')) ||
+        cleanedCitation.length < normalised.length + 20
+      
+      if (isIncomplete && !manualMetadataMap.has(normalised)) {
+        metadataIssues.push({
+          url: normalised,
+          message: 'Incomplete citation entry. Please add title, authors, and other details.',
+        })
+      }
+    }
   })
 
   // Track existing citation links to update them later with correct numbers
