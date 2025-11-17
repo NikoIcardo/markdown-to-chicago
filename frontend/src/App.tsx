@@ -10,6 +10,11 @@ import type {
 import { processMarkdown } from './utils/markdownProcessor'
 import { generatePdf } from './pdf/generatePdf'
 import { generateDocx } from './doc/generateDocx'
+import { 
+  loadPersistedSession, 
+  savePersistedSession, 
+  clearPersistedSession 
+} from './utils/sessionStorage'
 
 // Helper function to save files to output/ directory in dev mode
 async function saveFileToRepo(blob: Blob, filename: string) {
@@ -100,7 +105,7 @@ const initialSectionState: Record<SectionKey, boolean> = {
 type ProcessingState = 'idle' | 'processing' | 'processed' | 'error'
 
 const FONT_OPTIONS = ['Times New Roman', 'Helvetica', 'Courier New'] as const
-type FontOption = typeof FONT_OPTIONS[number]
+export type FontOption = typeof FONT_OPTIONS[number]
 type Theme = 'light' | 'dark'
 
 function App() {
@@ -131,6 +136,59 @@ function App() {
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
   const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
+
+  // Helper to persist manual metadata immediately (since refs don't trigger useEffect)
+  const persistManualMetadata = useCallback(() => {
+    if (!fileName && !originalMarkdown && !processed) {
+      return
+    }
+    savePersistedSession({
+      fileName,
+      originalMarkdown,
+      processed,
+      manualMetadataOverrides: manualMetadataOverridesRef.current,
+      selectedFontFamily,
+      bodyFontSize,
+      promptForManualMetadata,
+    })
+  }, [fileName, originalMarkdown, processed, selectedFontFamily, bodyFontSize, promptForManualMetadata])
+
+  // Restore persisted session on mount
+  useEffect(() => {
+    const persisted = loadPersistedSession()
+    if (persisted) {
+      console.log('📦 Restoring persisted session from localStorage')
+      setFileName(persisted.fileName)
+      setOriginalMarkdown(persisted.originalMarkdown)
+      setProcessed(persisted.processed)
+      manualMetadataOverridesRef.current = persisted.manualMetadataOverrides
+      setSelectedFontFamily(persisted.selectedFontFamily)
+      setBodyFontSize(persisted.bodyFontSize)
+      setPromptForManualMetadata(persisted.promptForManualMetadata)
+      
+      if (persisted.processed) {
+        setProcessingState('processed')
+      }
+    }
+  }, [])
+
+  // Persist state changes to localStorage
+  useEffect(() => {
+    if (!fileName && !originalMarkdown && !processed) {
+      // Nothing to persist yet
+      return
+    }
+
+    savePersistedSession({
+      fileName,
+      originalMarkdown,
+      processed,
+      manualMetadataOverrides: manualMetadataOverridesRef.current,
+      selectedFontFamily,
+      bodyFontSize,
+      promptForManualMetadata,
+    })
+  }, [fileName, originalMarkdown, processed, selectedFontFamily, bodyFontSize, promptForManualMetadata])
 
   useEffect(() => {
     if (typeof document === 'undefined') {
@@ -224,6 +282,9 @@ function App() {
     }
 
     try {
+      // Clear persisted session when uploading a new file
+      clearPersistedSession()
+      
       manualMetadataOverridesRef.current = {}
       setManualMetadataQueue([])
       setManualMetadataModalOpen(false)
@@ -563,6 +624,9 @@ function App() {
                   siteName: manualFormState.siteName || undefined,
                   accessDate: manualFormState.accessDate || undefined,
                 }
+                // Persist manual metadata immediately
+                persistManualMetadata()
+                
                 if (currentManualIndex + 1 < manualMetadataQueue.length) {
                   setCurrentManualIndex((index) => index + 1)
                 } else {

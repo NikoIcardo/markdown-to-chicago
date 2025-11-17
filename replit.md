@@ -14,6 +14,10 @@ A React + TypeScript + Vite frontend application that processes markdown files, 
   - Customizable fonts and sizes
 - DOCX export option
 - Preview of original and processed markdown
+- **Session persistence**: Work is automatically saved to localStorage and restored on page refresh
+  - Uploaded file and content preserved
+  - Manual citation entries saved (no data loss during long citation sessions)
+  - User preferences maintained
 
 ## Architecture
 - **Frontend**: React 19 + TypeScript + Vite
@@ -30,6 +34,7 @@ frontend/
 │   ├── utils/
 │   │   ├── markdownProcessor.ts    # Core markdown processing logic
 │   │   ├── metadataFetcher.ts      # Web source metadata extraction
+│   │   ├── sessionStorage.ts       # localStorage persistence helpers
 │   │   └── types.ts                # TypeScript type definitions
 │   ├── pdf/
 │   │   ├── generatePdf.ts          # Client-side PDF generation
@@ -43,9 +48,19 @@ frontend/
 ## Recent Changes
 
 ### Nov 17, 2025
+- **Session Persistence**: Added localStorage integration to preserve work across page refreshes
+  - Uploaded files, processed markdown, and manual citations are now automatically saved
+  - Session clears only when uploading a new file
+  - Created `sessionStorage.ts` utility with safe serialization and error handling
+- **Improved UX**: Updated metadata modal messaging and placeholder text
+  - Changed "We couldn't retrieve metadata" to "Please enter citation details"
+  - Added flexible date format examples (e.g., "October, 2025" or "March 15, 2025")
+- **Automatic Page Numbering**: Implemented TOC-based heuristic detection
+  - Estimates ~30 entries per TOC page
+  - Calculates first content page automatically
+  - No more hardcoded values
 - **Fixed citation superscript rendering**: Changed citation links to use raw HTML `<a>` tags instead of hProperties to preserve `citation-link` class through remark-stringify
 - **Fixed page numbering**: Corrected scope/indentation issues to ensure page numbers start at 1 on first content page (after title and TOC)
-- Both fixes architect-reviewed and confirmed working
 
 ### Nov 16, 2025
 - Configured Vite to work with Replit environment
