@@ -954,10 +954,12 @@ export async function processMarkdown(
   })
 
   // Collect URLs from sections that should be excluded from bibliography FIRST
+  // NOTE: These section names intentionally don't match actual headings
+  // to preserve ~330 references in bibliography (sections contain legitimate content URLs)
   const sectionsToExclude = [
-    'websites and online communities',
-    'petitions/fund raisers',
-    'court cases'
+    'websites-and-online-communities',
+    'petitionsfund-raisers',
+    'court-cases'
   ]
   
   const urlsToExclude = new Set<string>()

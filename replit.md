@@ -48,23 +48,20 @@ frontend/
 ## Recent Changes
 
 ### Nov 18, 2025 (Latest)
-- **Fixed Duplicate Bibliography Entries**: Comprehensive fix for re-upload bibliography duplication (6 critical bugs fixed)
+- **Fixed Duplicate Bibliography Entries**: Comprehensive fix for re-upload bibliography duplication (5 critical bugs fixed)
   - **Root causes identified**: 
     1. Markdown escape sequences (`\_`, `\-`) in URLs prevented proper duplicate detection
     2. Self-referential citation links (`#bib-X`) were corrupting URL extraction
     3. Bibliography wasn't excluded from URL scanning
     4. Images were being cited
-    5. Section exclusion not working (heading name mismatch)
-    6. Duplicate anchor IDs accumulating on re-processing
+    5. Duplicate anchor IDs accumulating on re-processing
   - **Fix 1**: Added URL unescape logic to `normalizeUrl()` - strips Markdown escapes before normalization
   - **Fix 2**: Excluded bibliography section from URL harvesting by adding to `excludedNodes`
   - **Fix 3**: Enhanced `extractUrlFromListItem` to ignore `#bib-*` citation links and only extract real http(s) URLs
   - **Fix 4**: Filtered image URLs from bibliography (file extensions + Substack CDN images)
-  - **Fix 5**: Corrected section exclusion to use actual heading text instead of slugified names
-  - **Fix 6**: Modified `ensureListItemAnchor` to remove ALL existing anchor tags before adding new ones
-  - Download → Re-upload → Re-upload flow now works correctly with stable bibliography counts
+  - **Fix 5**: Modified `ensureListItemAnchor` to remove ALL existing anchor tags before adding new ones
+  - Download → Re-upload → Re-upload flow now works correctly with stable bibliography counts (~330 references)
   - Image URLs (substackcdn.com, .png, .jpg, etc.) no longer appear in bibliography
-  - Petition/website/court case section URLs properly excluded from bibliography
   - No duplicate anchor IDs in re-processed files
   - Valid document citations (PDFs on CloudFront, etc.) are preserved
 
