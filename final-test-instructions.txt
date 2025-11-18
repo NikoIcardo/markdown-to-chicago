@@ -1,0 +1,52 @@
+================================================================================
+BIBLIOGRAPHY DUPLICATION FIX - VERIFICATION TEST
+================================================================================
+
+THE FIX IS NOW IN PLACE. Here's what was fixed:
+
+BUG: ensureListItemAnchor() was DELETING entire HTML nodes containing anchor IDs,
+     which also deleted the actual URL links. On re-upload, these URLs couldn't  
+     be extracted, so they became "new" entries (315 → 321, adding 6 duplicates).
+
+FIX: Changed to SURGICALLY REMOVE only the <a id="..."></a> tags using .replace(),
+     preserving the rest of the HTML including URL links.
+
+================================================================================
+TO VERIFY THE FIX WORKS:
+================================================================================
+
+1. Clear old test files:
+   rm output/main-content-processed*.md
+
+2. Open http://localhost:5000 in your browser
+
+3. Upload: output/main-content.md
+   - Turn OFF "Prompt for manual citation details"
+   - Wait for processing
+
+4. Download Processed Markdown
+   - File auto-saves to output/ as main-content-processed.md
+   - COUNT BIBLIOGRAPHY: grep -c "^[0-9]\+\. <a id=" output/main-content-processed.md
+
+5. Re-upload: output/main-content-processed.md
+   - Turn OFF "Prompt for manual citation details"  
+   - Wait for processing
+
+6. Download Processed Markdown again
+   - File auto-saves as main-content-processed-processed.md
+   - COUNT BIBLIOGRAPHY: grep -c "^[0-9]\+\. <a id=" output/main-content-processed-processed.md
+
+7. Compare counts:
+   - EXPECTED: Both counts should be IDENTICAL (around 315-330 entries)
+   - OLD BROKEN: First=315, Second=321 (6 duplicates added)
+   - NEW FIXED: First=315, Second=315 (no duplicates)
+
+================================================================================
+QUICK COUNT COMMAND:
+================================================================================
+
+for file in output/main-content-processed*.md; do 
+  echo "$file: $(grep -c '^[0-9]\+\. <a id=' $file) entries"
+done
+
+================================================================================

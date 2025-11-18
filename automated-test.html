@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><title>Automated Test</title></head>
+<body>
+<h1>Automated Duplication Test</h1>
+<pre id="log"></pre>
+<script type="module">
+  const log = document.getElementById('log');
+  function addLog(msg) {
+    log.textContent += msg + '\n';
+    console.log(msg);
+  }
+
+  async function test() {
+    addLog('Starting automated test...\n');
+    
+    // Fetch the original file
+    addLog('Step 1: Fetching output/main-content.md...');
+    const resp = await fetch('/output/main-content.md');
+    const originalText = await resp.text();
+    addLog(`  Original file size: ${originalText.length} bytes`);
+    
+    // Process it (this requires importing the processor which we can't do easily)
+    addLog('\n❌ Cannot run full automated test from static HTML');
+    addLog('The React app needs to be used for processing.');
+    addLog('\nPlease test manually:');
+    addLog('1. Upload output/main-content.md');
+    addLog('2. Download processed markdown (auto-saved to output/)');
+    addLog('3. Re-upload the processed file');  
+    addLog('4. Download again');
+    addLog('5. Compare bibliography counts');
+  }
+  
+  test();
+</script>
+</body>
+</html>
