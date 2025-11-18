@@ -578,8 +578,10 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
       // Remove complete anchors: <a id="bib-55"></a>
       // Remove opening tags: <a id="bib-55">
       // Remove standalone closing tags: </a>
+      // Remove empty anchors: <a id=""></a>
       htmlNode.value = htmlNode.value
-        .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor
+        .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor with ID
+        .replace(/<a\s+id="">\s*<\/a>/gi, '')         // Empty anchor
         .replace(/<a\s+id="bib-\d+">/gi, '')          // Opening tag only
         .replace(/^\s*<\/a>\s*$/gi, '')                // Standalone closing tag
       if (debugAnchor && before !== htmlNode.value) {
@@ -603,9 +605,10 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
         if (pChild.type === 'html') {
           const htmlNode = pChild as Html
           const before = htmlNode.value
-          // Remove complete anchors, opening tags, and standalone closing tags
+          // Remove complete anchors, opening tags, standalone closing tags, and empty anchors
           htmlNode.value = htmlNode.value
-            .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor
+            .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor with ID
+            .replace(/<a\s+id="">\s*<\/a>/gi, '')         // Empty anchor
             .replace(/<a\s+id="bib-\d+">/gi, '')          // Opening tag only
             .replace(/^\s*<\/a>\s*$/gi, '')                // Standalone closing tag
           if (debugAnchor && before !== htmlNode.value) {
@@ -617,9 +620,10 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
           const textNode = pChild as any
           if (typeof textNode.value === 'string') {
             const before = textNode.value
-            // Remove complete anchors, opening tags, and standalone closing tags from text nodes too
+            // Remove complete anchors, opening tags, standalone closing tags, and empty anchors from text nodes
             textNode.value = textNode.value
-              .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor
+              .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor with ID
+              .replace(/<a\s+id="">\s*<\/a>/gi, '')         // Empty anchor
               .replace(/<a\s+id="bib-\d+">/gi, '')          // Opening tag only
               .replace(/^\s*<\/a>\s*$/gi, '')                // Standalone closing tag
             if (debugAnchor && before !== textNode.value) {
