@@ -540,7 +540,7 @@ function addSubtreeToSet(node: Node, set: WeakSet<Node>) {
 }
 
 function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
-  // Surgically remove anchor IDs from HTML and TEXT nodes without deleting the entire node
+  // Surgically remove anchor IDs from HTML nodes without deleting the entire node
   listItem.children = listItem.children.map((child) => {
     if (child.type === 'html') {
       const htmlNode = child as Html
@@ -548,25 +548,16 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
       htmlNode.value = htmlNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
       return htmlNode
     }
-    if (child.type === 'text') {
-      const textNode = child as Text
-      // Also strip from text nodes (happens when markdown is re-parsed)
-      textNode.value = textNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
-      return textNode
-    }
     return child
   }).filter((child) => {
-    // Only remove HTML/text nodes if they're now completely empty
+    // Only remove HTML nodes if they're now completely empty
     if (child.type === 'html') {
       return (child as Html).value.trim().length > 0
-    }
-    if (child.type === 'text') {
-      return (child as Text).value.trim().length > 0
     }
     return true
   })
   
-  // Also remove anchors from inside paragraphs
+  // Also remove anchors from inside paragraphs (including text nodes)
   listItem.children.forEach((child) => {
     if (child.type === 'paragraph') {
       const paragraph = child as Paragraph
@@ -577,9 +568,11 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
           return htmlNode
         }
         if (pChild.type === 'text') {
-          const textNode = pChild as Text
-          // Also strip from text nodes inside paragraphs
-          textNode.value = textNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
+          const textNode = pChild as any
+          // Strip anchors from text nodes (they appear when markdown is re-parsed)
+          if (typeof textNode.value === 'string') {
+            textNode.value = textNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
+          }
           return textNode
         }
         return pChild
@@ -588,7 +581,7 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
           return (pChild as Html).value.trim().length > 0
         }
         if (pChild.type === 'text') {
-          return (pChild as Text).value.trim().length > 0
+          return typeof (pChild as any).value === 'string' && (pChild as any).value.trim().length > 0
         }
         return true
       })
