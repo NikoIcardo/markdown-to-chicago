@@ -540,6 +540,27 @@ function addSubtreeToSet(node: Node, set: WeakSet<Node>) {
 }
 
 function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
+  // First, remove ALL existing anchor tags (both top-level and in paragraphs)
+  listItem.children = listItem.children.filter((child) => {
+    if (child.type === 'html' && /<a id="[^"]*"><\/a>/i.test((child as Html).value)) {
+      return false // Remove top-level anchor HTML nodes
+    }
+    return true
+  })
+  
+  // Also remove anchors from inside paragraphs
+  listItem.children.forEach((child) => {
+    if (child.type === 'paragraph') {
+      const paragraph = child as Paragraph
+      paragraph.children = paragraph.children.filter((pChild) => {
+        if (pChild.type === 'html' && /<a id="[^"]*"><\/a>/i.test((pChild as Html).value)) {
+          return false
+        }
+        return true
+      })
+    }
+  })
+
   const firstParagraph = listItem.children.find(
     (child): child is Paragraph => child.type === 'paragraph',
   )
@@ -557,19 +578,12 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
     return
   }
 
-  const existingAnchorIndex = firstParagraph.children.findIndex(
-    (child) => child.type === 'html' && /<a id="[^"]*"><\/a>/i.test((child as Html).value),
-  )
+  // Insert new anchor at the beginning
   const anchorNode: Html = {
     type: 'html',
     value: `<a id="${anchorId}"></a>`,
   }
-
-  if (existingAnchorIndex >= 0) {
-    firstParagraph.children.splice(existingAnchorIndex, 1, anchorNode)
-  } else {
-    firstParagraph.children.unshift(anchorNode)
-  }
+  firstParagraph.children.unshift(anchorNode)
 }
 
 function formatAuthors(authors: string[]): string {
@@ -941,9 +955,9 @@ export async function processMarkdown(
 
   // Collect URLs from sections that should be excluded from bibliography FIRST
   const sectionsToExclude = [
-    'websites-and-online-communities',
-    'petitionsfund-raisers',
-    'court-cases'
+    'websites and online communities',
+    'petitions/fund raisers',
+    'court cases'
   ]
   
   const urlsToExclude = new Set<string>()
