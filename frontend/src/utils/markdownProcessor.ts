@@ -540,23 +540,34 @@ function addSubtreeToSet(node: Node, set: WeakSet<Node>) {
 }
 
 function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
-  // DIAGNOSTIC: Log what we're processing
+  // DIAGNOSTIC: Write debug data to file
   const debugAnchor = anchorId === 'bib-55' || anchorId === 'bib-316'
   
-  if (debugAnchor) {
-    console.log(`\n=== DIAGNOSTIC: Processing ${anchorId} ===`)
-    console.log('ListItem children BEFORE cleanup:', listItem.children.map(c => ({
-      type: c.type,
-      value: (c as any).value?.substring(0, 100)
-    })))
-    
-    if (listItem.children[0]?.type === 'paragraph') {
-      const para = listItem.children[0] as Paragraph
-      console.log('First paragraph children BEFORE:', para.children.map(c => ({
+  if (debugAnchor && typeof window !== 'undefined') {
+    const debugData = {
+      anchorId,
+      timestamp: new Date().toISOString(),
+      listItemChildrenBefore: listItem.children.map(c => ({
         type: c.type,
-        value: (c as any).value?.substring(0, 100)
-      })))
+        value: (c as any).value?.substring(0, 150),
+        childCount: (c as any).children?.length
+      })),
+      firstParagraphChildren: listItem.children[0]?.type === 'paragraph' 
+        ? (listItem.children[0] as Paragraph).children.map(c => ({
+            type: c.type,
+            value: (c as any).value?.substring(0, 150)
+          }))
+        : null
     }
+    
+    // Write to debugging file
+    const formData = new FormData()
+    const blob = new Blob([JSON.stringify(debugData, null, 2)], { type: 'application/json' })
+    formData.append('file', blob, `debug-${anchorId}.json`)
+    fetch('/api/save-file', {
+      method: 'POST',
+      body: formData
+    }).catch(() => {})
   }
   
   // Surgically remove anchor IDs from HTML nodes without deleting the entire node
