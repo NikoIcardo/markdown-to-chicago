@@ -374,10 +374,17 @@ function createListItemFromParagraph(paragraph: Paragraph): ListItem | null {
 function extractUrlFromListItem(listItem: ListItem): string | undefined {
   let extracted: string | undefined
 
-  // First try to find actual link nodes
+  // First try to find actual link nodes (ignore internal #bib-* citation links)
   visit(listItem, 'link', (node: Link) => {
     if (!extracted && typeof node.url === 'string' && node.url.trim().length > 0) {
-      extracted = normalizeUrl(node.url)
+      // Skip internal citation links
+      if (/^#bib-\d+$/.test(node.url)) {
+        return
+      }
+      // Only accept absolute http(s) URLs
+      if (/^https?:\/\//i.test(node.url)) {
+        extracted = normalizeUrl(node.url)
+      }
     }
   })
 
@@ -756,6 +763,9 @@ export async function processMarkdown(
 
   ensureBibliographyInTableOfContents(tree)
 
+  // Add bibliography nodes to excluded set to prevent URL harvesting from bibliography entries
+  bibliographyNodes.forEach((node) => addSubtreeToSet(node, excludedNodes))
+
   bibliographyList.ordered = true
   bibliographyList.start = bibliographyList.start ?? 1
 
@@ -1066,6 +1076,16 @@ export async function processMarkdown(
     // Exclude facebook.com and reddit.com
     const lowerUrl = entry.normalizedUrl.toLowerCase()
     if (lowerUrl.includes('facebook.com') || lowerUrl.includes('reddit.com')) {
+      return false
+    }
+    
+    // Exclude image URLs by file extension or known image-only CDN patterns
+    const hasImageExtension = /\.(png|jpe?g|gif|webp|svg|bmp|ico|tiff?)($|\?|#)/i.test(lowerUrl)
+    
+    // Substack CDN is specifically for images when URL contains /image/fetch/
+    const isSubstackImage = lowerUrl.includes('substackcdn.com') && lowerUrl.includes('/image/fetch/')
+    
+    if (hasImageExtension || isSubstackImage) {
       return false
     }
     

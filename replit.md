@@ -48,11 +48,14 @@ frontend/
 ## Recent Changes
 
 ### Nov 18, 2025 (Latest)
-- **Fixed Duplicate Bibliography Entries**: Resolved issue where re-uploading processed markdown created hundreds of duplicate sources
-  - Enhanced `extractUrlFromListItem` to handle HTML anchor tags in existing bibliography entries
-  - Properly extracts URLs from re-processed files with `<a id="bib-X"></a>` markers
-  - Existing sources are now correctly detected and reused instead of being duplicated
-  - Download → Re-upload → Re-upload flow now works without creating duplicate bibliographies
+- **Fixed Duplicate Bibliography Entries**: Comprehensive fix for re-upload bibliography duplication
+  - **Root cause identified**: Self-referential citation links (`#bib-X`) were corrupting URL extraction, bibliography wasn't excluded from URL scanning, and images were being cited
+  - **Fix 1**: Excluded bibliography section from URL harvesting by adding to `excludedNodes`
+  - **Fix 2**: Enhanced `extractUrlFromListItem` to ignore `#bib-*` citation links and only extract real http(s) URLs
+  - **Fix 3**: Filtered image URLs from bibliography (file extensions + Substack CDN images)
+  - Download → Re-upload → Re-upload flow now works correctly with stable bibliography counts
+  - Image URLs (substackcdn.com, .png, .jpg, etc.) no longer appear in bibliography
+  - Valid document citations (PDFs on CloudFront, etc.) are preserved
 
 ### Nov 17, 2025
 - **Smart Citation Parsing with HTML Stripping**: Enhanced metadata extraction from existing bibliography entries

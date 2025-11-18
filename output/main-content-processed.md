@@ -2330,10 +2330,10 @@ Given the substantial amassing body of reports of psychotronic weapons being use
 
 # Bibliography
 
-1. <a id="bib-1"></a>"German Propaganda Leaflets." info.publicintelligence.net. Accessed October 2025. <https://info.publicintelligence.net/GermanPropagandaLeaflets.pdf>.
-2. <a id="bib-2"></a>"https://www.britannica.com/biography/Mildred-Gillars." Accessed November 17, 2025. <https://www.britannica.com/biography/Mildred-Gillars>.
+1. <a id="bib-1"></a>"German Propaganda Leaflets." info.publicintelligence.net. Accessed November 17, 2025. <https://info.publicintelligence.net/GermanPropagandaLeaflets.pdf>.
+2. <a id="bib-2"></a>Britannica Editors. "Mildred Gillars." Accessed November 17, 2025. <https://www.britannica.com/biography/Mildred-Gillars>.
 3. <a id="bib-3"></a>"https://codenames.info/operation/soldatensender-calais." Accessed November 17, 2025. <https://codenames.info/operation/soldatensender-calais>.
-4. <a id="bib-4"></a>"https://britishonlinearchives.com/posts/category/articles/436/airborne-propaganda-the-battle-for-hearts-and-minds." Accessed November 17, 2025. <https://britishonlinearchives.com/posts/category/articles/436/airborne-propaganda-the-battle-for-hearts-and-minds>.
+4. <a id="bib-4"></a>Katherine Waite. "Airborne Propaganda: The Battle for Hearts and Minds." britishonlinearchives.com. Accessed October 2025. <https://britishonlinearchives.com/posts/category/articles/436/airborne-propaganda-the-battle-for-hearts-and-minds>.
 5. <a id="bib-5"></a>"https://www.cia.gov/readingroom/docs/COMMUNIST%20PSYCHOLOGICAL%20W%5B16009245%5D.pdf." Accessed November 17, 2025. <https://www.cia.gov/readingroom/docs/COMMUNIST%20PSYCHOLOGICAL%20W%5B16009245%5D.pdf>.
 6. <a id="bib-6"></a>"https://www.dday.center/the-use-of-psychological-warfare-in-europe." Accessed November 17, 2025. <https://www.dday.center/the-use-of-psychological-warfare-in-europe>.
 7. <a id="bib-7"></a>"https://www.wilsoncenter.org/blog-post/operation-denver-kgb-and-stasi-disinformation-regarding-aids." Accessed November 17, 2025. <https://www.wilsoncenter.org/blog-post/operation-denver-kgb-and-stasi-disinformation-regarding-aids>.
