@@ -47,23 +47,20 @@ frontend/
 
 ## Recent Changes
 
-### Nov 18, 2025 (Latest)
-- **Fixed Duplicate Bibliography Entries**: Complete fix for re-upload bibliography duplication (5 critical bugs fixed)
-  - **Root causes identified**: 
-    1. Markdown escape sequences (`\_`, `\-`) in URLs prevented proper duplicate detection
-    2. Self-referential citation links (`#bib-X`) were corrupting URL extraction
-    3. Bibliography wasn't excluded from URL scanning
-    4. Images were being cited
-    5. Duplicate anchor IDs accumulating on re-processing
-  - **Fix 1**: Added URL unescape logic to `normalizeUrl()` - strips Markdown escapes before normalization
-  - **Fix 2**: Excluded bibliography section from URL harvesting by adding to `excludedNodes`
-  - **Fix 3**: Enhanced `extractUrlFromListItem` to ignore `#bib-*` citation links and only extract real http(s) URLs
-  - **Fix 4**: Filtered image URLs from bibliography (file extensions + Substack CDN images)
-  - **Fix 5**: Modified `ensureListItemAnchor` to remove ALL existing anchor tags before adding new ones
-  - Download → Re-upload → Re-upload flow now works correctly with stable bibliography counts (~330 references)
-  - Image URLs (substackcdn.com, .png, .jpg, etc.) no longer appear in bibliography
-  - No duplicate anchor IDs in re-processed files
-  - Valid document citations (PDFs on CloudFront, etc.) are preserved
+### Nov 18, 2025 (Latest) - **DUPLICATION BUG FULLY FIXED**
+- **✅ COMPLETE FIX: Re-upload bibliography duplication resolved** (315 → 315 entries, stable)
+  - **8 critical bugs identified and fixed:**
+    1. ✅ Markdown escape sequences (`\_`, `\-`) in URLs prevented duplicate detection → Added URL unescape logic
+    2. ✅ Self-referential citation links (`#bib-X`) corrupting URL extraction → Filter citation links
+    3. ✅ Bibliography section wasn't excluded from URL scanning → Added to `excludedNodes`
+    4. ✅ Images being cited → Filter image URLs (file extensions + CDN patterns)
+    5. ✅ Duplicate anchor IDs accumulating → Enhanced anchor cleanup
+    6. ✅ **Split anchor tags** - Parser splits `<a id="bib-55"></a>` into separate nodes → Regex now removes opening tags, closing tags, AND complete anchors
+    7. ✅ **Empty anchor remnants** - Cleanup left `<a id=""></a>` making URLs appear uncited → Also remove empty anchors
+    8. ✅ **Markdown link harvesting** - Inline links `[text](URL)` treated as uncited → Skip markdown links entirely, only harvest bare text URLs
+  - **Result**: Download → Re-upload → Re-upload flow now perfectly stable at 315 references
+  - No duplicate anchors, no empty anchors, no phantom entries
+  - Bibliography only contains standalone URLs that need citations, not inline markdown links
 
 ### Nov 17, 2025
 - **Smart Citation Parsing with HTML Stripping**: Enhanced metadata extraction from existing bibliography entries

@@ -540,53 +540,16 @@ function addSubtreeToSet(node: Node, set: WeakSet<Node>) {
 }
 
 function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
-  // DIAGNOSTIC: Write debug data to file
-  const debugAnchor = anchorId === 'bib-55' || anchorId === 'bib-316'
-  
-  if (debugAnchor && typeof window !== 'undefined') {
-    const debugData = {
-      anchorId,
-      timestamp: new Date().toISOString(),
-      listItemChildrenBefore: listItem.children.map(c => ({
-        type: c.type,
-        value: (c as any).value?.substring(0, 150),
-        childCount: (c as any).children?.length
-      })),
-      firstParagraphChildren: listItem.children[0]?.type === 'paragraph' 
-        ? (listItem.children[0] as Paragraph).children.map(c => ({
-            type: c.type,
-            value: (c as any).value?.substring(0, 150)
-          }))
-        : null
-    }
-    
-    // Write to debugging file
-    const formData = new FormData()
-    const blob = new Blob([JSON.stringify(debugData, null, 2)], { type: 'application/json' })
-    formData.append('file', blob, `debug-${anchorId}.json`)
-    fetch('/api/save-file', {
-      method: 'POST',
-      body: formData
-    }).catch(() => {})
-  }
-  
-  // Surgically remove anchor IDs from HTML nodes without deleting the entire node
+  // Remove existing anchor IDs from HTML nodes to prevent duplicates on re-upload
   listItem.children = listItem.children.map((child) => {
     if (child.type === 'html') {
       const htmlNode = child as Html
-      const before = htmlNode.value
-      // Remove complete anchors: <a id="bib-55"></a>
-      // Remove opening tags: <a id="bib-55">
-      // Remove standalone closing tags: </a>
-      // Remove empty anchors: <a id=""></a>
+      // Remove complete anchors, split tags, and empty anchors
       htmlNode.value = htmlNode.value
         .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor with ID
         .replace(/<a\s+id="">\s*<\/a>/gi, '')         // Empty anchor
         .replace(/<a\s+id="bib-\d+">/gi, '')          // Opening tag only
         .replace(/^\s*<\/a>\s*$/gi, '')                // Standalone closing tag
-      if (debugAnchor && before !== htmlNode.value) {
-        console.log('Cleaned HTML node at root:', { before: before.substring(0, 100), after: htmlNode.value.substring(0, 100) })
-      }
       return htmlNode
     }
     return child
@@ -604,31 +567,23 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
       paragraph.children = paragraph.children.map((pChild) => {
         if (pChild.type === 'html') {
           const htmlNode = pChild as Html
-          const before = htmlNode.value
-          // Remove complete anchors, opening tags, standalone closing tags, and empty anchors
+          // Remove complete anchors, split tags, and empty anchors
           htmlNode.value = htmlNode.value
             .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor with ID
             .replace(/<a\s+id="">\s*<\/a>/gi, '')         // Empty anchor
             .replace(/<a\s+id="bib-\d+">/gi, '')          // Opening tag only
             .replace(/^\s*<\/a>\s*$/gi, '')                // Standalone closing tag
-          if (debugAnchor && before !== htmlNode.value) {
-            console.log('Cleaned HTML node in paragraph:', { before: before.substring(0, 100), after: htmlNode.value.substring(0, 100) })
-          }
           return htmlNode
         }
         if (pChild.type === 'text') {
           const textNode = pChild as any
           if (typeof textNode.value === 'string') {
-            const before = textNode.value
-            // Remove complete anchors, opening tags, standalone closing tags, and empty anchors from text nodes
+            // Remove complete anchors, split tags, and empty anchors from text nodes
             textNode.value = textNode.value
               .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor with ID
               .replace(/<a\s+id="">\s*<\/a>/gi, '')         // Empty anchor
               .replace(/<a\s+id="bib-\d+">/gi, '')          // Opening tag only
               .replace(/^\s*<\/a>\s*$/gi, '')                // Standalone closing tag
-            if (debugAnchor && before !== textNode.value) {
-              console.log('Cleaned TEXT node in paragraph:', { before: before.substring(0, 100), after: textNode.value.substring(0, 100) })
-            }
           }
           return textNode
         }
@@ -644,21 +599,6 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
       })
     }
   })
-  
-  if (debugAnchor) {
-    console.log('ListItem children AFTER cleanup:', listItem.children.map(c => ({
-      type: c.type,
-      value: (c as any).value?.substring(0, 100)
-    })))
-    
-    if (listItem.children[0]?.type === 'paragraph') {
-      const para = listItem.children[0] as Paragraph
-      console.log('First paragraph children AFTER:', para.children.map(c => ({
-        type: c.type,
-        value: (c as any).value?.substring(0, 100)
-      })))
-    }
-  }
 
   const firstParagraph = listItem.children.find(
     (child): child is Paragraph => child.type === 'paragraph',
