@@ -540,17 +540,38 @@ function addSubtreeToSet(node: Node, set: WeakSet<Node>) {
 }
 
 function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
+  // DIAGNOSTIC: Log what we're processing
+  const debugAnchor = anchorId === 'bib-55' || anchorId === 'bib-316'
+  
+  if (debugAnchor) {
+    console.log(`\n=== DIAGNOSTIC: Processing ${anchorId} ===`)
+    console.log('ListItem children BEFORE cleanup:', listItem.children.map(c => ({
+      type: c.type,
+      value: (c as any).value?.substring(0, 100)
+    })))
+    
+    if (listItem.children[0]?.type === 'paragraph') {
+      const para = listItem.children[0] as Paragraph
+      console.log('First paragraph children BEFORE:', para.children.map(c => ({
+        type: c.type,
+        value: (c as any).value?.substring(0, 100)
+      })))
+    }
+  }
+  
   // Surgically remove anchor IDs from HTML nodes without deleting the entire node
   listItem.children = listItem.children.map((child) => {
     if (child.type === 'html') {
       const htmlNode = child as Html
-      // Strip out anchor ID tags but keep the rest of the HTML
+      const before = htmlNode.value
       htmlNode.value = htmlNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
+      if (debugAnchor && before !== htmlNode.value) {
+        console.log('Cleaned HTML node at root:', { before: before.substring(0, 100), after: htmlNode.value.substring(0, 100) })
+      }
       return htmlNode
     }
     return child
   }).filter((child) => {
-    // Only remove HTML nodes if they're now completely empty
     if (child.type === 'html') {
       return (child as Html).value.trim().length > 0
     }
@@ -564,14 +585,21 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
       paragraph.children = paragraph.children.map((pChild) => {
         if (pChild.type === 'html') {
           const htmlNode = pChild as Html
+          const before = htmlNode.value
           htmlNode.value = htmlNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
+          if (debugAnchor && before !== htmlNode.value) {
+            console.log('Cleaned HTML node in paragraph:', { before: before.substring(0, 100), after: htmlNode.value.substring(0, 100) })
+          }
           return htmlNode
         }
         if (pChild.type === 'text') {
           const textNode = pChild as any
-          // Strip anchors from text nodes (they appear when markdown is re-parsed)
           if (typeof textNode.value === 'string') {
+            const before = textNode.value
             textNode.value = textNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
+            if (debugAnchor && before !== textNode.value) {
+              console.log('Cleaned TEXT node in paragraph:', { before: before.substring(0, 100), after: textNode.value.substring(0, 100) })
+            }
           }
           return textNode
         }
@@ -587,6 +615,21 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
       })
     }
   })
+  
+  if (debugAnchor) {
+    console.log('ListItem children AFTER cleanup:', listItem.children.map(c => ({
+      type: c.type,
+      value: (c as any).value?.substring(0, 100)
+    })))
+    
+    if (listItem.children[0]?.type === 'paragraph') {
+      const para = listItem.children[0] as Paragraph
+      console.log('First paragraph children AFTER:', para.children.map(c => ({
+        type: c.type,
+        value: (c as any).value?.substring(0, 100)
+      })))
+    }
+  }
 
   const firstParagraph = listItem.children.find(
     (child): child is Paragraph => child.type === 'paragraph',
@@ -820,8 +863,17 @@ export async function processMarkdown(
   bibliographyList.children.forEach((listItem, idx) => {
     const number = (bibliographyList!.start ?? 1) + idx
     const anchorId = `bib-${number}`
+    const debugEntry = anchorId === 'bib-55' || anchorId === 'bib-316'
+    
     ensureListItemAnchor(listItem, anchorId)
     const normalised = extractUrlFromListItem(listItem)
+    
+    if (debugEntry) {
+      console.log(`\n=== ${anchorId}: Extracted URL ===`)
+      console.log('Normalized URL:', normalised)
+      console.log('Already exists?', normalised ? urlToExistingNumber.has(normalised) : 'N/A')
+    }
+    
     const entry: ExistingEntryInfo = {
       number,
       normalizedUrl: normalised,
@@ -835,6 +887,11 @@ export async function processMarkdown(
     }
     if (normalised && !urlToExistingNumber.has(normalised)) {
       urlToExistingNumber.set(normalised, entry)
+      if (debugEntry) {
+        console.log('Added to urlToExistingNumber map')
+      }
+    } else if (debugEntry && normalised) {
+      console.log('SKIPPED - URL already in map')
     }
     numberToEntry.set(number, entry)
     allEntries.push(entry)
