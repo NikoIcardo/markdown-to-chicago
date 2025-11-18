@@ -374,6 +374,7 @@ function createListItemFromParagraph(paragraph: Paragraph): ListItem | null {
 function extractUrlFromListItem(listItem: ListItem): string | undefined {
   let extracted: string | undefined
 
+  // First try to find actual link nodes
   visit(listItem, 'link', (node: Link) => {
     if (!extracted && typeof node.url === 'string' && node.url.trim().length > 0) {
       extracted = normalizeUrl(node.url)
@@ -384,6 +385,21 @@ function extractUrlFromListItem(listItem: ListItem): string | undefined {
     return extracted
   }
 
+  // Then check HTML nodes (for re-processed files with anchor tags)
+  visit(listItem, 'html', (node: Html) => {
+    if (!extracted && node.value) {
+      const match = node.value.match(/https?:\/\/[^\s<>\]")'}]+/i)
+      if (match) {
+        extracted = normalizeUrl(stripTrailingPunctuationFromUrl(match[0]))
+      }
+    }
+  })
+
+  if (extracted) {
+    return extracted
+  }
+
+  // Finally try to extract from text content
   const textValue = toString(listItem)
   const match = textValue.match(/https?:\/\/[^\s<>\]")'}]+/i)
   if (match) {

@@ -47,13 +47,20 @@ frontend/
 
 ## Recent Changes
 
-### Nov 17, 2025 (Latest)
+### Nov 18, 2025 (Latest)
+- **Fixed Duplicate Bibliography Entries**: Resolved issue where re-uploading processed markdown created hundreds of duplicate sources
+  - Enhanced `extractUrlFromListItem` to handle HTML anchor tags in existing bibliography entries
+  - Properly extracts URLs from re-processed files with `<a id="bib-X"></a>` markers
+  - Existing sources are now correctly detected and reused instead of being duplicated
+  - Download → Re-upload → Re-upload flow now works without creating duplicate bibliographies
+
+### Nov 17, 2025
 - **Smart Citation Parsing with HTML Stripping**: Enhanced metadata extraction from existing bibliography entries
   - Strips HTML anchor tags (`<a id="bib-X"></a>`) before parsing to support re-uploading processed markdown
   - Parses titles (quoted, italicized, or plain text), authors, dates, and publisher/site names
   - Extracts titles BEFORE stripping access markers to preserve titles containing "Accessed/Retrieved/Viewed"
   - Removes trailing punctuation from extracted titles (prevents double periods in citations)
-  - Strips standalone "Accessed/Retrieved/Viewed" markers only at end of text (preserves site names starting with these words)
+  - Strips standalone "Accessed/Retrieved/Viewed" markers with multiple trailing punctuation (e.g., "Accessed . .")
   - Pre-fills metadata form with any existing information found
   - Supports various date formats (full dates, month-year, year only)
   - **Download → Re-upload flow**: Processed markdown files can be re-uploaded without data corruption
