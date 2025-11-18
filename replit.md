@@ -48,7 +48,7 @@ frontend/
 ## Recent Changes
 
 ### Nov 18, 2025 (Latest)
-- **Fixed Duplicate Bibliography Entries**: Comprehensive fix for re-upload bibliography duplication (5 critical bugs fixed)
+- **Fixed Duplicate Bibliography Entries**: Complete fix for re-upload bibliography duplication (5 critical bugs fixed)
   - **Root causes identified**: 
     1. Markdown escape sequences (`\_`, `\-`) in URLs prevented proper duplicate detection
     2. Self-referential citation links (`#bib-X`) were corrupting URL extraction

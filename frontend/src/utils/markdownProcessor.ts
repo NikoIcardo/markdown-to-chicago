@@ -540,10 +540,19 @@ function addSubtreeToSet(node: Node, set: WeakSet<Node>) {
 }
 
 function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
-  // First, remove ALL existing anchor tags (both top-level and in paragraphs)
-  listItem.children = listItem.children.filter((child) => {
-    if (child.type === 'html' && /<a id="[^"]*"><\/a>/i.test((child as Html).value)) {
-      return false // Remove top-level anchor HTML nodes
+  // Surgically remove anchor IDs from HTML nodes without deleting the entire node
+  listItem.children = listItem.children.map((child) => {
+    if (child.type === 'html') {
+      const htmlNode = child as Html
+      // Strip out anchor ID tags but keep the rest of the HTML
+      htmlNode.value = htmlNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
+      return htmlNode
+    }
+    return child
+  }).filter((child) => {
+    // Only remove HTML nodes if they're now completely empty
+    if (child.type === 'html') {
+      return (child as Html).value.trim().length > 0
     }
     return true
   })
@@ -552,9 +561,16 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
   listItem.children.forEach((child) => {
     if (child.type === 'paragraph') {
       const paragraph = child as Paragraph
-      paragraph.children = paragraph.children.filter((pChild) => {
-        if (pChild.type === 'html' && /<a id="[^"]*"><\/a>/i.test((pChild as Html).value)) {
-          return false
+      paragraph.children = paragraph.children.map((pChild) => {
+        if (pChild.type === 'html') {
+          const htmlNode = pChild as Html
+          htmlNode.value = htmlNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
+          return htmlNode
+        }
+        return pChild
+      }).filter((pChild) => {
+        if (pChild.type === 'html') {
+          return (pChild as Html).value.trim().length > 0
         }
         return true
       })
