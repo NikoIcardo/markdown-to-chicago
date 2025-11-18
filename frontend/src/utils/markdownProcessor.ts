@@ -575,7 +575,13 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
     if (child.type === 'html') {
       const htmlNode = child as Html
       const before = htmlNode.value
-      htmlNode.value = htmlNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
+      // Remove complete anchors: <a id="bib-55"></a>
+      // Remove opening tags: <a id="bib-55">
+      // Remove standalone closing tags: </a>
+      htmlNode.value = htmlNode.value
+        .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor
+        .replace(/<a\s+id="bib-\d+">/gi, '')          // Opening tag only
+        .replace(/^\s*<\/a>\s*$/gi, '')                // Standalone closing tag
       if (debugAnchor && before !== htmlNode.value) {
         console.log('Cleaned HTML node at root:', { before: before.substring(0, 100), after: htmlNode.value.substring(0, 100) })
       }
@@ -597,7 +603,11 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
         if (pChild.type === 'html') {
           const htmlNode = pChild as Html
           const before = htmlNode.value
-          htmlNode.value = htmlNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
+          // Remove complete anchors, opening tags, and standalone closing tags
+          htmlNode.value = htmlNode.value
+            .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor
+            .replace(/<a\s+id="bib-\d+">/gi, '')          // Opening tag only
+            .replace(/^\s*<\/a>\s*$/gi, '')                // Standalone closing tag
           if (debugAnchor && before !== htmlNode.value) {
             console.log('Cleaned HTML node in paragraph:', { before: before.substring(0, 100), after: htmlNode.value.substring(0, 100) })
           }
@@ -607,7 +617,11 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
           const textNode = pChild as any
           if (typeof textNode.value === 'string') {
             const before = textNode.value
-            textNode.value = textNode.value.replace(/<a id="[^"]*"><\/a>/gi, '')
+            // Remove complete anchors, opening tags, and standalone closing tags from text nodes too
+            textNode.value = textNode.value
+              .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor
+              .replace(/<a\s+id="bib-\d+">/gi, '')          // Opening tag only
+              .replace(/^\s*<\/a>\s*$/gi, '')                // Standalone closing tag
             if (debugAnchor && before !== textNode.value) {
               console.log('Cleaned TEXT node in paragraph:', { before: before.substring(0, 100), after: textNode.value.substring(0, 100) })
             }
