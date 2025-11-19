@@ -784,8 +784,10 @@ export async function processMarkdown(
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
     const tree = processor.parse(markdown) as Root
-    const containsCitationLinks = markdown.includes('citation-link')
-    if (!containsCitationLinks) {
+    const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
+    const hasCitationReferences = /href="#bib-\d+"/i.test(markdown)
+    const isPreviouslyProcessed = hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
+    if (!isPreviouslyProcessed) {
       removeExistingCitationReferences(tree)
     }
     normalizeTableOfContents(tree)
@@ -962,7 +964,7 @@ export async function processMarkdown(
       matches: Array<{ start: number; end: number; url: string }>
     }> = []
 
-    if (!containsCitationLinks) {
+    if (!isPreviouslyProcessed) {
       const definitionMap = new Map<string, Definition>()
       visit(tree, 'definition', (node: Definition) => {
         if (!node.identifier || !node.url) {
