@@ -8,7 +8,22 @@ import { visit, SKIP } from 'unist-util-visit'
 import { visitParents } from 'unist-util-visit-parents'
 import { toString } from 'mdast-util-to-string'
 import yaml from 'js-yaml'
-import type { Code, Content, Heading, Html, Link, List, ListItem, Parent, Paragraph, PhrasingContent, Root, Text } from 'mdast'
+import type {
+  Code,
+  Content,
+  Definition,
+  Heading,
+  Html,
+  Link,
+  LinkReference,
+  List,
+  ListItem,
+  Parent,
+  Paragraph,
+  PhrasingContent,
+  Root,
+  Text,
+} from 'mdast'
 import type { Node } from 'unist'
 import type {
   BibliographyEntry,
@@ -212,8 +227,8 @@ type SectionRange = {
 
 type UrlOccurrence =
   | {
-      type: 'link'
-      node: Link
+  type: 'link'
+  node: Link | LinkReference
       parent: Parent
       index: number
     }
@@ -918,16 +933,39 @@ export async function processMarkdown(
     matches: Array<{ start: number; end: number; url: string }>
   }> = []
 
-  visitParents(tree, ['link', 'text'], (node, ancestors) => {
-    if (
-      ancestors.some((ancestor) => excludedNodes.has(ancestor)) ||
-      ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))
-    ) {
+  const definitionMap = new Map<string, Definition>()
+  visit(tree, 'definition', (node: Definition) => {
+    if (!node.identifier || !node.url) {
       return
     }
+    definitionMap.set(node.identifier.toLowerCase(), node)
+  })
 
-    if (node.type === 'link') {
-      const url = node.url || ''
+  visitParents(tree, ['link', 'linkReference', 'text'], (node, ancestors) => {
+    if (node.type === 'link' || node.type === 'linkReference') {
+      const shouldExclude = ancestors.some((ancestor) => excludedNodes.has(ancestor))
+      if (
+        shouldExclude &&
+        ancestors.some((ancestor) => ancestor.type === 'linkReference')
+      ) {
+        // Links inside bibliographies should still be tracked for renumbering
+      } else if (shouldExclude || ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))) {
+        return
+      }
+
+      let url: string | undefined
+      if (node.type === 'link') {
+        url = node.url || ''
+      } else if (node.type === 'linkReference') {
+        if (!node.identifier) {
+          return
+        }
+        const definition = definitionMap.get(node.identifier.toLowerCase())
+        url = definition?.url
+      }
+      if (!url) {
+        return
+      }
       if (!/^https?:\/\//i.test(url)) {
         return
       }
@@ -952,6 +990,12 @@ export async function processMarkdown(
       })
       urlOccurrences.set(normalised, occurrences)
     } else if (node.type === 'text') {
+      if (
+        ancestors.some((ancestor) => excludedNodes.has(ancestor)) ||
+        ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))
+      ) {
+        return
+      }
       const parent = ancestors[ancestors.length - 1] as Parent
       if (parent.type === 'link') {
         return
