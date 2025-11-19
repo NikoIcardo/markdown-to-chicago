@@ -256,8 +256,10 @@ const excludedAncestorTypes = new Set(['code', 'inlineCode', 'definition'])
 
 function normalizeUrl(url: string): string {
   try {
-    // Remove Markdown escape sequences (e.g., \_, \-, etc.) before parsing
-    const unescaped = url.trim().replace(/\\([_\-*[\](){}#.!+`~|])/g, '$1')
+    // Remove Markdown escape sequences (e.g., \_, \-, \&, etc.) before parsing
+    const unescaped = url
+      .trim()
+      .replace(/\\([\\_\-*[\](){}#.!+`~|&])/g, '$1')
     const parsed = new URL(unescaped)
     parsed.hash = ''
     const normalised = parsed.toString()
@@ -745,16 +747,52 @@ interface ProcessMarkdownOptions {
   manualMetadata?: Record<string, ManualMetadataInput>
 }
 
+function removeExistingCitationReferences(root: Root) {
+  visit(root, 'html', (node, index, parent) => {
+    if (
+      typeof node.value === 'string' &&
+      node.value.includes('class="citation-link"') &&
+      parent &&
+      typeof index === 'number'
+    ) {
+      ;(parent as Parent).children.splice(index, 1)
+      return [SKIP, index]
+    }
+    return undefined
+  })
+}
+
+function findStandaloneBibliographyList(root: Root): { index: number; list: List } | null {
+  for (let i = 0; i < root.children.length; i += 1) {
+    const node = root.children[i]
+    if (node.type === 'list') {
+      const list = node as List
+      const isBibliographyLike = list.children.every((item) => {
+        const textValue = toString(item)
+        return /id="bib-\d+"/i.test(textValue)
+      })
+      if (isBibliographyLike) {
+        return { index: i, list }
+      }
+    }
+  }
+  return null
+}
+
 export async function processMarkdown(
   markdown: string,
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
-  const tree = processor.parse(markdown) as Root
-  normalizeTableOfContents(tree)
-  const diagnostics: ProcessingDiagnostics = { warnings: [], errors: [] }
-  const metadataIssues: MetadataIssue[] = []
+    const tree = processor.parse(markdown) as Root
+    const containsCitationLinks = markdown.includes('citation-link')
+    if (!containsCitationLinks) {
+      removeExistingCitationReferences(tree)
+    }
+    normalizeTableOfContents(tree)
+    const diagnostics: ProcessingDiagnostics = { warnings: [], errors: [] }
+    const metadataIssues: MetadataIssue[] = []
 
-  const manualMetadataMap = new Map<string, ManualMetadataInput>()
+    const manualMetadataMap = new Map<string, ManualMetadataInput>()
   if (options.manualMetadata) {
     Object.values(options.manualMetadata).forEach((entry) => {
       if (!entry) return
@@ -786,51 +824,48 @@ export async function processMarkdown(
     )
   }
 
-  let bibliographyRange = findSectionRange(tree, 'bibliography')
-  const rootChildren = tree.children
+    const rootChildren = tree.children as Content[]
+    const existingBibliographyRange = findSectionRange(tree, 'bibliography')
+    let existingBibliographyItems: ListItem[] = []
+    let insertIndex = rootChildren.length
 
-  let bibliographyHeading: Heading
+    if (existingBibliographyRange) {
+      const existingNodes = collectNodesInRange(tree, existingBibliographyRange)
+      const existingList = existingNodes.find((node): node is List => node.type === 'list')
+      if (existingList) {
+        existingBibliographyItems = existingList.children as ListItem[]
+      }
+      rootChildren.splice(
+        existingBibliographyRange.startIndex,
+        existingBibliographyRange.endIndex - existingBibliographyRange.startIndex,
+      )
+      insertIndex = existingBibliographyRange.startIndex
+    } else {
+      const standaloneList = findStandaloneBibliographyList(tree)
+      if (standaloneList) {
+        existingBibliographyItems = standaloneList.list.children as ListItem[]
+        rootChildren.splice(standaloneList.index, 1)
+        insertIndex = standaloneList.index
+      }
+    }
 
-  if (bibliographyRange) {
-    bibliographyHeading = rootChildren[bibliographyRange.startIndex] as Heading
-    bibliographyHeading.depth = normalizedHeadingDepth
-  } else {
-    bibliographyHeading = {
+    const bibliographyHeading: Heading = {
       type: 'heading',
       depth: normalizedHeadingDepth,
       children: [{ type: 'text', value: 'Bibliography' }],
     }
-    rootChildren.push(bibliographyHeading)
-    const listNode: List = {
+
+    const bibliographyList: List = {
       type: 'list',
       ordered: true,
       spread: false,
       start: 1,
       children: [],
     }
-    rootChildren.push(listNode)
-    bibliographyRange = {
-      startIndex: rootChildren.length - 2,
-      endIndex: rootChildren.length,
-      depth: bibliographyHeading.depth,
-    }
-  }
 
-  const bibliographyNodes = collectNodesInRange(tree, bibliographyRange!)
-  let bibliographyList = bibliographyNodes.find(
-    (node): node is List => node.type === 'list',
-  )
+    rootChildren.splice(insertIndex, 0, bibliographyHeading, bibliographyList)
 
-  if (!bibliographyList) {
-    bibliographyList = {
-      type: 'list',
-      ordered: true,
-      spread: false,
-      start: 1,
-      children: [],
-    }
-    rootChildren.splice(bibliographyRange!.endIndex, 0, bibliographyList)
-  }
+    const bibliographyNodes: Node[] = [bibliographyHeading, bibliographyList]
 
   ensureBibliographyInTableOfContents(tree)
 
@@ -844,19 +879,18 @@ export async function processMarkdown(
   const numberToEntry = new Map<number, ExistingEntryInfo>()
   const allEntries: ExistingEntryInfo[] = []
 
-  bibliographyList.children.forEach((listItem, idx) => {
+    const existingItemsToProcess = existingBibliographyItems.length
+      ? existingBibliographyItems.map((item) => cloneNode(item))
+      : (bibliographyList.children as ListItem[])
+
+    existingItemsToProcess.forEach((listItem, idx) => {
+      if (!bibliographyList.children.includes(listItem)) {
+        bibliographyList.children.push(listItem)
+      }
     const number = (bibliographyList!.start ?? 1) + idx
     const anchorId = `bib-${number}`
-    const debugEntry = anchorId === 'bib-55' || anchorId === 'bib-316'
-    
     ensureListItemAnchor(listItem, anchorId)
     const normalised = extractUrlFromListItem(listItem)
-    
-    if (debugEntry) {
-      console.log(`\n=== ${anchorId}: Extracted URL ===`)
-      console.log('Normalized URL:', normalised)
-      console.log('Already exists?', normalised ? urlToExistingNumber.has(normalised) : 'N/A')
-    }
     
     const entry: ExistingEntryInfo = {
       number,
@@ -871,11 +905,6 @@ export async function processMarkdown(
     }
     if (normalised && !urlToExistingNumber.has(normalised)) {
       urlToExistingNumber.set(normalised, entry)
-      if (debugEntry) {
-        console.log('Added to urlToExistingNumber map')
-      }
-    } else if (debugEntry && normalised) {
-      console.log('SKIPPED - URL already in map')
     }
     numberToEntry.set(number, entry)
     allEntries.push(entry)
@@ -924,131 +953,133 @@ export async function processMarkdown(
     }
   })
 
-  const urlOccurrences = new Map<string, UrlOccurrence[]>()
-  const urlFirstOccurrence = new Map<string, number>()
-  let occurrenceCounter = 0
-  const bareTextOccurrences: Array<{
-    node: Text
-    parent: Parent
-    matches: Array<{ start: number; end: number; url: string }>
-  }> = []
+    const urlOccurrences = new Map<string, UrlOccurrence[]>()
+    const urlFirstOccurrence = new Map<string, number>()
+    let occurrenceCounter = 0
+    const bareTextOccurrences: Array<{
+      node: Text
+      parent: Parent
+      matches: Array<{ start: number; end: number; url: string }>
+    }> = []
 
-  const definitionMap = new Map<string, Definition>()
-  visit(tree, 'definition', (node: Definition) => {
-    if (!node.identifier || !node.url) {
-      return
-    }
-    definitionMap.set(node.identifier.toLowerCase(), node)
-  })
-
-  visitParents(tree, ['link', 'linkReference', 'text'], (node, ancestors) => {
-    if (node.type === 'link' || node.type === 'linkReference') {
-      const shouldExclude = ancestors.some((ancestor) => excludedNodes.has(ancestor))
-      if (
-        shouldExclude &&
-        ancestors.some((ancestor) => ancestor.type === 'linkReference')
-      ) {
-        // Links inside bibliographies should still be tracked for renumbering
-      } else if (shouldExclude || ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))) {
-        return
-      }
-
-      let url: string | undefined
-      if (node.type === 'link') {
-        url = node.url || ''
-      } else if (node.type === 'linkReference') {
-        if (!node.identifier) {
+    if (!containsCitationLinks) {
+      const definitionMap = new Map<string, Definition>()
+      visit(tree, 'definition', (node: Definition) => {
+        if (!node.identifier || !node.url) {
           return
         }
-        const definition = definitionMap.get(node.identifier.toLowerCase())
-        url = definition?.url
-      }
-      if (!url) {
-        return
-      }
-      if (!/^https?:\/\//i.test(url)) {
-        return
-      }
-
-      const normalised = normalizeUrl(url)
-      const position = occurrenceCounter++
-      if (!urlFirstOccurrence.has(normalised)) {
-        urlFirstOccurrence.set(normalised, position)
-      }
-      const parent = ancestors[ancestors.length - 1] as Parent
-      const index = parent.children.indexOf(node as Content)
-      if (index === -1) {
-        return
-      }
-
-      const occurrences = urlOccurrences.get(normalised) || []
-      occurrences.push({
-        type: 'link',
-        node,
-        parent,
-        index,
+        definitionMap.set(node.identifier.toLowerCase(), node)
       })
-      urlOccurrences.set(normalised, occurrences)
-    } else if (node.type === 'text') {
-      if (
-        ancestors.some((ancestor) => excludedNodes.has(ancestor)) ||
-        ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))
-      ) {
-        return
-      }
-      const parent = ancestors[ancestors.length - 1] as Parent
-      if (parent.type === 'link') {
-        return
-      }
 
-      const matches: Array<{ start: number; end: number; url: string }> = []
-      const text = node.value
-      let match: RegExpExecArray | null
-      MARKDOWN_URL_REGEX.lastIndex = 0
-      while ((match = MARKDOWN_URL_REGEX.exec(text))) {
-        const rawUrl = match[1]
-        const cleanedUrl = stripTrailingPunctuationFromUrl(rawUrl)
-        const removed = rawUrl.length - cleanedUrl.length
-        matches.push({
-          start: match.index,
-          end: match.index + rawUrl.length - removed,
-          url: cleanedUrl,
-        })
-      }
+      visitParents(tree, ['link', 'linkReference', 'text'], (node, ancestors) => {
+        if (node.type === 'link' || node.type === 'linkReference') {
+          const shouldExclude = ancestors.some((ancestor) => excludedNodes.has(ancestor))
+          if (
+            shouldExclude &&
+            ancestors.some((ancestor) => ancestor.type === 'linkReference')
+          ) {
+            // Links inside bibliographies should still be tracked for renumbering
+          } else if (shouldExclude || ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))) {
+            return
+          }
 
-      if (matches.length) {
-        bareTextOccurrences.push({
-          node,
-          parent,
-          matches: matches.map((m) => ({ ...m })),
-        })
+          let url: string | undefined
+          if (node.type === 'link') {
+            url = node.url || ''
+          } else if (node.type === 'linkReference') {
+            if (!node.identifier) {
+              return
+            }
+            const definition = definitionMap.get(node.identifier.toLowerCase())
+            url = definition?.url
+          }
+          if (!url) {
+            return
+          }
+          if (!/^https?:\/\//i.test(url)) {
+            return
+          }
 
-        const perUrlMatches = new Map<string, Array<{ start: number; end: number }>>()
-        matches.forEach((m) => {
-          const normalised = normalizeUrl(m.url)
+          const normalised = normalizeUrl(url)
           const position = occurrenceCounter++
           if (!urlFirstOccurrence.has(normalised)) {
             urlFirstOccurrence.set(normalised, position)
           }
-          const list = perUrlMatches.get(normalised) || []
-          list.push({ start: m.start, end: m.end })
-          perUrlMatches.set(normalised, list)
-        })
+          const parent = ancestors[ancestors.length - 1] as Parent
+          const index = parent.children.indexOf(node as Content)
+          if (index === -1) {
+            return
+          }
 
-        perUrlMatches.forEach((matchList, normalised) => {
-          const list = urlOccurrences.get(normalised) || []
-          list.push({
-            type: 'bare',
+          const occurrences = urlOccurrences.get(normalised) || []
+          occurrences.push({
+            type: 'link',
             node,
             parent,
-            index: parent.children.indexOf(node as Content),
-            matches: matchList,
+            index,
           })
-          urlOccurrences.set(normalised, list)
-        })
-      }
+          urlOccurrences.set(normalised, occurrences)
+        } else if (node.type === 'text') {
+          if (
+            ancestors.some((ancestor) => excludedNodes.has(ancestor)) ||
+            ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))
+          ) {
+            return
+          }
+          const parent = ancestors[ancestors.length - 1] as Parent
+          if (parent.type === 'link') {
+            return
+          }
+
+          const matches: Array<{ start: number; end: number; url: string }> = []
+          const text = node.value
+          let match: RegExpExecArray | null
+          MARKDOWN_URL_REGEX.lastIndex = 0
+          while ((match = MARKDOWN_URL_REGEX.exec(text))) {
+            const rawUrl = match[1]
+            const cleanedUrl = stripTrailingPunctuationFromUrl(rawUrl)
+            const removed = rawUrl.length - cleanedUrl.length
+            matches.push({
+              start: match.index,
+              end: match.index + rawUrl.length - removed,
+              url: cleanedUrl,
+            })
+          }
+
+          if (matches.length) {
+            bareTextOccurrences.push({
+              node,
+              parent,
+              matches: matches.map((m) => ({ ...m })),
+            })
+
+            const perUrlMatches = new Map<string, Array<{ start: number; end: number }>>()
+            matches.forEach((m) => {
+              const normalised = normalizeUrl(m.url)
+              const position = occurrenceCounter++
+              if (!urlFirstOccurrence.has(normalised)) {
+                urlFirstOccurrence.set(normalised, position)
+              }
+              const list = perUrlMatches.get(normalised) || []
+              list.push({ start: m.start, end: m.end })
+              perUrlMatches.set(normalised, list)
+            })
+
+            perUrlMatches.forEach((matchList, normalised) => {
+              const list = urlOccurrences.get(normalised) || []
+              list.push({
+                type: 'bare',
+                node,
+                parent,
+                index: parent.children.indexOf(node as Content),
+                matches: matchList,
+              })
+              urlOccurrences.set(normalised, list)
+            })
+          }
+        }
+      })
     }
-  })
 
   // Collect URLs from sections that should be excluded from bibliography FIRST
   // NOTE: These section names intentionally don't match actual headings
