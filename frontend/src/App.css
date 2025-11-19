@@ -225,6 +225,36 @@
   display: none;
 }
 
+.file-input__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.file-input__clear {
+  background: none;
+  border: 1px solid var(--color-border-soft);
+  color: var(--color-text-primary);
+  padding: 0.7rem 1.2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.file-input__clear:hover {
+  background-color: var(--color-muted-surface);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.file-input__clear:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft-glow);
+}
+
 .toggle {
   display: flex;
   align-items: center;
