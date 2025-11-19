@@ -927,9 +927,30 @@ export async function processMarkdown(
     }
 
     if (node.type === 'link') {
-      // Skip markdown links [text](URL) - they're inline content, not bibliography entries
-      // Only harvest bare text URLs that need citations
-      return
+      const url = node.url || ''
+      if (!/^https?:\/\//i.test(url)) {
+        return
+      }
+
+      const normalised = normalizeUrl(url)
+      const position = occurrenceCounter++
+      if (!urlFirstOccurrence.has(normalised)) {
+        urlFirstOccurrence.set(normalised, position)
+      }
+      const parent = ancestors[ancestors.length - 1] as Parent
+      const index = parent.children.indexOf(node as Content)
+      if (index === -1) {
+        return
+      }
+
+      const occurrences = urlOccurrences.get(normalised) || []
+      occurrences.push({
+        type: 'link',
+        node,
+        parent,
+        index,
+      })
+      urlOccurrences.set(normalised, occurrences)
     } else if (node.type === 'text') {
       const parent = ancestors[ancestors.length - 1] as Parent
       if (parent.type === 'link') {
