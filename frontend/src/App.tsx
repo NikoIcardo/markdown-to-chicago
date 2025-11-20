@@ -108,6 +108,14 @@ const FONT_OPTIONS = ['Times New Roman', 'Helvetica', 'Courier New'] as const
 export type FontOption = typeof FONT_OPTIONS[number]
 type Theme = 'light' | 'dark'
 
+const createEmptyManualFormState = () => ({
+  url: '',
+  title: '',
+  authors: '',
+  siteName: '',
+  accessDate: '',
+})
+
 function App() {
   const [fileName, setFileName] = useState<string | null>(null)
   const [originalMarkdown, setOriginalMarkdown] = useState<string>('')
@@ -122,17 +130,12 @@ function App() {
     useState<Record<SectionKey, boolean>>(initialSectionState)
   const [promptForManualMetadata, setPromptForManualMetadata] = useState(true)
   const manualMetadataOverridesRef = useRef<Record<string, ManualMetadataInput>>({})
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [manualMetadataQueue, setManualMetadataQueue] = useState<MetadataIssue[]>([])
   const [currentManualIndex, setCurrentManualIndex] = useState(0)
   const [manualMetadataModalOpen, setManualMetadataModalOpen] = useState(false)
   const [showSkipAllConfirmation, setShowSkipAllConfirmation] = useState(false)
-  const [manualFormState, setManualFormState] = useState({
-    url: '',
-    title: '',
-    authors: '',
-    siteName: '',
-    accessDate: '',
-  })
+  const [manualFormState, setManualFormState] = useState(createEmptyManualFormState)
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
   const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
@@ -177,13 +180,17 @@ function App() {
     const persisted = loadPersistedSession()
     if (persisted) {
       console.log('📦 Restoring persisted session from localStorage')
-      setFileName(persisted.fileName)
-      setOriginalMarkdown(persisted.originalMarkdown)
-      setProcessed(persisted.processed)
-      manualMetadataOverridesRef.current = persisted.manualMetadataOverrides
-      setSelectedFontFamily(persisted.selectedFontFamily)
-      setBodyFontSize(persisted.bodyFontSize)
-      setPromptForManualMetadata(persisted.promptForManualMetadata)
+        setFileName(persisted.fileName)
+        setOriginalMarkdown(persisted.originalMarkdown)
+        setProcessed(persisted.processed)
+        manualMetadataOverridesRef.current = persisted.manualMetadataOverrides ?? {}
+        setSelectedFontFamily(persisted.selectedFontFamily)
+        setBodyFontSize(persisted.bodyFontSize)
+        setPromptForManualMetadata(
+          typeof persisted.promptForManualMetadata === 'boolean'
+            ? persisted.promptForManualMetadata
+            : true,
+        )
       
       if (persisted.processed) {
         setProcessingState('processed')
@@ -429,6 +436,29 @@ function App() {
 
   const bibliographyEntries = useMemo(() => processed?.bibliographyEntries ?? [], [processed])
 
+  const handleClearDocument = () => {
+    clearPersistedSession()
+    manualMetadataOverridesRef.current = {}
+    setFileName(null)
+    setOriginalMarkdown('')
+    setProcessed(null)
+    setProcessingState('idle')
+    setErrorMessage(null)
+    setManualMetadataQueue([])
+    setCurrentManualIndex(0)
+    setManualMetadataModalOpen(false)
+    setShowSkipAllConfirmation(false)
+    setPendingManualMarkdown(null)
+    setShowBibliographyNotice(false)
+    setExpandedSections({ ...initialSectionState })
+    setManualFormState(createEmptyManualFormState())
+    setIsGeneratingPdf(false)
+    setIsGeneratingDocx(false)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   // Memoize expensive markdown preview to prevent re-renders during form typing
   const markdownPreview = useMemo(() => {
     if (!processed) return null
@@ -481,11 +511,23 @@ function App() {
           isOpen={expandedSections.upload}
           onToggle={() => toggleSection('upload')}
         >
-          <p>Select a markdown file to begin processing.</p>
-          <label className="file-input">
-            <input type="file" accept=".md,.markdown,text/markdown" onChange={handleFileSelection} />
-            <span>{fileName ?? 'Choose Markdown File'}</span>
-          </label>
+            <p>Select a markdown file to begin processing.</p>
+            <div className="file-input__actions">
+              <label className="file-input">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".md,.markdown,text/markdown"
+                  onChange={handleFileSelection}
+                />
+                <span>{fileName ?? 'Choose Markdown File'}</span>
+              </label>
+              {(fileName || originalMarkdown || processed) && (
+                <button type="button" className="file-input__clear" onClick={handleClearDocument}>
+                  Clear Document
+                </button>
+              )}
+            </div>
           <div className="toggle">
             <label className="toggle__control">
               <input
