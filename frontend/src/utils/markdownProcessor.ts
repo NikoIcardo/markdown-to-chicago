@@ -779,22 +779,41 @@ function findStandaloneBibliographyList(root: Root): { index: number; list: List
   return null
 }
 
+function collectBibliographyEntriesFromList(list: List): BibliographyEntry[] {
+  const start = list.start ?? 1
+  return list.children.map((item, idx) => {
+    const listItem = item as ListItem
+    const number = start + idx
+    const citation = toString(listItem).trim()
+    const url = extractUrlFromListItem(listItem) ?? ''
+    return {
+      number,
+      url,
+      citation,
+      anchorId: `bib-${number}`,
+      isNew: false,
+      sourceType: 'existing',
+    }
+  })
+}
+
 export async function processMarkdown(
   markdown: string,
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
-    const tree = processor.parse(markdown) as Root
-    const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
-    const hasCitationReferences = /href="#bib-\d+"/i.test(markdown)
-    const isPreviouslyProcessed = hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
-    if (!isPreviouslyProcessed) {
-      removeExistingCitationReferences(tree)
-    }
-    normalizeTableOfContents(tree)
-    const diagnostics: ProcessingDiagnostics = { warnings: [], errors: [] }
-    const metadataIssues: MetadataIssue[] = []
+  const tree = processor.parse(markdown) as Root
+  const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
+  const hasCitationReferences = /href="#bib-\d+"/i.test(markdown)
+  const isPreviouslyProcessed =
+    hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
+  if (!isPreviouslyProcessed) {
+    removeExistingCitationReferences(tree)
+  }
+  normalizeTableOfContents(tree)
+  const diagnostics: ProcessingDiagnostics = { warnings: [], errors: [] }
+  const metadataIssues: MetadataIssue[] = []
 
-    const manualMetadataMap = new Map<string, ManualMetadataInput>()
+  const manualMetadataMap = new Map<string, ManualMetadataInput>()
   if (options.manualMetadata) {
     Object.values(options.manualMetadata).forEach((entry) => {
       if (!entry) return
@@ -818,6 +837,53 @@ export async function processMarkdown(
 
   const normalizedHeadingDepth = Math.min(Math.max(mainHeadingDepth, 1), 6) as 1 | 2 | 3 | 4 | 5 | 6
 
+  if (isPreviouslyProcessed) {
+    const { title, subtitle, headings } = extractHeadings(tree)
+    tree.children = tree.children.filter((node) => node.type !== 'yaml')
+    const removedTitleHeading = removeInitialHeadingMatchingTitle(tree, title)
+
+    let sanitizedHeadings = headings
+    if (removedTitleHeading && title) {
+      const normalizedTitle = title.trim().toLowerCase()
+      sanitizedHeadings = headings.filter(
+        (heading, index) =>
+          !(
+            heading.depth === 1 &&
+            heading.text.trim().toLowerCase() === normalizedTitle &&
+            index === 0
+          ),
+      )
+    }
+
+    let bibliographyList: List | null = null
+    const bibliographyRange = findSectionRange(tree, 'bibliography')
+    if (bibliographyRange) {
+      const nodes = collectNodesInRange(tree, bibliographyRange)
+      bibliographyList = nodes.find((node): node is List => node.type === 'list') ?? null
+    }
+    if (!bibliographyList) {
+      const standalone = findStandaloneBibliographyList(tree)
+      if (standalone) {
+        bibliographyList = standalone.list
+      }
+    }
+    const bibliographyEntries = bibliographyList
+      ? collectBibliographyEntriesFromList(bibliographyList)
+      : []
+
+    return {
+      original: markdown,
+      modified: markdown,
+      title,
+      subtitle,
+      mainHeadingDepth: normalizedHeadingDepth,
+      headings: sanitizedHeadings,
+      bibliographyEntries,
+      diagnostics,
+      metadataIssues,
+    }
+  }
+
   const tableOfContentsRange = findSectionRange(tree, 'table of contents')
   const excludedNodes = new WeakSet<Node>()
   if (tableOfContentsRange) {
@@ -826,48 +892,48 @@ export async function processMarkdown(
     )
   }
 
-    const rootChildren = tree.children as Content[]
-    const existingBibliographyRange = findSectionRange(tree, 'bibliography')
-    let existingBibliographyItems: ListItem[] = []
-    let insertIndex = rootChildren.length
+  const rootChildren = tree.children as Content[]
+  const existingBibliographyRange = findSectionRange(tree, 'bibliography')
+  let existingBibliographyItems: ListItem[] = []
+  let insertIndex = rootChildren.length
 
-    if (existingBibliographyRange) {
-      const existingNodes = collectNodesInRange(tree, existingBibliographyRange)
-      const existingList = existingNodes.find((node): node is List => node.type === 'list')
-      if (existingList) {
-        existingBibliographyItems = existingList.children as ListItem[]
-      }
-      rootChildren.splice(
-        existingBibliographyRange.startIndex,
-        existingBibliographyRange.endIndex - existingBibliographyRange.startIndex,
-      )
-      insertIndex = existingBibliographyRange.startIndex
-    } else {
-      const standaloneList = findStandaloneBibliographyList(tree)
-      if (standaloneList) {
-        existingBibliographyItems = standaloneList.list.children as ListItem[]
-        rootChildren.splice(standaloneList.index, 1)
-        insertIndex = standaloneList.index
-      }
+  if (existingBibliographyRange) {
+    const existingNodes = collectNodesInRange(tree, existingBibliographyRange)
+    const existingList = existingNodes.find((node): node is List => node.type === 'list')
+    if (existingList) {
+      existingBibliographyItems = existingList.children as ListItem[]
     }
-
-    const bibliographyHeading: Heading = {
-      type: 'heading',
-      depth: normalizedHeadingDepth,
-      children: [{ type: 'text', value: 'Bibliography' }],
+    rootChildren.splice(
+      existingBibliographyRange.startIndex,
+      existingBibliographyRange.endIndex - existingBibliographyRange.startIndex,
+    )
+    insertIndex = existingBibliographyRange.startIndex
+  } else {
+    const standaloneList = findStandaloneBibliographyList(tree)
+    if (standaloneList) {
+      existingBibliographyItems = standaloneList.list.children as ListItem[]
+      rootChildren.splice(standaloneList.index, 1)
+      insertIndex = standaloneList.index
     }
+  }
 
-    const bibliographyList: List = {
-      type: 'list',
-      ordered: true,
-      spread: false,
-      start: 1,
-      children: [],
-    }
+  const bibliographyHeading: Heading = {
+    type: 'heading',
+    depth: normalizedHeadingDepth,
+    children: [{ type: 'text', value: 'Bibliography' }],
+  }
 
-    rootChildren.splice(insertIndex, 0, bibliographyHeading, bibliographyList)
+  const bibliographyList: List = {
+    type: 'list',
+    ordered: true,
+    spread: false,
+    start: 1,
+    children: [],
+  }
 
-    const bibliographyNodes: Node[] = [bibliographyHeading, bibliographyList]
+  rootChildren.splice(insertIndex, 0, bibliographyHeading, bibliographyList)
+
+  const bibliographyNodes: Node[] = [bibliographyHeading, bibliographyList]
 
   ensureBibliographyInTableOfContents(tree)
 
