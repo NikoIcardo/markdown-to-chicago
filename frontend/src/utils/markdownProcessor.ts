@@ -812,6 +812,7 @@ export async function processMarkdown(
   normalizeTableOfContents(tree)
   const diagnostics: ProcessingDiagnostics = { warnings: [], errors: [] }
   const metadataIssues: MetadataIssue[] = []
+  const pendingExistingMetadataIssues: Array<{ issue: MetadataIssue; normalizedUrl?: string }> = []
 
   const manualMetadataMap = new Map<string, ManualMetadataInput>()
   if (options.manualMetadata) {
@@ -978,31 +979,34 @@ export async function processMarkdown(
     allEntries.push(entry)
     
     // Check if existing entry is incomplete (just a bare URL without proper citation info)
-    if (normalised) {
-      const citationText = toString(listItem).trim()
-      // Remove common URL decorations to check if it's essentially just the URL
-      const cleanedCitation = citationText
-        .replace(/^\d+\.\s*/, '') // Remove list numbering
-        .replace(/^[\[\(]?\d+[\]\)]?\s*/, '') // Remove reference numbers
-        .trim()
-      
-      // Check if citation is just the URL or very minimal (< 20 chars more than URL)
-      const isIncomplete = 
-        cleanedCitation === normalised ||
-        cleanedCitation.includes(normalised.replace(/^https?:\/\//, '')) ||
-        cleanedCitation.length < normalised.length + 20
-      
-      if (isIncomplete && !manualMetadataMap.has(normalised)) {
-        // Parse any existing metadata from the citation text
-        const partialMetadata = parseExistingCitationMetadata(citationText, normalised)
+      if (normalised) {
+        const citationText = toString(listItem).trim()
+        // Remove common URL decorations to check if it's essentially just the URL
+        const cleanedCitation = citationText
+          .replace(/^\d+\.\s*/, '') // Remove list numbering
+          .replace(/^[\[\(]?\d+[\]\)]?\s*/, '') // Remove reference numbers
+          .trim()
         
-        metadataIssues.push({
-          url: normalised,
-          message: 'Incomplete citation entry. Please add title, authors, and other details.',
-          partialMetadata,
-        })
+        // Check if citation is just the URL or very minimal (< 20 chars more than URL)
+        const isIncomplete = 
+          cleanedCitation === normalised ||
+          cleanedCitation.includes(normalised.replace(/^https?:\/\//, '')) ||
+          cleanedCitation.length < normalised.length + 20
+        
+        if (isIncomplete && !manualMetadataMap.has(normalised)) {
+          // Parse any existing metadata from the citation text
+          const partialMetadata = parseExistingCitationMetadata(citationText, normalised)
+          
+          pendingExistingMetadataIssues.push({
+            issue: {
+              url: normalised,
+              message: 'Incomplete citation entry. Please add title, authors, and other details.',
+              partialMetadata,
+            },
+            normalizedUrl: normalised,
+          })
+        }
       }
-    }
   })
 
   // Track existing citation links to update them later with correct numbers
@@ -1174,6 +1178,32 @@ export async function processMarkdown(
       })
     })
   })
+  
+  const shouldExcludeUrlFromBibliography = (normalizedUrl?: string | null): boolean => {
+    if (!normalizedUrl) {
+      return false
+    }
+    
+    if (urlsToExclude.has(normalizedUrl)) {
+      return true
+    }
+    
+    const lowerUrl = normalizedUrl.toLowerCase()
+    if (lowerUrl.includes('facebook.com') || lowerUrl.includes('reddit.com')) {
+      return true
+    }
+    
+    const hasImageExtension = /\.(png|jpe?g|gif|webp|svg|bmp|ico|tiff?)($|\?|#)/i.test(lowerUrl)
+    const isSubstackImage = lowerUrl.includes('substackcdn.com') && lowerUrl.includes('/image/fetch/')
+    
+    return hasImageExtension || isSubstackImage
+  }
+  
+  pendingExistingMetadataIssues.forEach(({ issue, normalizedUrl }) => {
+    if (!shouldExcludeUrlFromBibliography(normalizedUrl)) {
+      metadataIssues.push(issue)
+    }
+  })
 
   const newUrls: string[] = []
 
@@ -1183,57 +1213,51 @@ export async function processMarkdown(
     }
   })
 
-  if (newUrls.length) {
-    const metadataRecords: Array<{ metadata: SourceMetadata | null; normalizedUrl: string }> = []
-
-    newUrls.forEach((normalizedUrl) => {
-      const manualOverride = manualMetadataMap.get(normalizedUrl)
-      if (manualOverride) {
-        const manualMetadata: SourceMetadata = {
-          url: manualOverride.url || normalizedUrl,
-          title: manualOverride.title || manualOverride.url || normalizedUrl,
-          authors: manualOverride.authors,
-          siteName: manualOverride.siteName,
-          isPdf: manualOverride.isPdf ?? false,
-          accessDate: manualOverride.accessDate ?? format(new Date(), 'MMMM d, yyyy'),
-          sourceType: 'manual',
+    if (newUrls.length) {
+      const metadataRecords: Array<{ metadata: SourceMetadata | null; normalizedUrl: string }> = []
+  
+      newUrls.forEach((normalizedUrl) => {
+        const manualOverride = manualMetadataMap.get(normalizedUrl)
+        if (manualOverride) {
+          const manualMetadata: SourceMetadata = {
+            url: manualOverride.url || normalizedUrl,
+            title: manualOverride.title || manualOverride.url || normalizedUrl,
+            authors: manualOverride.authors,
+            siteName: manualOverride.siteName,
+            isPdf: manualOverride.isPdf ?? false,
+            accessDate: manualOverride.accessDate ?? format(new Date(), 'MMMM d, yyyy'),
+            sourceType: 'manual',
+          }
+          metadataRecords.push({ metadata: manualMetadata, normalizedUrl })
+        } else {
+          metadataRecords.push({ metadata: null, normalizedUrl })
         }
-        metadataRecords.push({ metadata: manualMetadata, normalizedUrl })
-      } else {
-        metadataRecords.push({ metadata: null, normalizedUrl })
-      }
-    })
-
-    for (let i = 0; i < metadataRecords.length; i += 1) {
-      const record = metadataRecords[i]
-      if (!record.metadata) {
-        // Check if this URL should be excluded
-        const shouldExclude = 
-          urlsToExclude.has(record.normalizedUrl) ||
-          record.normalizedUrl.toLowerCase().includes('facebook.com') ||
-          record.normalizedUrl.toLowerCase().includes('reddit.com')
-        
-        // Only add to metadataIssues if it won't be excluded from final bibliography
-        if (!shouldExclude) {
-          // Automatic metadata fetching removed - users can provide metadata manually
-          metadataIssues.push({
+      })
+  
+      for (let i = 0; i < metadataRecords.length; i += 1) {
+        const record = metadataRecords[i]
+        if (!record.metadata) {
+          // Only add to metadataIssues if it won't be excluded from final bibliography
+          if (!shouldExcludeUrlFromBibliography(record.normalizedUrl)) {
+            // Automatic metadata fetching removed - users can provide metadata manually
+            metadataIssues.push({
+              url: record.normalizedUrl,
+              message: 'Metadata not provided. You can add details manually or skip.',
+            })
+          }
+          
+          // Create a default metadata record using the URL
+          const defaultMetadata: SourceMetadata = {
             url: record.normalizedUrl,
-            message: 'Metadata not provided. You can add details manually or skip.',
-          })
+            title: record.normalizedUrl,
+            authors: [],
+            siteName: undefined,
+            isPdf: false,
+            accessDate: format(new Date(), 'MMMM d, yyyy'),
+          }
+          record.metadata = defaultMetadata
         }
-        
-        // Create a default metadata record using the URL
-        const defaultMetadata: SourceMetadata = {
-          url: record.normalizedUrl,
-          title: record.normalizedUrl,
-          authors: [],
-          siteName: undefined,
-          isPdf: false,
-          accessDate: format(new Date(), 'MMMM d, yyyy'),
-        }
-        record.metadata = defaultMetadata
       }
-    }
 
     const existingCount = allEntries.length
     metadataRecords.forEach(({ metadata, normalizedUrl }, idx) => {
@@ -1278,34 +1302,13 @@ export async function processMarkdown(
   })
 
   // Filter out excluded entries (exclusion collection logic moved earlier)
-  const filteredEntries = allEntries.filter((entry) => {
-    if (!entry.normalizedUrl) {
-      return true // Keep entries without URLs
-    }
-    
-    // Exclude if URL is in excluded sections
-    if (urlsToExclude.has(entry.normalizedUrl)) {
-      return false
-    }
-    
-    // Exclude facebook.com and reddit.com
-    const lowerUrl = entry.normalizedUrl.toLowerCase()
-    if (lowerUrl.includes('facebook.com') || lowerUrl.includes('reddit.com')) {
-      return false
-    }
-    
-    // Exclude image URLs by file extension or known image-only CDN patterns
-    const hasImageExtension = /\.(png|jpe?g|gif|webp|svg|bmp|ico|tiff?)($|\?|#)/i.test(lowerUrl)
-    
-    // Substack CDN is specifically for images when URL contains /image/fetch/
-    const isSubstackImage = lowerUrl.includes('substackcdn.com') && lowerUrl.includes('/image/fetch/')
-    
-    if (hasImageExtension || isSubstackImage) {
-      return false
-    }
-    
-    return true
-  })
+    const filteredEntries = allEntries.filter((entry) => {
+      if (!entry.normalizedUrl) {
+        return true // Keep entries without URLs
+      }
+      
+      return !shouldExcludeUrlFromBibliography(entry.normalizedUrl)
+    })
 
   filteredEntries.sort((a, b) => {
     if (a.firstOccurrence !== b.firstOccurrence) {
