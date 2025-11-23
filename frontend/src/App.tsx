@@ -139,6 +139,18 @@ function App() {
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
   const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
+  const metadataIssuesByUrl = useMemo(() => {
+    const map = new Map<string, MetadataIssue>()
+    if (!processed?.metadataIssues?.length) {
+      return map
+    }
+    processed.metadataIssues.forEach((issue) => {
+      if (issue.url && !map.has(issue.url)) {
+        map.set(issue.url, issue)
+      }
+    })
+    return map
+  }, [processed])
 
   // Helper to persist manual metadata immediately (since refs don't trigger useEffect)
   // Use useRef to avoid recreating this function on every render
@@ -299,6 +311,20 @@ function App() {
       setManualMetadataModalOpen(false)
     }
   }, [pendingManualMarkdown])
+
+  const handleManualMetadataForUrl = useCallback(
+    (url: string) => {
+      if (!originalMarkdown) {
+        return
+      }
+      const issue = metadataIssuesByUrl.get(url)
+      if (!issue) {
+        return
+      }
+      startManualMetadataCollection([issue], originalMarkdown)
+    },
+    [metadataIssuesByUrl, originalMarkdown, startManualMetadataCollection],
+  )
 
   const handleFileSelection = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -578,6 +604,15 @@ function App() {
         >
           {processed ? (
             <>
+              {metadataIssuesByUrl.size ? (
+                <div className="status status--info">
+                  {metadataIssuesByUrl.size}{' '}
+                  {metadataIssuesByUrl.size === 1
+                    ? 'source is missing citation details.'
+                    : 'sources are missing citation details.'}{' '}
+                  Use “Add metadata” to fill them in.
+                </div>
+              ) : null}
               <p>
                 {bibliographyEntries.length}{' '}
                 {bibliographyEntries.length === 1 ? 'entry located' : 'entries located'}.
@@ -586,10 +621,27 @@ function App() {
                 {bibliographyEntries.map((entry) => (
                   <div
                     key={entry.anchorId}
-                    className={`bibliography-list__item ${entry.isNew ? 'bibliography-list__item--new' : ''}`}
+                    className={`bibliography-list__item ${entry.isNew ? 'bibliography-list__item--new' : ''} ${
+                      metadataIssuesByUrl.has(entry.url) ? 'bibliography-list__item--needs-metadata' : ''
+                    }`}
                   >
                     <span className="bibliography-list__number">{entry.number}.</span>
-                    <span>{entry.citation}</span>
+                    <div className="bibliography-list__content">
+                      <span>{entry.citation}</span>
+                      {metadataIssuesByUrl.has(entry.url) ? (
+                        <div className="bibliography-list__cta">
+                          <span className="bibliography-list__warning">Missing metadata</span>
+                          <button
+                            type="button"
+                            className="bibliography-list__action"
+                            onClick={() => handleManualMetadataForUrl(entry.url)}
+                            disabled={manualMetadataModalOpen}
+                          >
+                            Add metadata
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 ))}
               </div>
