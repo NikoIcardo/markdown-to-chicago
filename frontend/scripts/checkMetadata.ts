@@ -2,7 +2,8 @@ import { readFileSync } from 'fs'
 import { processMarkdown } from '../src/utils/markdownProcessor.ts'
 
 async function main() {
-  const markdown = readFileSync('../main-content.md', 'utf-8')
+  const targetPath = process.argv[2] ?? '../main-content.md'
+  const markdown = readFileSync(targetPath, 'utf-8')
   const result = await processMarkdown(markdown)
   console.log(
     JSON.stringify(

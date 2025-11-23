@@ -575,6 +575,74 @@ function buildIncompleteCitationIssue(
   }
 }
 
+function collectUrlsToExclude(root: Root): Set<string> {
+  const sectionsToExclude = [
+    'websites-and-online-communities',
+    'petitionsfund-raisers',
+    'court-cases',
+  ]
+
+  const urlsToExclude = new Set<string>()
+
+  sectionsToExclude.forEach((sectionSlug) => {
+    const sectionRange = findSectionRange(root, sectionSlug)
+    if (!sectionRange) {
+      return
+    }
+    const sectionNodes = collectNodesInRange(root, sectionRange)
+    sectionNodes.forEach((node) => {
+      visit(node, 'link', (linkNode: Link) => {
+        if (linkNode.url && /^https?:\/\//i.test(linkNode.url)) {
+          urlsToExclude.add(normalizeUrl(linkNode.url))
+        }
+      })
+    })
+  })
+
+  return urlsToExclude
+}
+
+function shouldExcludeUrlFromBibliography(
+  normalizedUrl: string | undefined | null,
+  urlsToExclude: Set<string>,
+): boolean {
+  if (!normalizedUrl) {
+    return false
+  }
+
+  if (urlsToExclude.has(normalizedUrl)) {
+    return true
+  }
+
+  const lowerUrl = normalizedUrl.toLowerCase()
+  if (lowerUrl.includes('facebook.com') || lowerUrl.includes('reddit.com')) {
+    return true
+  }
+
+  const hasImageExtension = /\.(png|jpe?g|gif|webp|svg|bmp|ico|tiff?)($|\?|#)/i.test(lowerUrl)
+  const isSubstackImage = lowerUrl.includes('substackcdn.com') && lowerUrl.includes('/image/fetch/')
+
+  return hasImageExtension || isSubstackImage
+}
+
+function collectBibliographyEntriesFromList(list: List): BibliographyEntry[] {
+  const start = list.start ?? 1
+  return list.children.map((item, idx) => {
+    const listItem = item as ListItem
+    const number = start + idx
+    const citation = toString(listItem).trim()
+    const url = extractUrlFromListItem(listItem) ?? ''
+    return {
+      number,
+      url,
+      citation,
+      anchorId: `bib-${number}`,
+      isNew: false,
+      sourceType: 'existing',
+    }
+  })
+}
+
 function removeInitialHeadingMatchingTitle(tree: Root, title?: string | null): boolean {
   if (!title) {
     return false
@@ -847,7 +915,13 @@ export async function processMarkdown(
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
   const tree = processor.parse(markdown) as Root
-  removeExistingCitationReferences(tree)
+  const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
+  const hasCitationReferences = /href="#bib-\d+"/i.test(markdown)
+  const isPreviouslyProcessed =
+    hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
+  if (!isPreviouslyProcessed) {
+    removeExistingCitationReferences(tree)
+  }
   normalizeTableOfContents(tree)
   const diagnostics: ProcessingDiagnostics = { warnings: [], errors: [] }
   const metadataIssues: MetadataIssue[] = []
@@ -864,6 +938,7 @@ export async function processMarkdown(
       })
     })
   }
+  const urlsToExclude = collectUrlsToExclude(tree)
 
   let mainHeadingDepth = Infinity
   visit(tree, 'heading', (node: Heading) => {
@@ -876,6 +951,71 @@ export async function processMarkdown(
   }
 
   const normalizedHeadingDepth = Math.min(Math.max(mainHeadingDepth, 1), 6) as 1 | 2 | 3 | 4 | 5 | 6
+
+  if (isPreviouslyProcessed) {
+    const { title, subtitle, headings } = extractHeadings(tree)
+    tree.children = tree.children.filter((node) => node.type !== 'yaml')
+    const removedTitleHeading = removeInitialHeadingMatchingTitle(tree, title)
+
+    let sanitizedHeadings = headings
+    if (removedTitleHeading && title) {
+      const normalizedTitle = title.trim().toLowerCase()
+      sanitizedHeadings = headings.filter(
+        (heading, index) =>
+          !(
+            heading.depth === 1 &&
+            heading.text.trim().toLowerCase() === normalizedTitle &&
+            index === 0
+          ),
+      )
+    }
+
+    let bibliographyList: List | null = null
+    const bibliographyRange = findSectionRange(tree, 'bibliography')
+    if (bibliographyRange) {
+      const nodes = collectNodesInRange(tree, bibliographyRange)
+      bibliographyList = nodes.find((node): node is List => node.type === 'list') ?? null
+    }
+    if (!bibliographyList) {
+      const standalone = findStandaloneBibliographyList(tree)
+      if (standalone) {
+        bibliographyList = standalone.list
+      }
+    }
+
+    const bibliographyEntries = bibliographyList
+      ? collectBibliographyEntriesFromList(bibliographyList)
+      : []
+
+    if (bibliographyList) {
+      bibliographyList.children.forEach((item) => {
+        const listItem = item as ListItem
+        const normalizedUrl = extractUrlFromListItem(listItem)
+        if (!normalizedUrl || manualMetadataMap.has(normalizedUrl)) {
+          return
+        }
+        if (shouldExcludeUrlFromBibliography(normalizedUrl, urlsToExclude)) {
+          return
+        }
+        const issue = buildIncompleteCitationIssue(listItem, normalizedUrl)
+        if (issue) {
+          metadataIssues.push(issue)
+        }
+      })
+    }
+
+    return {
+      original: markdown,
+      modified: markdown,
+      title,
+      subtitle,
+      mainHeadingDepth: normalizedHeadingDepth,
+      headings: sanitizedHeadings,
+      bibliographyEntries,
+      diagnostics,
+      metadataIssues,
+    }
+  }
 
   const tableOfContentsRange = findSectionRange(tree, 'table of contents')
   const excludedNodes = new WeakSet<Node>()
@@ -1124,54 +1264,8 @@ export async function processMarkdown(
     }
   })
 
-  // Collect URLs from sections that should be excluded from bibliography FIRST
-  // NOTE: These section names intentionally don't match actual headings
-  // to preserve ~330 references in bibliography (sections contain legitimate content URLs)
-  const sectionsToExclude = [
-    'websites-and-online-communities',
-    'petitionsfund-raisers',
-    'court-cases'
-  ]
-  
-  const urlsToExclude = new Set<string>()
-  
-  sectionsToExclude.forEach((sectionSlug) => {
-    const sectionRange = findSectionRange(tree, sectionSlug)
-    if (!sectionRange) {
-      return
-    }
-    const sectionNodes = collectNodesInRange(tree, sectionRange)
-    sectionNodes.forEach((node) => {
-      visit(node, 'link', (linkNode: Link) => {
-        if (linkNode.url && /^https?:\/\//i.test(linkNode.url)) {
-          urlsToExclude.add(normalizeUrl(linkNode.url))
-        }
-      })
-    })
-  })
-  
-  const shouldExcludeUrlFromBibliography = (normalizedUrl?: string | null): boolean => {
-    if (!normalizedUrl) {
-      return false
-    }
-    
-    if (urlsToExclude.has(normalizedUrl)) {
-      return true
-    }
-    
-    const lowerUrl = normalizedUrl.toLowerCase()
-    if (lowerUrl.includes('facebook.com') || lowerUrl.includes('reddit.com')) {
-      return true
-    }
-    
-    const hasImageExtension = /\.(png|jpe?g|gif|webp|svg|bmp|ico|tiff?)($|\?|#)/i.test(lowerUrl)
-    const isSubstackImage = lowerUrl.includes('substackcdn.com') && lowerUrl.includes('/image/fetch/')
-    
-    return hasImageExtension || isSubstackImage
-  }
-  
   pendingExistingMetadataIssues.forEach(({ issue, normalizedUrl }) => {
-    if (!shouldExcludeUrlFromBibliography(normalizedUrl)) {
+    if (!shouldExcludeUrlFromBibliography(normalizedUrl, urlsToExclude)) {
       metadataIssues.push(issue)
     }
   })
@@ -1209,7 +1303,7 @@ export async function processMarkdown(
         const record = metadataRecords[i]
         if (!record.metadata) {
           // Only add to metadataIssues if it won't be excluded from final bibliography
-          if (!shouldExcludeUrlFromBibliography(record.normalizedUrl)) {
+          if (!shouldExcludeUrlFromBibliography(record.normalizedUrl, urlsToExclude)) {
             // Automatic metadata fetching removed - users can provide metadata manually
             metadataIssues.push({
               url: record.normalizedUrl,
@@ -1278,7 +1372,7 @@ export async function processMarkdown(
         return true // Keep entries without URLs
       }
       
-      return !shouldExcludeUrlFromBibliography(entry.normalizedUrl)
+      return !shouldExcludeUrlFromBibliography(entry.normalizedUrl, urlsToExclude)
     })
 
   filteredEntries.sort((a, b) => {
