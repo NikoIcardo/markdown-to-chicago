@@ -139,7 +139,6 @@ function App() {
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
   const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
-  const lastPromptedProcessedRef = useRef<ProcessedMarkdown | null>(null)
   const metadataIssuesByUrl = useMemo(() => {
     const map = new Map<string, MetadataIssue>()
     if (!processed?.metadataIssues?.length) {
@@ -369,7 +368,6 @@ function App() {
       setProcessingState('processed')
 
       if (promptForManualMetadata && result.metadataIssues.length) {
-        lastPromptedProcessedRef.current = result
         startManualMetadataCollection(result.metadataIssues, text)
       }
     } catch (error) {
@@ -391,10 +389,6 @@ function App() {
     ) {
       return
     }
-    if (lastPromptedProcessedRef.current === processed) {
-      return
-    }
-    lastPromptedProcessedRef.current = processed
     startManualMetadataCollection(processed.metadataIssues, processed.original)
   }, [
     promptForManualMetadata,
