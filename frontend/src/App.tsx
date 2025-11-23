@@ -139,23 +139,26 @@ function App() {
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
   const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
-  const deriveIssuesFromEntries = useCallback((entries: ProcessedMarkdown['bibliographyEntries'] = []) => {
-    return entries
-      .filter((entry) => entry.needsManualMetadata && entry.url)
-      .map((entry) => ({
-        url: entry.url,
-        message: 'Metadata not provided. Please add details for this source.',
-      }))
-  }, [])
+  const deriveIssuesFromEntries = useCallback(
+    (entries: ProcessedMarkdown['bibliographyEntries'] = [], overrideIssues?: MetadataIssue[]) => {
+      if (overrideIssues && overrideIssues.length) {
+        return overrideIssues
+      }
+      return entries
+        .filter((entry) => entry.needsManualMetadata && entry.url)
+        .map((entry) => ({
+          url: entry.url,
+          message: 'Metadata not provided. Please add details for this source.',
+        }))
+    },
+    [],
+  )
 
   const activeMetadataIssues = useMemo(() => {
     if (!processed) {
       return []
     }
-    if (processed.metadataIssues?.length) {
-      return processed.metadataIssues
-    }
-    return deriveIssuesFromEntries(processed.bibliographyEntries ?? [])
+    return deriveIssuesFromEntries(processed.bibliographyEntries ?? [], processed.metadataIssues)
   }, [processed, deriveIssuesFromEntries])
 
   const metadataIssuesByUrl = useMemo(() => {
@@ -383,10 +386,7 @@ function App() {
       setProcessed(result)
       setProcessingState('processed')
 
-      const immediateIssues =
-        result.metadataIssues.length > 0
-          ? result.metadataIssues
-          : deriveIssuesFromEntries(result.bibliographyEntries)
+      const immediateIssues = deriveIssuesFromEntries(result.bibliographyEntries, result.metadataIssues)
 
       if (promptForManualMetadata && immediateIssues.length) {
         startManualMetadataCollection(immediateIssues, text)
