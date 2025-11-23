@@ -516,6 +516,43 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
   return metadata
 }
 
+function buildIncompleteCitationIssue(
+  listItem: ListItem,
+  normalizedUrl: string,
+): MetadataIssue | null {
+  const citationText = toString(listItem).trim()
+  if (!citationText) {
+    return {
+      url: normalizedUrl,
+      message: 'Incomplete citation entry. Please add title, authors, and other details.',
+    }
+  }
+
+  const cleanedCitation = citationText
+    .replace(/^\d+\.\s*/, '')
+    .replace(/^[\[\(]?\d+[\]\)]?\s*/, '')
+    .trim()
+
+  const normalizedWithoutProtocol = normalizedUrl.replace(/^https?:\/\//, '')
+
+  const isIncomplete =
+    cleanedCitation === normalizedUrl ||
+    cleanedCitation.includes(normalizedWithoutProtocol) ||
+    cleanedCitation.length < normalizedUrl.length + 20
+
+  if (!isIncomplete) {
+    return null
+  }
+
+  const partialMetadata = parseExistingCitationMetadata(citationText, normalizedUrl)
+
+  return {
+    url: normalizedUrl,
+    message: 'Incomplete citation entry. Please add title, authors, and other details.',
+    partialMetadata,
+  }
+}
+
 function removeInitialHeadingMatchingTitle(tree: Root, title?: string | null): boolean {
   if (!title) {
     return false
@@ -872,6 +909,20 @@ export async function processMarkdown(
       ? collectBibliographyEntriesFromList(bibliographyList)
       : []
 
+    if (bibliographyList) {
+      bibliographyList.children.forEach((item) => {
+        const listItem = item as ListItem
+        const normalizedUrl = extractUrlFromListItem(listItem)
+        if (!normalizedUrl || manualMetadataMap.has(normalizedUrl)) {
+          return
+        }
+        const issue = buildIncompleteCitationIssue(listItem, normalizedUrl)
+        if (issue) {
+          metadataIssues.push(issue)
+        }
+      })
+    }
+
     return {
       original: markdown,
       modified: markdown,
@@ -979,30 +1030,11 @@ export async function processMarkdown(
     allEntries.push(entry)
     
     // Check if existing entry is incomplete (just a bare URL without proper citation info)
-      if (normalised) {
-        const citationText = toString(listItem).trim()
-        // Remove common URL decorations to check if it's essentially just the URL
-        const cleanedCitation = citationText
-          .replace(/^\d+\.\s*/, '') // Remove list numbering
-          .replace(/^[\[\(]?\d+[\]\)]?\s*/, '') // Remove reference numbers
-          .trim()
-        
-        // Check if citation is just the URL or very minimal (< 20 chars more than URL)
-        const isIncomplete = 
-          cleanedCitation === normalised ||
-          cleanedCitation.includes(normalised.replace(/^https?:\/\//, '')) ||
-          cleanedCitation.length < normalised.length + 20
-        
-        if (isIncomplete && !manualMetadataMap.has(normalised)) {
-          // Parse any existing metadata from the citation text
-          const partialMetadata = parseExistingCitationMetadata(citationText, normalised)
-          
+      if (normalised && !manualMetadataMap.has(normalised)) {
+        const issue = buildIncompleteCitationIssue(listItem, normalised)
+        if (issue) {
           pendingExistingMetadataIssues.push({
-            issue: {
-              url: normalised,
-              message: 'Incomplete citation entry. Please add title, authors, and other details.',
-              partialMetadata,
-            },
+            issue,
             normalizedUrl: normalised,
           })
         }
