@@ -47,6 +47,16 @@ async function run() {
   const secondOutputPath = resolve(outputDir, 'manual-metadata-flow-second.md')
   writeFileSync(secondOutputPath, secondPass.modified, 'utf8')
 
+  const existingProcessedPath = resolve(repoRoot, 'main-content-processed.md')
+  const existingProcessedMarkdown = readFileSync(existingProcessedPath, 'utf8')
+  const existingProcessedResult = await processMarkdown(existingProcessedMarkdown)
+  const existingDerivedIssues = deriveIssues(
+    existingProcessedResult,
+  )
+  if (!existingDerivedIssues.length) {
+    throw new Error('Existing main-content-processed.md did not surface metadata issues.')
+  }
+
   console.log(
     JSON.stringify(
       {
@@ -54,6 +64,8 @@ async function run() {
         firstPassDerivedIssues: firstDerivedIssues.length,
         secondPassMetadataIssues: secondPass.metadataIssues.length,
         secondPassDerivedIssues: secondDerivedIssues.length,
+        existingProcessedMetadataIssues: existingProcessedResult.metadataIssues.length,
+        existingProcessedDerivedIssues: existingDerivedIssues.length,
         firstOutputPath,
         secondOutputPath,
       },

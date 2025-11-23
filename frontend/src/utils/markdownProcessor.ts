@@ -1602,6 +1602,26 @@ export async function processMarkdown(
     }
   })
 
+  if (bibliographyEntries.length) {
+    const existingIssueUrls = new Set(
+      metadataIssues.filter((issue) => Boolean(issue.url)).map((issue) => issue.url!.toLowerCase()),
+    )
+    bibliographyEntries.forEach((entry) => {
+      if (!entry.needsManualMetadata || !entry.url) {
+        return
+      }
+      const normalizedUrl = entry.url.toLowerCase()
+      if (existingIssueUrls.has(normalizedUrl)) {
+        return
+      }
+      metadataIssues.push({
+        url: entry.url,
+        message: 'Metadata not provided. Please add title, authors, and other details.',
+      })
+      existingIssueUrls.add(normalizedUrl)
+    })
+  }
+
   return {
     original: markdown,
     modified: stringified,
