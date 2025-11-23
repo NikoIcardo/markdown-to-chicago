@@ -625,24 +625,6 @@ function shouldExcludeUrlFromBibliography(
   return hasImageExtension || isSubstackImage
 }
 
-function collectBibliographyEntriesFromList(list: List): BibliographyEntry[] {
-  const start = list.start ?? 1
-  return list.children.map((item, idx) => {
-    const listItem = item as ListItem
-    const number = start + idx
-    const citation = toString(listItem).trim()
-    const url = extractUrlFromListItem(listItem) ?? ''
-    return {
-      number,
-      url,
-      citation,
-      anchorId: `bib-${number}`,
-      isNew: false,
-      sourceType: 'existing',
-    }
-  })
-}
-
 function removeInitialHeadingMatchingTitle(tree: Root, title?: string | null): boolean {
   if (!title) {
     return false
@@ -915,13 +897,7 @@ export async function processMarkdown(
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
   const tree = processor.parse(markdown) as Root
-  const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
-  const hasCitationReferences = /href="#bib-\d+"/i.test(markdown)
-  const isPreviouslyProcessed =
-    hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
-  if (!isPreviouslyProcessed) {
-    removeExistingCitationReferences(tree)
-  }
+  removeExistingCitationReferences(tree)
   normalizeTableOfContents(tree)
   const diagnostics: ProcessingDiagnostics = { warnings: [], errors: [] }
   const metadataIssues: MetadataIssue[] = []
@@ -951,71 +927,6 @@ export async function processMarkdown(
   }
 
   const normalizedHeadingDepth = Math.min(Math.max(mainHeadingDepth, 1), 6) as 1 | 2 | 3 | 4 | 5 | 6
-
-  if (isPreviouslyProcessed) {
-    const { title, subtitle, headings } = extractHeadings(tree)
-    tree.children = tree.children.filter((node) => node.type !== 'yaml')
-    const removedTitleHeading = removeInitialHeadingMatchingTitle(tree, title)
-
-    let sanitizedHeadings = headings
-    if (removedTitleHeading && title) {
-      const normalizedTitle = title.trim().toLowerCase()
-      sanitizedHeadings = headings.filter(
-        (heading, index) =>
-          !(
-            heading.depth === 1 &&
-            heading.text.trim().toLowerCase() === normalizedTitle &&
-            index === 0
-          ),
-      )
-    }
-
-    let bibliographyList: List | null = null
-    const bibliographyRange = findSectionRange(tree, 'bibliography')
-    if (bibliographyRange) {
-      const nodes = collectNodesInRange(tree, bibliographyRange)
-      bibliographyList = nodes.find((node): node is List => node.type === 'list') ?? null
-    }
-    if (!bibliographyList) {
-      const standalone = findStandaloneBibliographyList(tree)
-      if (standalone) {
-        bibliographyList = standalone.list
-      }
-    }
-
-    const bibliographyEntries = bibliographyList
-      ? collectBibliographyEntriesFromList(bibliographyList)
-      : []
-
-    if (bibliographyList) {
-      bibliographyList.children.forEach((item) => {
-        const listItem = item as ListItem
-        const normalizedUrl = extractUrlFromListItem(listItem)
-        if (!normalizedUrl || manualMetadataMap.has(normalizedUrl)) {
-          return
-        }
-        if (shouldExcludeUrlFromBibliography(normalizedUrl, urlsToExclude)) {
-          return
-        }
-        const issue = buildIncompleteCitationIssue(listItem, normalizedUrl)
-        if (issue) {
-          metadataIssues.push(issue)
-        }
-      })
-    }
-
-    return {
-      original: markdown,
-      modified: markdown,
-      title,
-      subtitle,
-      mainHeadingDepth: normalizedHeadingDepth,
-      headings: sanitizedHeadings,
-      bibliographyEntries,
-      diagnostics,
-      metadataIssues,
-    }
-  }
 
   const tableOfContentsRange = findSectionRange(tree, 'table of contents')
   const excludedNodes = new WeakSet<Node>()
