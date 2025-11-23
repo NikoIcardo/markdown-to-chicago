@@ -31,16 +31,16 @@ async function run() {
   const rawPath = resolve(repoRoot, 'main-content.md')
   const rawMarkdown = readFileSync(rawPath, 'utf8')
   const firstPass = await processMarkdown(rawMarkdown)
-  const firstIssues = deriveIssues(firstPass)
-  if (!firstIssues.length) {
+  const firstDerivedIssues = deriveIssues(firstPass)
+  if (!firstDerivedIssues.length) {
     throw new Error('First pass should produce metadata issues, but none were found.')
   }
   const firstOutputPath = resolve(outputDir, 'manual-metadata-flow-first.md')
   writeFileSync(firstOutputPath, firstPass.modified, 'utf8')
 
   const secondPass = await processMarkdown(firstPass.modified)
-  const secondIssues = deriveIssues(secondPass)
-  if (!secondIssues.length) {
+  const secondDerivedIssues = deriveIssues(secondPass)
+  if (!secondDerivedIssues.length) {
     throw new Error('Re-processing the generated markdown did not surface metadata issues.')
   }
 
@@ -50,8 +50,10 @@ async function run() {
   console.log(
     JSON.stringify(
       {
-        firstPassIssues: firstIssues.length,
-        secondPassIssues: secondIssues.length,
+        firstPassMetadataIssues: firstPass.metadataIssues.length,
+        firstPassDerivedIssues: firstDerivedIssues.length,
+        secondPassMetadataIssues: secondPass.metadataIssues.length,
+        secondPassDerivedIssues: secondDerivedIssues.length,
         firstOutputPath,
         secondOutputPath,
       },
