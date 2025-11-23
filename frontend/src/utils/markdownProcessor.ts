@@ -253,6 +253,12 @@ type ExistingEntryInfo = {
   isNew: boolean
 }
 
+type MetadataRecord = {
+  metadata: SourceMetadata | null
+  normalizedUrl: string
+  needsManualMetadata: boolean
+}
+
 const excludedAncestorTypes = new Set(['code', 'inlineCode', 'definition'])
 
 function normalizeUrl(url: string): string {
@@ -529,47 +535,90 @@ function countOccurrences(haystack: string, needle: string): number {
   return haystack.match(regex)?.length ?? 0
 }
 
+const METADATA_MISSING_FLAG_REGEX = /<!--\s*metadata-missing:([^>]+)\s*-->/i
+
+function extractMetadataMissingFlag(listItem: ListItem): string | null {
+  for (const child of listItem.children) {
+    if (child.type !== 'html') {
+      continue
+    }
+    const match = (child as Html).value.match(METADATA_MISSING_FLAG_REGEX)
+    if (match) {
+      return match[1].trim()
+    }
+  }
+  return null
+}
+
+function addMetadataMissingFlag(listItem: ListItem, url: string) {
+  clearMetadataMissingFlag(listItem)
+  listItem.children.push({
+    type: 'html',
+    value: `<!--metadata-missing:${url}-->`,
+  } as Html)
+}
+
+function clearMetadataMissingFlag(listItem: ListItem) {
+  listItem.children = listItem.children.filter((child) => {
+    if (child.type !== 'html') {
+      return true
+    }
+    return !METADATA_MISSING_FLAG_REGEX.test((child as Html).value)
+  })
+}
+
 function buildIncompleteCitationIssue(
   listItem: ListItem,
   normalizedUrl: string,
 ): MetadataIssue | null {
+  const flaggedUrl = extractMetadataMissingFlag(listItem)
+  const targetUrl = flaggedUrl || normalizedUrl
   const citationText = toString(listItem).trim()
   if (!citationText) {
+    addMetadataMissingFlag(listItem, targetUrl)
     return {
-      url: normalizedUrl,
+      url: targetUrl,
       message: 'Incomplete citation entry. Please add title, authors, and other details.',
     }
   }
 
-  const urlOccurrences = countOccurrences(citationText, normalizedUrl)
+  const urlOccurrences = countOccurrences(citationText, targetUrl)
   const cleanedCitation = citationText
     .replace(/^\d+\.\s*/, '')
     .replace(/^(?:\[\d+\]|\(\d+\))?\s*/, '')
     .trim()
 
-  const normalizedWithoutProtocol = normalizedUrl.replace(/^https?:\/\//, '')
+  const normalizedWithoutProtocol = targetUrl.replace(/^https?:\/\//, '')
 
-  const partialMetadata = parseExistingCitationMetadata(citationText, normalizedUrl)
+  const partialMetadata = parseExistingCitationMetadata(citationText, targetUrl)
   const inferredTitle = partialMetadata.title?.trim() ?? ''
   const titleLooksLikeUrl =
     !inferredTitle ||
     /^https?:\/\//i.test(inferredTitle) ||
-    inferredTitle.toLowerCase() === normalizedUrl.toLowerCase() ||
+    inferredTitle.toLowerCase() === targetUrl.toLowerCase() ||
     inferredTitle.toLowerCase().includes(normalizedWithoutProtocol.toLowerCase())
 
   const minimalCitation =
-    cleanedCitation === normalizedUrl ||
+    cleanedCitation === targetUrl ||
     cleanedCitation.includes(normalizedWithoutProtocol) ||
-    cleanedCitation.length < normalizedUrl.length + 20
+    cleanedCitation.length < targetUrl.length + 20
 
-  const shouldFlag = urlOccurrences > 1 || titleLooksLikeUrl || minimalCitation
+  let shouldFlag = Boolean(flaggedUrl)
+  if (!shouldFlag) {
+    shouldFlag = urlOccurrences > 1 || titleLooksLikeUrl || minimalCitation
+  }
 
   if (!shouldFlag) {
+    if (flaggedUrl) {
+      clearMetadataMissingFlag(listItem)
+    }
     return null
   }
 
+  addMetadataMissingFlag(listItem, targetUrl)
+
   return {
-    url: normalizedUrl,
+    url: targetUrl,
     message: 'Incomplete citation entry. Please add title, authors, and other details.',
     partialMetadata,
   }
@@ -1190,7 +1239,7 @@ export async function processMarkdown(
   })
 
     if (newUrls.length) {
-      const metadataRecords: Array<{ metadata: SourceMetadata | null; normalizedUrl: string }> = []
+    const metadataRecords: MetadataRecord[] = []
   
       newUrls.forEach((normalizedUrl) => {
         const manualOverride = manualMetadataMap.get(normalizedUrl)
@@ -1204,9 +1253,17 @@ export async function processMarkdown(
             accessDate: manualOverride.accessDate ?? format(new Date(), 'MMMM d, yyyy'),
             sourceType: 'manual',
           }
-          metadataRecords.push({ metadata: manualMetadata, normalizedUrl })
+        metadataRecords.push({
+          metadata: manualMetadata,
+          normalizedUrl,
+          needsManualMetadata: false,
+        })
         } else {
-          metadataRecords.push({ metadata: null, normalizedUrl })
+        metadataRecords.push({
+          metadata: null,
+          normalizedUrl,
+          needsManualMetadata: true,
+        })
         }
       })
   
@@ -1236,7 +1293,8 @@ export async function processMarkdown(
       }
 
     const existingCount = allEntries.length
-    metadataRecords.forEach(({ metadata, normalizedUrl }, idx) => {
+    metadataRecords.forEach((record, idx) => {
+      const { metadata, normalizedUrl, needsManualMetadata } = record
       if (!metadata) {
         return
       }
@@ -1252,6 +1310,9 @@ export async function processMarkdown(
             ],
           },
         ],
+      }
+      if (needsManualMetadata) {
+        addMetadataMissingFlag(listItem, normalizedUrl)
       }
       const entryInfo: ExistingEntryInfo = {
         number: 0,
