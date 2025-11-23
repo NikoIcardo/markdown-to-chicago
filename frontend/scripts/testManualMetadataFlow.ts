@@ -1,0 +1,67 @@
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import type { MetadataIssue, ProcessedMarkdown } from '../src/utils/types'
+import { processMarkdown } from '../src/utils/markdownProcessor.ts'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const repoRoot = resolve(__dirname, '..', '..')
+const outputDir = resolve(repoRoot, 'output')
+
+interface DerivedIssue extends MetadataIssue {
+  url: string
+}
+
+function deriveIssues(result: ProcessedMarkdown): DerivedIssue[] {
+  if (result.metadataIssues?.length) {
+    return result.metadataIssues.filter((issue): issue is DerivedIssue => Boolean(issue.url))
+  }
+
+  return (result.bibliographyEntries ?? [])
+    .filter((entry) => entry.needsManualMetadata && Boolean(entry.url))
+    .map((entry) => ({
+      url: entry.url,
+      message: 'Metadata not provided. Please add details for this source.',
+    }))
+}
+
+async function run() {
+  mkdirSync(outputDir, { recursive: true })
+
+  const rawPath = resolve(repoRoot, 'main-content.md')
+  const rawMarkdown = readFileSync(rawPath, 'utf8')
+  const firstPass = await processMarkdown(rawMarkdown)
+  const firstIssues = deriveIssues(firstPass)
+  if (!firstIssues.length) {
+    throw new Error('First pass should produce metadata issues, but none were found.')
+  }
+  const firstOutputPath = resolve(outputDir, 'manual-metadata-flow-first.md')
+  writeFileSync(firstOutputPath, firstPass.modified, 'utf8')
+
+  const secondPass = await processMarkdown(firstPass.modified)
+  const secondIssues = deriveIssues(secondPass)
+  if (!secondIssues.length) {
+    throw new Error('Re-processing the generated markdown did not surface metadata issues.')
+  }
+
+  const secondOutputPath = resolve(outputDir, 'manual-metadata-flow-second.md')
+  writeFileSync(secondOutputPath, secondPass.modified, 'utf8')
+
+  console.log(
+    JSON.stringify(
+      {
+        firstPassIssues: firstIssues.length,
+        secondPassIssues: secondIssues.length,
+        firstOutputPath,
+        secondOutputPath,
+      },
+      null,
+      2,
+    ),
+  )
+}
+
+run().catch((error) => {
+  console.error(error)
+  process.exitCode = 1
+})
