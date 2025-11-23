@@ -251,6 +251,7 @@ type ExistingEntryInfo = {
   firstOccurrence: number
   originalIndex: number
   isNew: boolean
+  needsManualMetadata: boolean
 }
 
 type MetadataRecord = {
@@ -1063,6 +1064,10 @@ export async function processMarkdown(
       firstOccurrence: Number.POSITIVE_INFINITY,
       originalIndex: idx,
       isNew: false,
+      needsManualMetadata: false,
+    }
+    if (normalised && manualMetadataMap.has(normalised)) {
+      clearMetadataMissingFlag(listItem)
     }
     if (normalised && !urlToExistingNumber.has(normalised)) {
       urlToExistingNumber.set(normalised, entry)
@@ -1074,6 +1079,7 @@ export async function processMarkdown(
       if (normalised && !manualMetadataMap.has(normalised)) {
         const issue = buildIncompleteCitationIssue(listItem, normalised)
         if (issue) {
+          entry.needsManualMetadata = true
           pendingExistingMetadataIssues.push({
             issue,
             normalizedUrl: normalised,
@@ -1324,6 +1330,7 @@ export async function processMarkdown(
         firstOccurrence: urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY,
         originalIndex: existingCount + idx,
         isNew: true,
+        needsManualMetadata,
       }
       allEntries.push(entryInfo)
     })
@@ -1591,6 +1598,7 @@ export async function processMarkdown(
       anchorId,
       isNew: entryInfo?.isNew ?? false,
       sourceType: entryInfo?.sourceType ?? 'existing',
+      needsManualMetadata: entryInfo?.needsManualMetadata ?? false,
     }
   })
 

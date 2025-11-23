@@ -36,6 +36,7 @@ export interface BibliographyEntry {
   anchorId: string
   isNew: boolean
   sourceType: 'existing' | 'fetched' | 'manual'
+  needsManualMetadata?: boolean
 }
 
 export interface ProcessingDiagnostics {

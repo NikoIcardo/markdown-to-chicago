@@ -139,18 +139,34 @@ function App() {
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
   const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
+  const deriveIssuesFromEntries = useCallback((entries: ProcessedMarkdown['bibliographyEntries'] = []) => {
+    return entries
+      .filter((entry) => entry.needsManualMetadata && entry.url)
+      .map((entry) => ({
+        url: entry.url,
+        message: 'Metadata not provided. Please add details for this source.',
+      }))
+  }, [])
+
+  const activeMetadataIssues = useMemo(() => {
+    if (!processed) {
+      return []
+    }
+    if (processed.metadataIssues?.length) {
+      return processed.metadataIssues
+    }
+    return deriveIssuesFromEntries(processed.bibliographyEntries ?? [])
+  }, [processed, deriveIssuesFromEntries])
+
   const metadataIssuesByUrl = useMemo(() => {
     const map = new Map<string, MetadataIssue>()
-    if (!processed?.metadataIssues?.length) {
-      return map
-    }
-    processed.metadataIssues.forEach((issue) => {
+    activeMetadataIssues.forEach((issue) => {
       if (issue.url && !map.has(issue.url)) {
         map.set(issue.url, issue)
       }
     })
     return map
-  }, [processed])
+  }, [activeMetadataIssues])
 
   // Helper to persist manual metadata immediately (since refs don't trigger useEffect)
   // Use useRef to avoid recreating this function on every render
@@ -367,8 +383,13 @@ function App() {
       setProcessed(result)
       setProcessingState('processed')
 
-      if (promptForManualMetadata && result.metadataIssues.length) {
-        startManualMetadataCollection(result.metadataIssues, text)
+      const immediateIssues =
+        result.metadataIssues.length > 0
+          ? result.metadataIssues
+          : deriveIssuesFromEntries(result.bibliographyEntries)
+
+      if (promptForManualMetadata && immediateIssues.length) {
+        startManualMetadataCollection(immediateIssues, text)
       }
     } catch (error) {
       console.error(error)
@@ -377,22 +398,23 @@ function App() {
         error instanceof Error ? error.message : 'Unable to process the markdown file.',
       )
     }
-  }, [promptForManualMetadata, startManualMetadataCollection])
+  }, [promptForManualMetadata, startManualMetadataCollection, deriveIssuesFromEntries])
 
   useEffect(() => {
     if (
       !promptForManualMetadata ||
       !processed ||
-      !processed.metadataIssues.length ||
+      !activeMetadataIssues.length ||
       manualMetadataModalOpen ||
       manualMetadataQueue.length
     ) {
       return
     }
-    startManualMetadataCollection(processed.metadataIssues, processed.original)
+    startManualMetadataCollection(activeMetadataIssues, processed.original)
   }, [
     promptForManualMetadata,
     processed,
+    activeMetadataIssues,
     manualMetadataModalOpen,
     manualMetadataQueue.length,
     startManualMetadataCollection,
@@ -641,13 +663,15 @@ function App() {
                   <div
                     key={entry.anchorId}
                     className={`bibliography-list__item ${entry.isNew ? 'bibliography-list__item--new' : ''} ${
-                      metadataIssuesByUrl.has(entry.url) ? 'bibliography-list__item--needs-metadata' : ''
+                      entry.needsManualMetadata || metadataIssuesByUrl.has(entry.url)
+                        ? 'bibliography-list__item--needs-metadata'
+                        : ''
                     }`}
                   >
                     <span className="bibliography-list__number">{entry.number}.</span>
                     <div className="bibliography-list__content">
                       <span>{entry.citation}</span>
-                      {metadataIssuesByUrl.has(entry.url) ? (
+                      {entry.url && (entry.needsManualMetadata || metadataIssuesByUrl.has(entry.url)) ? (
                         <div className="bibliography-list__cta">
                           <span className="bibliography-list__warning">Missing metadata</span>
                           <button
