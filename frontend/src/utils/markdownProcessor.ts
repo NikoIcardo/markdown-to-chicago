@@ -23,6 +23,7 @@ import type {
   PhrasingContent,
   Root,
   Text,
+  Yaml,
 } from 'mdast'
 import type { Node } from 'unist'
 import type {
@@ -516,6 +517,18 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
   return metadata
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function countOccurrences(haystack: string, needle: string): number {
+  if (!haystack || !needle) {
+    return 0
+  }
+  const regex = new RegExp(escapeRegExp(needle), 'gi')
+  return haystack.match(regex)?.length ?? 0
+}
+
 function buildIncompleteCitationIssue(
   listItem: ListItem,
   normalizedUrl: string,
@@ -528,23 +541,32 @@ function buildIncompleteCitationIssue(
     }
   }
 
+  const urlOccurrences = countOccurrences(citationText, normalizedUrl)
   const cleanedCitation = citationText
     .replace(/^\d+\.\s*/, '')
-    .replace(/^[\[\(]?\d+[\]\)]?\s*/, '')
+    .replace(/^(?:\[\d+\]|\(\d+\))?\s*/, '')
     .trim()
 
   const normalizedWithoutProtocol = normalizedUrl.replace(/^https?:\/\//, '')
 
-  const isIncomplete =
+  const partialMetadata = parseExistingCitationMetadata(citationText, normalizedUrl)
+  const inferredTitle = partialMetadata.title?.trim() ?? ''
+  const titleLooksLikeUrl =
+    !inferredTitle ||
+    /^https?:\/\//i.test(inferredTitle) ||
+    inferredTitle.toLowerCase() === normalizedUrl.toLowerCase() ||
+    inferredTitle.toLowerCase().includes(normalizedWithoutProtocol.toLowerCase())
+
+  const minimalCitation =
     cleanedCitation === normalizedUrl ||
     cleanedCitation.includes(normalizedWithoutProtocol) ||
     cleanedCitation.length < normalizedUrl.length + 20
 
-  if (!isIncomplete) {
+  const shouldFlag = urlOccurrences > 1 || titleLooksLikeUrl || minimalCitation
+
+  if (!shouldFlag) {
     return null
   }
-
-  const partialMetadata = parseExistingCitationMetadata(citationText, normalizedUrl)
 
   return {
     url: normalizedUrl,
@@ -630,15 +652,13 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
           return htmlNode
         }
         if (pChild.type === 'text') {
-          const textNode = pChild as any
-          if (typeof textNode.value === 'string') {
-            // Remove complete anchors, split tags, and empty anchors from text nodes
-            textNode.value = textNode.value
-              .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '') // Complete anchor with ID
-              .replace(/<a\s+id="">\s*<\/a>/gi, '')         // Empty anchor
-              .replace(/<a\s+id="bib-\d+">/gi, '')          // Opening tag only
-              .replace(/^\s*<\/a>\s*$/gi, '')                // Standalone closing tag
-          }
+          const textNode = pChild as Text
+          // Remove complete anchors, split tags, and empty anchors from text nodes
+          textNode.value = textNode.value
+            .replace(/<a\s+id="bib-\d+">\s*<\/a>/gi, '')
+            .replace(/<a\s+id="">\s*<\/a>/gi, '')
+            .replace(/<a\s+id="bib-\d+">/gi, '')
+            .replace(/^\s*<\/a>\s*$/gi, '')
           return textNode
         }
         return pChild
@@ -647,7 +667,8 @@ function ensureListItemAnchor(listItem: ListItem, anchorId: string) {
           return (pChild as Html).value.trim().length > 0
         }
         if (pChild.type === 'text') {
-          return typeof (pChild as any).value === 'string' && (pChild as any).value.trim().length > 0
+          const textNode = pChild as Text
+          return textNode.value.trim().length > 0
         }
         return true
       })
@@ -744,18 +765,23 @@ function extractHeadings(root: Root): { title: string; subtitle: string; heading
   const headings: ProcessedMarkdown['headings'] = []
   let title = ''
   let subtitle = ''
-  let frontmatterData: any = null
 
   // First, try to extract title and subtitle from YAML frontmatter
-  visit(root, 'yaml', (node: any) => {
+  visit(root, 'yaml', (node: Yaml) => {
     try {
-      frontmatterData = yaml.load(node.value)
-      if (frontmatterData) {
-        if (frontmatterData.title) {
-          title = frontmatterData.title
+      const frontmatter = yaml.load(node.value) as {
+        title?: string
+        subtitle?: string
+      } | null
+      if (frontmatter) {
+        if (typeof frontmatter.title === 'string') {
+          title = frontmatter.title
         }
-        if (frontmatterData.subtitle && frontmatterData.subtitle.toLowerCase() !== 'table of contents') {
-          subtitle = frontmatterData.subtitle
+        if (
+          typeof frontmatter.subtitle === 'string' &&
+          frontmatter.subtitle.toLowerCase() !== 'table of contents'
+        ) {
+          subtitle = frontmatter.subtitle
         }
       }
     } catch (error) {
@@ -816,36 +842,12 @@ function findStandaloneBibliographyList(root: Root): { index: number; list: List
   return null
 }
 
-function collectBibliographyEntriesFromList(list: List): BibliographyEntry[] {
-  const start = list.start ?? 1
-  return list.children.map((item, idx) => {
-    const listItem = item as ListItem
-    const number = start + idx
-    const citation = toString(listItem).trim()
-    const url = extractUrlFromListItem(listItem) ?? ''
-    return {
-      number,
-      url,
-      citation,
-      anchorId: `bib-${number}`,
-      isNew: false,
-      sourceType: 'existing',
-    }
-  })
-}
-
 export async function processMarkdown(
   markdown: string,
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
   const tree = processor.parse(markdown) as Root
-  const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
-  const hasCitationReferences = /href="#bib-\d+"/i.test(markdown)
-  const isPreviouslyProcessed =
-    hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
-  if (!isPreviouslyProcessed) {
-    removeExistingCitationReferences(tree)
-  }
+  removeExistingCitationReferences(tree)
   normalizeTableOfContents(tree)
   const diagnostics: ProcessingDiagnostics = { warnings: [], errors: [] }
   const metadataIssues: MetadataIssue[] = []
@@ -874,67 +876,6 @@ export async function processMarkdown(
   }
 
   const normalizedHeadingDepth = Math.min(Math.max(mainHeadingDepth, 1), 6) as 1 | 2 | 3 | 4 | 5 | 6
-
-  if (isPreviouslyProcessed) {
-    const { title, subtitle, headings } = extractHeadings(tree)
-    tree.children = tree.children.filter((node) => node.type !== 'yaml')
-    const removedTitleHeading = removeInitialHeadingMatchingTitle(tree, title)
-
-    let sanitizedHeadings = headings
-    if (removedTitleHeading && title) {
-      const normalizedTitle = title.trim().toLowerCase()
-      sanitizedHeadings = headings.filter(
-        (heading, index) =>
-          !(
-            heading.depth === 1 &&
-            heading.text.trim().toLowerCase() === normalizedTitle &&
-            index === 0
-          ),
-      )
-    }
-
-    let bibliographyList: List | null = null
-    const bibliographyRange = findSectionRange(tree, 'bibliography')
-    if (bibliographyRange) {
-      const nodes = collectNodesInRange(tree, bibliographyRange)
-      bibliographyList = nodes.find((node): node is List => node.type === 'list') ?? null
-    }
-    if (!bibliographyList) {
-      const standalone = findStandaloneBibliographyList(tree)
-      if (standalone) {
-        bibliographyList = standalone.list
-      }
-    }
-    const bibliographyEntries = bibliographyList
-      ? collectBibliographyEntriesFromList(bibliographyList)
-      : []
-
-    if (bibliographyList) {
-      bibliographyList.children.forEach((item) => {
-        const listItem = item as ListItem
-        const normalizedUrl = extractUrlFromListItem(listItem)
-        if (!normalizedUrl || manualMetadataMap.has(normalizedUrl)) {
-          return
-        }
-        const issue = buildIncompleteCitationIssue(listItem, normalizedUrl)
-        if (issue) {
-          metadataIssues.push(issue)
-        }
-      })
-    }
-
-    return {
-      original: markdown,
-      modified: markdown,
-      title,
-      subtitle,
-      mainHeadingDepth: normalizedHeadingDepth,
-      headings: sanitizedHeadings,
-      bibliographyEntries,
-      diagnostics,
-      metadataIssues,
-    }
-  }
 
   const tableOfContentsRange = findSectionRange(tree, 'table of contents')
   const excludedNodes = new WeakSet<Node>()
@@ -1057,133 +998,131 @@ export async function processMarkdown(
     }
   })
 
-    const urlOccurrences = new Map<string, UrlOccurrence[]>()
-    const urlFirstOccurrence = new Map<string, number>()
-    let occurrenceCounter = 0
-    const bareTextOccurrences: Array<{
-      node: Text
-      parent: Parent
-      matches: Array<{ start: number; end: number; url: string }>
-    }> = []
+  const urlOccurrences = new Map<string, UrlOccurrence[]>()
+  const urlFirstOccurrence = new Map<string, number>()
+  let occurrenceCounter = 0
+  const bareTextOccurrences: Array<{
+    node: Text
+    parent: Parent
+    matches: Array<{ start: number; end: number; url: string }>
+  }> = []
 
-    if (!isPreviouslyProcessed) {
-      const definitionMap = new Map<string, Definition>()
-      visit(tree, 'definition', (node: Definition) => {
-        if (!node.identifier || !node.url) {
+  const definitionMap = new Map<string, Definition>()
+  visit(tree, 'definition', (node: Definition) => {
+    if (!node.identifier || !node.url) {
+      return
+    }
+    definitionMap.set(node.identifier.toLowerCase(), node)
+  })
+
+  visitParents(tree, ['link', 'linkReference', 'text'], (node, ancestors) => {
+    if (node.type === 'link' || node.type === 'linkReference') {
+      const shouldExclude = ancestors.some((ancestor) => excludedNodes.has(ancestor))
+      if (
+        shouldExclude &&
+        ancestors.some((ancestor) => ancestor.type === 'linkReference')
+      ) {
+        // Links inside bibliographies should still be tracked for renumbering
+      } else if (shouldExclude || ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))) {
+        return
+      }
+
+      let url: string | undefined
+      if (node.type === 'link') {
+        url = node.url || ''
+      } else if (node.type === 'linkReference') {
+        if (!node.identifier) {
           return
         }
-        definitionMap.set(node.identifier.toLowerCase(), node)
+        const definition = definitionMap.get(node.identifier.toLowerCase())
+        url = definition?.url
+      }
+      if (!url) {
+        return
+      }
+      if (!/^https?:\/\//i.test(url)) {
+        return
+      }
+
+      const normalised = normalizeUrl(url)
+      const position = occurrenceCounter++
+      if (!urlFirstOccurrence.has(normalised)) {
+        urlFirstOccurrence.set(normalised, position)
+      }
+      const parent = ancestors[ancestors.length - 1] as Parent
+      const index = parent.children.indexOf(node as Content)
+      if (index === -1) {
+        return
+      }
+
+      const occurrences = urlOccurrences.get(normalised) || []
+      occurrences.push({
+        type: 'link',
+        node,
+        parent,
+        index,
       })
+      urlOccurrences.set(normalised, occurrences)
+    } else if (node.type === 'text') {
+      if (
+        ancestors.some((ancestor) => excludedNodes.has(ancestor)) ||
+        ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))
+      ) {
+        return
+      }
+      const parent = ancestors[ancestors.length - 1] as Parent
+      if (parent.type === 'link') {
+        return
+      }
 
-      visitParents(tree, ['link', 'linkReference', 'text'], (node, ancestors) => {
-        if (node.type === 'link' || node.type === 'linkReference') {
-          const shouldExclude = ancestors.some((ancestor) => excludedNodes.has(ancestor))
-          if (
-            shouldExclude &&
-            ancestors.some((ancestor) => ancestor.type === 'linkReference')
-          ) {
-            // Links inside bibliographies should still be tracked for renumbering
-          } else if (shouldExclude || ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))) {
-            return
-          }
+      const matches: Array<{ start: number; end: number; url: string }> = []
+      const text = node.value
+      let match: RegExpExecArray | null
+      MARKDOWN_URL_REGEX.lastIndex = 0
+      while ((match = MARKDOWN_URL_REGEX.exec(text))) {
+        const rawUrl = match[1]
+        const cleanedUrl = stripTrailingPunctuationFromUrl(rawUrl)
+        const removed = rawUrl.length - cleanedUrl.length
+        matches.push({
+          start: match.index,
+          end: match.index + rawUrl.length - removed,
+          url: cleanedUrl,
+        })
+      }
 
-          let url: string | undefined
-          if (node.type === 'link') {
-            url = node.url || ''
-          } else if (node.type === 'linkReference') {
-            if (!node.identifier) {
-              return
-            }
-            const definition = definitionMap.get(node.identifier.toLowerCase())
-            url = definition?.url
-          }
-          if (!url) {
-            return
-          }
-          if (!/^https?:\/\//i.test(url)) {
-            return
-          }
+      if (matches.length) {
+        bareTextOccurrences.push({
+          node,
+          parent,
+          matches: matches.map((m) => ({ ...m })),
+        })
 
-          const normalised = normalizeUrl(url)
+        const perUrlMatches = new Map<string, Array<{ start: number; end: number }>>()
+        matches.forEach((m) => {
+          const normalised = normalizeUrl(m.url)
           const position = occurrenceCounter++
           if (!urlFirstOccurrence.has(normalised)) {
             urlFirstOccurrence.set(normalised, position)
           }
-          const parent = ancestors[ancestors.length - 1] as Parent
-          const index = parent.children.indexOf(node as Content)
-          if (index === -1) {
-            return
-          }
+          const list = perUrlMatches.get(normalised) || []
+          list.push({ start: m.start, end: m.end })
+          perUrlMatches.set(normalised, list)
+        })
 
-          const occurrences = urlOccurrences.get(normalised) || []
-          occurrences.push({
-            type: 'link',
+        perUrlMatches.forEach((matchList, normalised) => {
+          const list = urlOccurrences.get(normalised) || []
+          list.push({
+            type: 'bare',
             node,
             parent,
-            index,
+            index: parent.children.indexOf(node as Content),
+            matches: matchList,
           })
-          urlOccurrences.set(normalised, occurrences)
-        } else if (node.type === 'text') {
-          if (
-            ancestors.some((ancestor) => excludedNodes.has(ancestor)) ||
-            ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))
-          ) {
-            return
-          }
-          const parent = ancestors[ancestors.length - 1] as Parent
-          if (parent.type === 'link') {
-            return
-          }
-
-          const matches: Array<{ start: number; end: number; url: string }> = []
-          const text = node.value
-          let match: RegExpExecArray | null
-          MARKDOWN_URL_REGEX.lastIndex = 0
-          while ((match = MARKDOWN_URL_REGEX.exec(text))) {
-            const rawUrl = match[1]
-            const cleanedUrl = stripTrailingPunctuationFromUrl(rawUrl)
-            const removed = rawUrl.length - cleanedUrl.length
-            matches.push({
-              start: match.index,
-              end: match.index + rawUrl.length - removed,
-              url: cleanedUrl,
-            })
-          }
-
-          if (matches.length) {
-            bareTextOccurrences.push({
-              node,
-              parent,
-              matches: matches.map((m) => ({ ...m })),
-            })
-
-            const perUrlMatches = new Map<string, Array<{ start: number; end: number }>>()
-            matches.forEach((m) => {
-              const normalised = normalizeUrl(m.url)
-              const position = occurrenceCounter++
-              if (!urlFirstOccurrence.has(normalised)) {
-                urlFirstOccurrence.set(normalised, position)
-              }
-              const list = perUrlMatches.get(normalised) || []
-              list.push({ start: m.start, end: m.end })
-              perUrlMatches.set(normalised, list)
-            })
-
-            perUrlMatches.forEach((matchList, normalised) => {
-              const list = urlOccurrences.get(normalised) || []
-              list.push({
-                type: 'bare',
-                node,
-                parent,
-                index: parent.children.indexOf(node as Content),
-                matches: matchList,
-              })
-              urlOccurrences.set(normalised, list)
-            })
-          }
-        }
-      })
+          urlOccurrences.set(normalised, list)
+        })
+      }
     }
+  })
 
   // Collect URLs from sections that should be excluded from bibliography FIRST
   // NOTE: These section names intentionally don't match actual headings
