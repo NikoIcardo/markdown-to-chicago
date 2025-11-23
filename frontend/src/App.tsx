@@ -139,6 +139,7 @@ function App() {
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
   const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
+  const lastPromptedDocumentIdRef = useRef<string | null>(null)
   const metadataIssuesByUrl = useMemo(() => {
     const map = new Map<string, MetadataIssue>()
     if (!processed?.metadataIssues?.length) {
@@ -326,6 +327,16 @@ function App() {
     [metadataIssuesByUrl, originalMarkdown, startManualMetadataCollection],
   )
 
+  const computeDocumentId = useCallback(
+    (doc: ProcessedMarkdown | null, name: string | null) => {
+      if (!doc) {
+        return null
+      }
+      return `${name ?? 'untitled'}:${doc.modified.length}:${doc.metadataIssues.length}`
+    },
+    [],
+  )
+
   const handleFileSelection = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) {
@@ -368,6 +379,10 @@ function App() {
       setProcessingState('processed')
 
       if (promptForManualMetadata && result.metadataIssues.length) {
+        const docId = computeDocumentId(result, file.name)
+        if (docId) {
+          lastPromptedDocumentIdRef.current = docId
+        }
         startManualMetadataCollection(result.metadataIssues, text)
       }
     } catch (error) {
@@ -377,7 +392,33 @@ function App() {
         error instanceof Error ? error.message : 'Unable to process the markdown file.',
       )
     }
-  }, [promptForManualMetadata, startManualMetadataCollection])
+  }, [promptForManualMetadata, startManualMetadataCollection, computeDocumentId])
+
+  useEffect(() => {
+    if (
+      !promptForManualMetadata ||
+      !processed ||
+      !processed.metadataIssues.length ||
+      manualMetadataModalOpen ||
+      manualMetadataQueue.length
+    ) {
+      return
+    }
+    const docId = computeDocumentId(processed, fileName)
+    if (!docId || lastPromptedDocumentIdRef.current === docId) {
+      return
+    }
+    lastPromptedDocumentIdRef.current = docId
+    startManualMetadataCollection(processed.metadataIssues, processed.original)
+  }, [
+    promptForManualMetadata,
+    processed,
+    manualMetadataModalOpen,
+    manualMetadataQueue.length,
+    computeDocumentId,
+    startManualMetadataCollection,
+    fileName,
+  ])
 
   const handleDownloadMarkdown = useCallback(() => {
     if (!processed) return
