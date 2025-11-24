@@ -12,6 +12,10 @@ function saveFilesToRoot() {
   return {
     name: 'save-files-to-root',
     configureServer(server: any) {
+      // Cache the PDF module to avoid re-importing on every request
+      let pdfModuleCache: any = null
+      const PDF_MODULE_PATH = '/src/pdf/generatePdfPuppeteer.ts'
+
       server.middlewares.use((req: any, res: any, next: any) => {
         const url = req.url?.split('?')[0]
 
@@ -86,10 +90,11 @@ function saveFilesToRoot() {
               }
 
               // Use dynamic import at runtime to avoid SSR module loading issues
-              // Path is constructed dynamically to prevent Vite from analyzing it at config build time
-              const modulePath = '/src/pdf/generatePdfPuppeteer.ts'
-              const pdfModule = await import(/* @vite-ignore */ modulePath)
-              const { generatePdfWithPuppeteer } = pdfModule
+              // Cache module to avoid re-importing on every request
+              if (!pdfModuleCache) {
+                pdfModuleCache = await import(/* @vite-ignore */ PDF_MODULE_PATH)
+              }
+              const { generatePdfWithPuppeteer } = pdfModuleCache
               const allowedFonts = new Set(['Times New Roman', 'Helvetica', 'Courier New'] as const)
               const fontFamily =
                 typeof options.fontFamily === 'string' && allowedFonts.has(options.fontFamily)
