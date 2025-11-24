@@ -22,6 +22,13 @@ async function loadPdfModule() {
     fs.mkdirSync(cacheDir, { recursive: true });
   }
   
+  // Delete the old cached file to ensure we get fresh code
+  // This prevents stale module caching issues
+  if (fs.existsSync(outPath)) {
+    fs.unlinkSync(outPath);
+    console.log("Cleared cached PDF module");
+  }
+  
   // Always recompile to ensure we have the latest bundled version
   // This avoids issues with stale cache files from previous configurations
   console.log("Compiling PDF module with esbuild...");
@@ -48,9 +55,10 @@ async function loadPdfModule() {
   });
   console.log("PDF module compiled successfully");
   
-  // Use native import with file:// URL
-  // The module is cached in pdfModulePromise so it's only loaded once per server start
-  return import(/* @vite-ignore */ `file://${outPath}`);
+  // Use native import with file:// URL and cache-busting query string
+  // The timestamp ensures Node.js loads the fresh module instead of a cached version
+  const cacheBuster = `?t=${Date.now()}`;
+  return import(/* @vite-ignore */ `file://${outPath}${cacheBuster}`);
 }
 
 // Plugin to save downloaded files to repo root in dev mode
