@@ -801,20 +801,11 @@ export async function processMarkdown(
   markdown: string,
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
-  console.log('[PROCESS] Starting processMarkdown')
-  console.log('[PROCESS] Markdown length:', markdown.length)
   const tree = processor.parse(markdown) as Root
   const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
   const hasCitationReferences = /href="#bib-\d+"/i.test(markdown)
-  const hasCitationLinkClass = markdown.includes('citation-link')
-  console.log('[PROCESS] Detection markers:', { 
-    hasBibliographyAnchors, 
-    hasCitationReferences,
-    hasCitationLinkClass
-  })
   const isPreviouslyProcessed =
-    hasBibliographyAnchors || hasCitationReferences || hasCitationLinkClass
-  console.log('[PROCESS] isPreviouslyProcessed:', isPreviouslyProcessed)
+    hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
   if (!isPreviouslyProcessed) {
     removeExistingCitationReferences(tree)
   }
@@ -912,10 +903,8 @@ export async function processMarkdown(
     }
 
     // Check for incomplete metadata in existing bibliography entries
-    console.log('[METADATA CHECK] Checking', bibliographyEntries.length, 'bibliography entries for incomplete metadata')
     bibliographyEntries.forEach((entry) => {
       if (!entry.url) {
-        console.log('[METADATA CHECK] Skipping entry without URL')
         return // Skip entries without URLs
       }
       
@@ -923,19 +912,16 @@ export async function processMarkdown(
       const normalizedUrl = normalizeUrl(entry.url)
       const manualOverride = manualMetadataMap.get(normalizedUrl)
       if (manualOverride) {
-        console.log('[METADATA CHECK] Skipping entry with manual override:', normalizedUrl)
         return // Skip entries that have manual metadata provided
       }
       
       // Skip URLs that should be excluded from bibliography
       if (isExcludedUrl(normalizedUrl)) {
-        console.log('[METADATA CHECK] Skipping excluded URL:', normalizedUrl)
         return
       }
       
       // Parse the citation text to extract metadata
       const parsedMetadata = parseExistingCitationMetadata(entry.citation, entry.url)
-      console.log('[METADATA CHECK] Parsed metadata for', normalizedUrl, ':', parsedMetadata)
       
       // Check if metadata is incomplete (missing key fields)
       const hasTitle = parsedMetadata.title && parsedMetadata.title !== entry.url
@@ -943,16 +929,11 @@ export async function processMarkdown(
       const hasSiteName = parsedMetadata.siteName && parsedMetadata.siteName.length > 0
       const hasAccessDate = parsedMetadata.accessDate && parsedMetadata.accessDate.length > 0
       
-      console.log('[METADATA CHECK] Completeness check:', { hasTitle, hasAuthors, hasSiteName, hasAccessDate })
-      
       // Consider metadata incomplete if it's missing title OR (missing both authors and siteName)
       // We need at least a title, and ideally either authors or siteName
       const isIncomplete = !hasTitle || (!hasAuthors && !hasSiteName) || !hasAccessDate
       
-      console.log('[METADATA CHECK] Is incomplete:', isIncomplete)
-      
       if (isIncomplete) {
-        console.log('[METADATA CHECK] Adding to metadataIssues:', entry.url)
         metadataIssues.push({
           url: entry.url,
           message: 'Incomplete metadata detected. Please provide missing details.',
@@ -960,8 +941,6 @@ export async function processMarkdown(
         })
       }
     })
-    
-    console.log('[METADATA CHECK] Total metadata issues found:', metadataIssues.length)
 
     return {
       original: markdown,
