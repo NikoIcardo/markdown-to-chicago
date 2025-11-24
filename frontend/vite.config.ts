@@ -22,41 +22,34 @@ async function loadPdfModule() {
     fs.mkdirSync(cacheDir, { recursive: true });
   }
   
-  // Check if we need to recompile (source newer than output)
-  let needsCompile = true;
-  if (fs.existsSync(outPath)) {
-    const srcStat = fs.statSync(srcPath);
-    const outStat = fs.statSync(outPath);
-    needsCompile = srcStat.mtimeMs > outStat.mtimeMs;
-  }
+  // Always recompile to ensure we have the latest bundled version
+  // This avoids issues with stale cache files from previous configurations
+  console.log("Compiling PDF module with esbuild...");
+  await build({
+    entryPoints: [srcPath],
+    outfile: outPath,
+    // Bundle ALL dependencies so imports resolve correctly
+    bundle: true,
+    format: "esm",
+    platform: "node",
+    target: "node18",
+    sourcemap: false,
+    // Only mark native/binary packages as external
+    // Everything else (including remark-*) should be bundled
+    external: [
+      "puppeteer",
+      "pdfjs-dist", 
+      "canvas",
+    ],
+    // Resolve modules from the frontend directory
+    absWorkingDir: __dirname,
+    // Log external imports to debug
+    logLevel: "info",
+  });
+  console.log("PDF module compiled successfully");
   
-  if (needsCompile) {
-    console.log("Compiling PDF module with esbuild...");
-    await build({
-      entryPoints: [srcPath],
-      outfile: outPath,
-      // Bundle dependencies so imports resolve correctly from the cache directory
-      bundle: true,
-      format: "esm",
-      platform: "node",
-      target: "node18",
-      sourcemap: false,
-      // Mark packages with native binaries or complex ESM as external
-      // These will be resolved from node_modules at runtime
-      external: [
-        "puppeteer",
-        "pdfjs-dist",
-        "canvas",
-      ],
-      // Resolve modules from the frontend directory
-      absWorkingDir: __dirname,
-    });
-    console.log("PDF module compiled successfully");
-  }
-  
-  // Use native import with file:// URL
-  // The mtime check above ensures we only recompile when source changes
-  return import(/* @vite-ignore */ `file://${outPath}`);
+  // Use native import with file:// URL and cache buster to ensure fresh module
+  return import(/* @vite-ignore */ `file://${outPath}?t=${Date.now()}`);
 }
 
 // Plugin to save downloaded files to repo root in dev mode
