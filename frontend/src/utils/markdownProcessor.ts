@@ -872,6 +872,50 @@ export async function processMarkdown(
       ? collectBibliographyEntriesFromList(bibliographyList)
       : []
 
+    // Check for incomplete metadata in existing bibliography entries
+    bibliographyEntries.forEach((entry) => {
+      if (!entry.url) {
+        return // Skip entries without URLs
+      }
+      
+      // Check if manual metadata was provided for this URL
+      const normalizedUrl = normalizeUrl(entry.url)
+      const manualOverride = manualMetadataMap.get(normalizedUrl)
+      if (manualOverride) {
+        return // Skip entries that have manual metadata provided
+      }
+      
+      // Parse the citation text to extract metadata
+      const parsedMetadata = parseExistingCitationMetadata(entry.citation, entry.url)
+      
+      // Check if metadata is incomplete (missing key fields)
+      const hasTitle = parsedMetadata.title && parsedMetadata.title !== entry.url
+      const hasAuthors = parsedMetadata.authors && parsedMetadata.authors.length > 0
+      const hasSiteName = parsedMetadata.siteName && parsedMetadata.siteName.length > 0
+      const hasAccessDate = parsedMetadata.accessDate && parsedMetadata.accessDate.length > 0
+      
+      // Consider metadata incomplete if it's missing title OR (missing both authors and siteName)
+      // We need at least a title, and ideally either authors or siteName
+      const isIncomplete = !hasTitle || (!hasAuthors && !hasSiteName) || !hasAccessDate
+      
+      if (isIncomplete) {
+        // Check if this URL should be excluded from bibliography (images, social media, etc.)
+        const lowerUrl = normalizedUrl.toLowerCase()
+        const shouldExclude = 
+          lowerUrl.includes('facebook.com') || 
+          lowerUrl.includes('reddit.com') ||
+          /\.(png|jpe?g|gif|webp|svg|bmp|ico|tiff?)($|\?|#)/i.test(lowerUrl) ||
+          (lowerUrl.includes('substackcdn.com') && lowerUrl.includes('/image/fetch/'))
+        
+        if (!shouldExclude) {
+          metadataIssues.push({
+            url: entry.url,
+            message: 'Incomplete metadata detected. Please provide missing details.',
+          })
+        }
+      }
+    })
+
     return {
       original: markdown,
       modified: markdown,
