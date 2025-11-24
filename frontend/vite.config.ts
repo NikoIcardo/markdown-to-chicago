@@ -35,13 +35,21 @@ async function loadPdfModule() {
     await build({
       entryPoints: [srcPath],
       outfile: outPath,
-      // Don't bundle - let Node.js resolve dependencies from node_modules at runtime
-      // This avoids issues with native modules (puppeteer) and complex ESM packages
-      bundle: false,
+      // Bundle dependencies so imports resolve correctly from the cache directory
+      bundle: true,
       format: "esm",
       platform: "node",
       target: "node18",
       sourcemap: false,
+      // Mark packages with native binaries or complex ESM as external
+      // These will be resolved from node_modules at runtime
+      external: [
+        "puppeteer",
+        "pdfjs-dist",
+        "canvas",
+      ],
+      // Resolve modules from the frontend directory
+      absWorkingDir: __dirname,
     });
     console.log("PDF module compiled successfully");
   }
