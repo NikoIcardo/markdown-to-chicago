@@ -844,7 +844,8 @@ export async function processMarkdown(
 
   if (isPreviouslyProcessed) {
     const { title, subtitle, headings } = extractHeadings(tree)
-    tree.children = tree.children.filter((node) => node.type !== 'yaml')
+    // Note: We no longer remove YAML frontmatter from the tree
+    // The frontmatter is preserved in markdown downloads so title can be extracted on subsequent uploads
     const removedTitleHeading = removeInitialHeadingMatchingTitle(tree, title)
 
     let sanitizedHeadings = headings
@@ -1646,7 +1647,8 @@ export async function processMarkdown(
 
   const { title, subtitle, headings } = extractHeadings(tree)
 
-  tree.children = tree.children.filter((node) => node.type !== 'yaml')
+  // Note: We no longer remove YAML frontmatter from the tree
+  // The frontmatter is preserved in markdown downloads so title can be extracted on subsequent uploads
 
   const removedTitleHeading = removeInitialHeadingMatchingTitle(tree, title)
 
