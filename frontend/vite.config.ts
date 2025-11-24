@@ -35,6 +35,8 @@ async function loadPdfModule() {
     await build({
       entryPoints: [srcPath],
       outfile: outPath,
+      // Don't bundle - let Node.js resolve dependencies from node_modules at runtime
+      // This avoids issues with native modules (puppeteer) and complex ESM packages
       bundle: false,
       format: "esm",
       platform: "node",
@@ -45,8 +47,8 @@ async function loadPdfModule() {
   }
   
   // Use native import with file:// URL
-  const moduleUrl = `file://${outPath}?t=${Date.now()}`;
-  return import(/* @vite-ignore */ moduleUrl);
+  // The mtime check above ensures we only recompile when source changes
+  return import(/* @vite-ignore */ `file://${outPath}`);
 }
 
 // Plugin to save downloaded files to repo root in dev mode
