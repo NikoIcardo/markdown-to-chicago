@@ -25,7 +25,7 @@ function deriveIssues(result: ProcessedMarkdown): DerivedIssue[] {
     }))
 }
 
-async function run() {
+async function run(extraPath?: string) {
   mkdirSync(outputDir, { recursive: true })
 
   const rawPath = resolve(repoRoot, 'main-content.md')
@@ -57,25 +57,38 @@ async function run() {
     throw new Error('Existing main-content-processed.md did not surface metadata issues.')
   }
 
-  console.log(
-    JSON.stringify(
-      {
-        firstPassMetadataIssues: firstPass.metadataIssues.length,
-        firstPassDerivedIssues: firstDerivedIssues.length,
-        secondPassMetadataIssues: secondPass.metadataIssues.length,
-        secondPassDerivedIssues: secondDerivedIssues.length,
-        existingProcessedMetadataIssues: existingProcessedResult.metadataIssues.length,
-        existingProcessedDerivedIssues: existingDerivedIssues.length,
-        firstOutputPath,
-        secondOutputPath,
-      },
-      null,
-      2,
-    ),
-  )
+  const report: Record<string, any> = {
+    firstPassMetadataIssues: firstPass.metadataIssues.length,
+    firstPassDerivedIssues: firstDerivedIssues.length,
+    secondPassMetadataIssues: secondPass.metadataIssues.length,
+    secondPassDerivedIssues: secondDerivedIssues.length,
+    existingProcessedMetadataIssues: existingProcessedResult.metadataIssues.length,
+    existingProcessedDerivedIssues: existingDerivedIssues.length,
+    firstOutputPath,
+    secondOutputPath,
+  }
+
+  if (extraPath) {
+    const absoluteExtraPath = resolve(repoRoot, extraPath)
+    const extraMarkdown = readFileSync(absoluteExtraPath, 'utf8')
+    const extraResult = await processMarkdown(extraMarkdown)
+    const extraDerived = deriveIssues(extraResult)
+    if (!extraDerived.length) {
+      throw new Error(`Provided file (${extraPath}) did not surface metadata issues.`)
+    }
+    report.extraFile = {
+      path: absoluteExtraPath,
+      metadataIssues: extraResult.metadataIssues.length,
+      derivedIssues: extraDerived.length,
+    }
+  }
+
+  console.log(JSON.stringify(report, null, 2))
 }
 
-run().catch((error) => {
+const extraPathArg = process.argv[2]
+
+run(extraPathArg).catch((error) => {
   console.error(error)
   process.exitCode = 1
 })
