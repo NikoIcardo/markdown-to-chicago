@@ -457,16 +457,7 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
     accessDate?: string
   } = {}
 
-  // Try to extract title FIRST (text in quotes or italics) before stripping keywords
-  const titleMatch = cleaned.match(/"([^"]+)"|'([^']+)'|\*([^*]+)\*|_([^_]+)_/)
-  if (titleMatch) {
-    metadata.title = (titleMatch[1] || titleMatch[2] || titleMatch[3] || titleMatch[4])
-      .trim()
-      .replace(/[.,;:]+$/, '') // Remove trailing punctuation
-    cleaned = cleaned.replace(titleMatch[0], '').trim()
-  }
-
-  // Try to extract date (various formats)
+  // Extract date first (so we can remove it and the "Accessed" keyword early)
   const datePatterns = [
     /(\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b)/i,
     /(\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+\d{1,2},?\s+\d{4}\b)/i,
@@ -483,17 +474,13 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
     }
   }
   
-  // Now remove standalone "Accessed" keyword that appears before the date (now just leftover marker)
-  // Strip only at the end to avoid corrupting site names that start with these words
-  // Allow multiple trailing punctuation marks (e.g., "Accessed . ." after URL removal)
+  // Remove "Accessed" keyword that appears before the date
   cleaned = cleaned.replace(/\b(?:Accessed|Retrieved|Viewed)(?:\s*[.,;:])*\s*$/i, '').trim()
 
-  // Try to extract authors - handle various formats:
-  // - "John Smith."
-  // - "John Smith and Jane Doe."
-  // - "John Smith, Jane Doe, and Bob Johnson."
-  // Authors typically appear at the beginning before the title
-  // Look for patterns ending with period that come before other content
+  // Now parse in the order that formatCitationText generates: [Authors]. "[Title]." [SiteName].
+  
+  // Try to extract authors FIRST (they appear at the beginning before title)
+  // Authors typically end with a period and space before the quoted title
   const authorPatterns = [
     // Pattern 1: Multiple authors with "and" - e.g., "John Smith and Jane Doe."
     /^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?(?:\s*,\s*[A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?)*(?:\s*,?\s+and\s+[A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?)?)\.\s+/,
@@ -512,18 +499,18 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
     }
   }
 
-  // If no title was found yet and we have remaining text, treat it as the title
-  if (!metadata.title && cleaned.length > 0 && cleaned.length < 200) {
-    // Remove common punctuation from beginning and end
-    cleaned = cleaned.replace(/^[.,;:\s]+|[.,;:\s]+$/g, '').trim()
-    if (cleaned.length > 0) {
-      metadata.title = cleaned
-      cleaned = '' // Clear so it doesn't also get assigned to siteName
-    }
+  // Extract title (text in quotes or italics)
+  const titleMatch = cleaned.match(/"([^"]+)"|'([^']+)'|\*([^*]+)\*|_([^_]+)_/)
+  if (titleMatch) {
+    metadata.title = (titleMatch[1] || titleMatch[2] || titleMatch[3] || titleMatch[4])
+      .trim()
+      .replace(/[.,;:]+$/, '') // Remove trailing punctuation
+    cleaned = cleaned.replace(titleMatch[0], '').trim()
   }
 
-  // Any additional remaining text might be publisher/site name
-  if (cleaned.length > 0 && cleaned.length < 100) {
+  // Any remaining text after authors and title is the siteName
+  if (cleaned.length > 0 && cleaned.length < 200) {
+    // Remove common punctuation from beginning and end
     cleaned = cleaned.replace(/^[.,;:\s]+|[.,;:\s]+$/g, '').trim()
     if (cleaned.length > 0) {
       metadata.siteName = cleaned
