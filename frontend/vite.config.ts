@@ -48,8 +48,9 @@ async function loadPdfModule() {
   });
   console.log("PDF module compiled successfully");
   
-  // Use native import with file:// URL and cache buster to ensure fresh module
-  return import(/* @vite-ignore */ `file://${outPath}?t=${Date.now()}`);
+  // Use native import with file:// URL
+  // The module is cached in pdfModulePromise so it's only loaded once per server start
+  return import(/* @vite-ignore */ `file://${outPath}`);
 }
 
 // Plugin to save downloaded files to repo root in dev mode
