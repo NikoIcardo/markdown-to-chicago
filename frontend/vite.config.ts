@@ -15,7 +15,6 @@ function saveFilesToRoot() {
       // Cache the PDF module to avoid re-importing on every request
       // Use Promise to handle concurrent requests safely
       let pdfModulePromise: Promise<any> | null = null;
-      const PDF_MODULE_PATH = "/src/pdf/generatePdfPuppeteer.ts";
 
       server.middlewares.use((req: any, res: any, next: any) => {
         const url = req.url?.split("?")[0];
@@ -95,11 +94,11 @@ function saveFilesToRoot() {
                 return;
               }
 
-              // Use dynamic import at runtime to avoid SSR module loading issues
+              // Use server.ssrLoadModule to properly transpile and load the TypeScript module
+              // SSR externalization is configured in the Vite config to handle problematic packages
               // Cache module promise to avoid re-importing on every request and handle concurrent requests
-              // The promise is created once and reused, so concurrent requests wait for the same import
               if (!pdfModulePromise) {
-                pdfModulePromise = import(/* @vite-ignore */ PDF_MODULE_PATH);
+                pdfModulePromise = server.ssrLoadModule("/src/pdf/generatePdfPuppeteer.ts");
               }
               const pdfModule = await pdfModulePromise;
               const { generatePdfWithPuppeteer } = pdfModule;
@@ -172,5 +171,12 @@ export default defineConfig({
       clientPort: 443,
       protocol: "wss",
     },
+  },
+  ssr: {
+    // Externalize these packages so they're loaded directly from node_modules
+    // instead of being transformed by Vite's SSR pipeline
+    external: ["puppeteer", "pdfjs-dist", "pdf-lib"],
+    // Don't externalize these packages - let Vite transform them
+    noExternal: ["unified", "remark-parse", "remark-gfm", "remark-html", "remark-slug", "remark-autolink-headings"],
   },
 });
