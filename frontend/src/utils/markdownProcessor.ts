@@ -537,7 +537,6 @@ function countOccurrences(haystack: string, needle: string): number {
 }
 
 const METADATA_STATUS_REGEX = /<!--\s*metadata-(missing|complete):([^>]+)\s*-->/i
-
 type MetadataStatus = 'missing' | 'complete'
 
 function getMetadataStatus(listItem: ListItem): { status: MetadataStatus; url: string } | null {
@@ -572,6 +571,7 @@ function setMetadataStatus(listItem: ListItem, status: MetadataStatus, url: stri
     value: `<!--metadata-${status}:${url}-->`,
   } as Html)
 }
+
 
 function buildIncompleteCitationIssue(
   listItem: ListItem,
@@ -1611,7 +1611,7 @@ export async function processMarkdown(
 
   if (bibliographyEntries.length) {
     const existingIssueUrls = new Set(
-      metadataIssues.filter((issue) => Boolean(issue.url)).map((issue) => issue.url!.toLowerCase()),
+      metadataIssues.filter((issue) => issue.url).map((issue) => issue.url!.toLowerCase()),
     )
     bibliographyEntries.forEach((entry) => {
       if (!entry.needsManualMetadata || !entry.url) {
