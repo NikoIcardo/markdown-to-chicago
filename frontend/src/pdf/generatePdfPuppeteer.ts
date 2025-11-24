@@ -8,7 +8,7 @@ import remarkHtml from 'remark-html'
 import remarkSlug from 'remark-slug'
 import remarkAutolinkHeadings from 'remark-autolink-headings'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
+// pdfjs-dist is loaded dynamically to avoid SSR issues
 import type { ProcessedMarkdown } from '../utils/types.ts'
 
 const FONT_CONFIG = {
@@ -52,6 +52,8 @@ function escapeHtml(value: string): string {
  */
 async function findMarkerPageInPdf(pdfData: Uint8Array, markerText: string): Promise<number> {
   try {
+    // Dynamic import to avoid SSR transformation issues
+    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
     const loadingTask = pdfjs.getDocument({ data: pdfData })
     const pdf = await loadingTask.promise
     const numPages = pdf.numPages

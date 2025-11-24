@@ -175,8 +175,18 @@ export default defineConfig({
   ssr: {
     // Externalize these packages so they're loaded directly from node_modules
     // instead of being transformed by Vite's SSR pipeline
-    external: ["puppeteer", "pdfjs-dist", "pdf-lib"],
-    // Don't externalize these packages - let Vite transform them
-    noExternal: ["unified", "remark-parse", "remark-gfm", "remark-html", "remark-slug", "remark-autolink-headings"],
+    external: [
+      "puppeteer",
+      "pdfjs-dist",
+      "pdfjs-dist/legacy/build/pdf.mjs",
+      "pdf-lib",
+      "canvas",
+    ],
+    // Transform all other packages (required for ESM-only remark packages)
+    noExternal: true,
+  },
+  optimizeDeps: {
+    // Exclude these packages from pre-bundling
+    exclude: ["puppeteer", "pdfjs-dist", "pdf-lib"],
   },
 });
