@@ -92,6 +92,7 @@ function saveFilesToRoot() {
 
               // Use dynamic import at runtime to avoid SSR module loading issues
               // Cache module promise to avoid re-importing on every request and handle concurrent requests
+              // The promise is created once and reused, so concurrent requests wait for the same import
               if (!pdfModulePromise) {
                 pdfModulePromise = import(/* @vite-ignore */ PDF_MODULE_PATH)
               }
