@@ -187,6 +187,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     // Exclude these packages from pre-bundling
-    exclude: ["puppeteer", "pdfjs-dist", "pdf-lib"],
+    exclude: ["puppeteer", "pdfjs-dist", "pdf-lib", "canvas"],
   },
 });
