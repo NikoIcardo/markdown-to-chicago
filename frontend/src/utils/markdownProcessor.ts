@@ -488,11 +488,28 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
   // Allow multiple trailing punctuation marks (e.g., "Accessed . ." after URL removal)
   cleaned = cleaned.replace(/\b(?:Accessed|Retrieved|Viewed)(?:\s*[.,;:])*\s*$/i, '').trim()
 
-  // Try to extract authors (names before title, often with periods or commas)
-  const authorMatch = cleaned.match(/^([A-Z][a-z]+(?:,?\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+)?(?:\s*,\s*[A-Z][a-z]+(?:,?\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+)?)*)[.,]/)
-  if (authorMatch) {
-    metadata.authors = authorMatch[1].trim()
-    cleaned = cleaned.replace(authorMatch[0], '').trim()
+  // Try to extract authors - handle various formats:
+  // - "John Smith."
+  // - "John Smith and Jane Doe."
+  // - "John Smith, Jane Doe, and Bob Johnson."
+  // Authors typically appear at the beginning before the title
+  // Look for patterns ending with period that come before other content
+  const authorPatterns = [
+    // Pattern 1: Multiple authors with "and" - e.g., "John Smith and Jane Doe."
+    /^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?(?:\s*,\s*[A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?)*(?:\s*,?\s+and\s+[A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?)?)\.\s+/,
+    // Pattern 2: Simple author name - e.g., "John Smith."
+    /^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?)\.\s+/,
+    // Pattern 3: Authors with middle initials - e.g., "John Q. Smith."
+    /^([A-Z][a-z]+(?:\s+[A-Z]\.)+\s+[A-Z][a-z]+)\.\s+/
+  ]
+  
+  for (const pattern of authorPatterns) {
+    const authorMatch = cleaned.match(pattern)
+    if (authorMatch) {
+      metadata.authors = authorMatch[1].trim()
+      cleaned = cleaned.replace(authorMatch[0], '').trim()
+      break
+    }
   }
 
   // If no title was found yet and we have remaining text, treat it as the title
