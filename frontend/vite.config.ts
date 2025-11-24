@@ -2,9 +2,51 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
+import { build } from "esbuild";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function sanitizeFileName(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
+// Compile TypeScript to JavaScript using esbuild and return the module
+async function loadPdfModule() {
+  const srcPath = path.resolve(__dirname, "src/pdf/generatePdfPuppeteer.ts");
+  const outPath = path.resolve(__dirname, "node_modules/.cache/generatePdfPuppeteer.mjs");
+  
+  // Ensure cache directory exists
+  const cacheDir = path.dirname(outPath);
+  if (!fs.existsSync(cacheDir)) {
+    fs.mkdirSync(cacheDir, { recursive: true });
+  }
+  
+  // Check if we need to recompile (source newer than output)
+  let needsCompile = true;
+  if (fs.existsSync(outPath)) {
+    const srcStat = fs.statSync(srcPath);
+    const outStat = fs.statSync(outPath);
+    needsCompile = srcStat.mtimeMs > outStat.mtimeMs;
+  }
+  
+  if (needsCompile) {
+    console.log("Compiling PDF module with esbuild...");
+    await build({
+      entryPoints: [srcPath],
+      outfile: outPath,
+      bundle: false,
+      format: "esm",
+      platform: "node",
+      target: "node18",
+      sourcemap: false,
+    });
+    console.log("PDF module compiled successfully");
+  }
+  
+  // Use native import with file:// URL
+  const moduleUrl = `file://${outPath}?t=${Date.now()}`;
+  return import(/* @vite-ignore */ moduleUrl);
 }
 
 // Plugin to save downloaded files to repo root in dev mode
@@ -94,11 +136,11 @@ function saveFilesToRoot() {
                 return;
               }
 
-              // Use server.ssrLoadModule to properly transpile and load the TypeScript module
-              // SSR externalization is configured in the Vite config to handle problematic packages
+              // Use esbuild to compile TypeScript and native import to load the module
+              // This bypasses Vite's SSR transformation pipeline which has issues with certain packages
               // Cache module promise to avoid re-importing on every request and handle concurrent requests
               if (!pdfModulePromise) {
-                pdfModulePromise = server.ssrLoadModule("/src/pdf/generatePdfPuppeteer.ts");
+                pdfModulePromise = loadPdfModule();
               }
               const pdfModule = await pdfModulePromise;
               const { generatePdfWithPuppeteer } = pdfModule;
