@@ -906,6 +906,55 @@ export async function processMarkdown(
       return hasImageExtension
     }
 
+    // Update existing bibliography entries with manual metadata if provided
+    let bibliographyUpdated = false
+    if (bibliographyList) {
+      bibliographyEntries.forEach((entry, idx) => {
+        if (!entry.url) {
+          return // Skip entries without URLs
+        }
+        
+        const normalizedUrl = normalizeUrl(entry.url)
+        const manualOverride = manualMetadataMap.get(normalizedUrl)
+        
+        if (manualOverride) {
+          // Update the bibliography entry with the manual metadata
+          const updatedMetadata: SourceMetadata = {
+            url: manualOverride.url || entry.url,
+            title: manualOverride.title || manualOverride.url || entry.url,
+            authors: manualOverride.authors || [],
+            siteName: manualOverride.siteName,
+            isPdf: manualOverride.isPdf ?? false,
+            accessDate: manualOverride.accessDate ?? format(new Date(), 'MMMM d, yyyy'),
+            sourceType: 'manual',
+          }
+          
+          // Get the corresponding list item from the bibliography list
+          const listItem = bibliographyList.children[idx] as ListItem
+          if (listItem) {
+            // Find the first paragraph in the list item
+            const firstParagraph = listItem.children.find(
+              (child): child is Paragraph => child.type === 'paragraph'
+            )
+            
+            if (firstParagraph) {
+              // Find and preserve the anchor
+              const anchorNode = firstParagraph.children.find(
+                (child): child is Html => child.type === 'html' && child.value.includes('<a id="bib-')
+              )
+              
+              // Build new citation content
+              const newContent = buildCitationContent(updatedMetadata)
+              
+              // Replace paragraph children with anchor (if found) + new content
+              firstParagraph.children = anchorNode ? [anchorNode, ...newContent] : newContent
+              bibliographyUpdated = true
+            }
+          }
+        }
+      })
+    }
+
     // Check for incomplete metadata in existing bibliography entries
     bibliographyEntries.forEach((entry) => {
       if (!entry.url) {
@@ -916,7 +965,7 @@ export async function processMarkdown(
       const normalizedUrl = normalizeUrl(entry.url)
       const manualOverride = manualMetadataMap.get(normalizedUrl)
       if (manualOverride) {
-        return // Skip entries that have manual metadata provided
+        return // Skip entries that have manual metadata provided (already updated above)
       }
       
       // Skip URLs that should be excluded from bibliography
@@ -946,9 +995,21 @@ export async function processMarkdown(
       }
     })
 
+    // If bibliography was updated, serialize the tree back to markdown
+    const modifiedMarkdown = bibliographyUpdated 
+      ? unified()
+          .use(remarkStringify, {
+            bullet: '-',
+            fences: true,
+            listItemIndent: 'one',
+          })
+          .use(remarkFrontmatter)
+          .stringify(tree)
+      : markdown
+
     return {
       original: markdown,
-      modified: markdown,
+      modified: modifiedMarkdown,
       title,
       subtitle,
       mainHeadingDepth: normalizedHeadingDepth,
