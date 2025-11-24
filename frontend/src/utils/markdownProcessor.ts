@@ -536,47 +536,53 @@ function countOccurrences(haystack: string, needle: string): number {
   return haystack.match(regex)?.length ?? 0
 }
 
-const METADATA_MISSING_FLAG_REGEX = /<!--\s*metadata-missing:([^>]+)\s*-->/i
+const METADATA_STATUS_REGEX = /<!--\s*metadata-(missing|complete):([^>]+)\s*-->/i
 
-function extractMetadataMissingFlag(listItem: ListItem): string | null {
+type MetadataStatus = 'missing' | 'complete'
+
+function getMetadataStatus(listItem: ListItem): { status: MetadataStatus; url: string } | null {
   for (const child of listItem.children) {
     if (child.type !== 'html') {
       continue
     }
-    const match = (child as Html).value.match(METADATA_MISSING_FLAG_REGEX)
+    const match = (child as Html).value.match(METADATA_STATUS_REGEX)
     if (match) {
-      return match[1].trim()
+      return {
+        status: match[1].toLowerCase() === 'complete' ? 'complete' : 'missing',
+        url: match[2].trim(),
+      }
     }
   }
   return null
 }
 
-function addMetadataMissingFlag(listItem: ListItem, url: string) {
-  clearMetadataMissingFlag(listItem)
-  listItem.children.push({
-    type: 'html',
-    value: `<!--metadata-missing:${url}-->`,
-  } as Html)
-}
-
-function clearMetadataMissingFlag(listItem: ListItem) {
+function clearMetadataStatus(listItem: ListItem) {
   listItem.children = listItem.children.filter((child) => {
     if (child.type !== 'html') {
       return true
     }
-    return !METADATA_MISSING_FLAG_REGEX.test((child as Html).value)
+    return !METADATA_STATUS_REGEX.test((child as Html).value)
   })
+}
+
+function setMetadataStatus(listItem: ListItem, status: MetadataStatus, url: string) {
+  clearMetadataStatus(listItem)
+  listItem.children.push({
+    type: 'html',
+    value: `<!--metadata-${status}:${url}-->`,
+  } as Html)
 }
 
 function buildIncompleteCitationIssue(
   listItem: ListItem,
   normalizedUrl: string,
 ): MetadataIssue | null {
-  const flaggedUrl = extractMetadataMissingFlag(listItem)
+  const flaggedStatus = getMetadataStatus(listItem)
+  const flaggedUrl = flaggedStatus?.url
   const targetUrl = flaggedUrl || normalizedUrl
   const citationText = toString(listItem).trim()
   if (!citationText) {
-    addMetadataMissingFlag(listItem, targetUrl)
+    setMetadataStatus(listItem, 'missing', targetUrl)
     return {
       url: targetUrl,
       message: 'Incomplete citation entry. Please add title, authors, and other details.',
@@ -604,19 +610,22 @@ function buildIncompleteCitationIssue(
     cleanedCitation.includes(normalizedWithoutProtocol) ||
     cleanedCitation.length < targetUrl.length + 20
 
-  let shouldFlag = Boolean(flaggedUrl)
-  if (!shouldFlag) {
-    shouldFlag = urlOccurrences > 1 || titleLooksLikeUrl || minimalCitation
-  }
+  const hasStatus = Boolean(flaggedStatus)
+  const explicitMissing = flaggedStatus?.status === 'missing'
+  const explicitComplete = flaggedStatus?.status === 'complete'
+
+  const shouldFlag =
+    !explicitComplete &&
+    (explicitMissing || urlOccurrences > 1 || titleLooksLikeUrl || minimalCitation || !hasStatus)
 
   if (!shouldFlag) {
-    if (flaggedUrl) {
-      clearMetadataMissingFlag(listItem)
+    if (targetUrl) {
+      setMetadataStatus(listItem, 'complete', targetUrl)
     }
     return null
   }
 
-  addMetadataMissingFlag(listItem, targetUrl)
+  setMetadataStatus(listItem, 'missing', targetUrl)
 
   return {
     url: targetUrl,
@@ -1067,7 +1076,7 @@ export async function processMarkdown(
       needsManualMetadata: false,
     }
     if (normalised && manualMetadataMap.has(normalised)) {
-      clearMetadataMissingFlag(listItem)
+      setMetadataStatus(listItem, 'complete', normalised)
     }
     if (normalised && !urlToExistingNumber.has(normalised)) {
       urlToExistingNumber.set(normalised, entry)
@@ -1317,9 +1326,7 @@ export async function processMarkdown(
           },
         ],
       }
-      if (needsManualMetadata) {
-        addMetadataMissingFlag(listItem, normalizedUrl)
-      }
+      setMetadataStatus(listItem, needsManualMetadata ? 'missing' : 'complete', normalizedUrl)
       const entryInfo: ExistingEntryInfo = {
         number: 0,
         normalizedUrl,
