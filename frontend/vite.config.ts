@@ -87,7 +87,7 @@ function saveFilesToRoot() {
 
               // Use dynamic import at runtime to avoid SSR module loading issues
               // Path is constructed dynamically to prevent Vite from analyzing it at config build time
-              const modulePath = './src/pdf/generatePdfPuppeteer.ts'
+              const modulePath = '/src/pdf/generatePdfPuppeteer.ts'
               const pdfModule = await import(/* @vite-ignore */ modulePath)
               const { generatePdfWithPuppeteer } = pdfModule
               const allowedFonts = new Set(['Times New Roman', 'Helvetica', 'Courier New'] as const)
