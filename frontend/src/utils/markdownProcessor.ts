@@ -747,6 +747,34 @@ function extractHeadings(root: Root): { title: string; subtitle: string; heading
   return { title, subtitle, headings }
 }
 
+// Ensure YAML frontmatter with title exists in the tree
+// This preserves the title for subsequent uploads
+function ensureFrontmatter(root: Root, title: string, subtitle?: string) {
+  // Check if frontmatter already exists
+  let hasYamlFrontmatter = false
+  visit(root, 'yaml', () => {
+    hasYamlFrontmatter = true
+  })
+  
+  if (hasYamlFrontmatter || !title) {
+    return // Already has frontmatter or no title to add
+  }
+  
+  // Create frontmatter with title
+  const frontmatterData: Record<string, string> = { title }
+  if (subtitle) {
+    frontmatterData.subtitle = subtitle
+  }
+  
+  const yamlNode = {
+    type: 'yaml',
+    value: yaml.dump(frontmatterData).trim(),
+  }
+  
+  // Insert at the beginning of the document
+  root.children.unshift(yamlNode as Content)
+}
+
 interface ProcessMarkdownOptions {
   manualMetadata?: Record<string, ManualMetadataInput>
 }
@@ -995,6 +1023,9 @@ export async function processMarkdown(
         })
       }
     })
+
+    // Ensure frontmatter is preserved/added for title extraction on subsequent uploads
+    ensureFrontmatter(tree, title, subtitle)
 
     // If bibliography was updated, serialize the tree back to markdown
     const modifiedMarkdown = bibliographyUpdated 
@@ -1664,6 +1695,9 @@ export async function processMarkdown(
         ),
     )
   }
+
+  // Ensure frontmatter is preserved/added for title extraction on subsequent uploads
+  ensureFrontmatter(tree, title, subtitle)
 
   const stringified = unified()
     .use(remarkStringify, {
