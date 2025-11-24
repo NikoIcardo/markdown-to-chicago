@@ -933,9 +933,19 @@ export async function processMarkdown(
       const hasSiteName = parsedMetadata.siteName && parsedMetadata.siteName.length > 0
       const hasAccessDate = parsedMetadata.accessDate && parsedMetadata.accessDate.length > 0
       
-      // Consider metadata incomplete if it's missing title OR (missing both authors and siteName)
-      // We need at least a title, and ideally either authors or siteName
+      // Consider metadata incomplete if it's missing title OR (missing both authors and siteName) OR missing accessDate
+      // We need at least a title, and ideally either authors or siteName, and always need accessDate
       const isIncomplete = !hasTitle || (!hasAuthors && !hasSiteName) || !hasAccessDate
+      
+      // Debug logging to help diagnose issues
+      if (isIncomplete) {
+        console.log('[INCOMPLETE ENTRY]', {
+          url: entry.url,
+          citation: entry.citation.substring(0, 100) + '...',
+          parsed: parsedMetadata,
+          checks: { hasTitle, hasAuthors, hasSiteName, hasAccessDate, isIncomplete }
+        })
+      }
       
       if (isIncomplete) {
         metadataIssues.push({
