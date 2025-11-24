@@ -872,6 +872,17 @@ export async function processMarkdown(
       ? collectBibliographyEntriesFromList(bibliographyList)
       : []
 
+    // Helper function to check if URL should be excluded from bibliography
+    const isExcludedUrl = (url: string): boolean => {
+      const lowerUrl = url.toLowerCase()
+      return (
+        lowerUrl.includes('facebook.com') || 
+        lowerUrl.includes('reddit.com') ||
+        /\.(png|jpe?g|gif|webp|svg|bmp|ico|tiff?)($|\?|#)/i.test(lowerUrl) ||
+        (lowerUrl.includes('substackcdn.com') && lowerUrl.includes('/image/fetch/'))
+      )
+    }
+
     // Check for incomplete metadata in existing bibliography entries
     bibliographyEntries.forEach((entry) => {
       if (!entry.url) {
@@ -883,6 +894,11 @@ export async function processMarkdown(
       const manualOverride = manualMetadataMap.get(normalizedUrl)
       if (manualOverride) {
         return // Skip entries that have manual metadata provided
+      }
+      
+      // Skip URLs that should be excluded from bibliography
+      if (isExcludedUrl(normalizedUrl)) {
+        return
       }
       
       // Parse the citation text to extract metadata
@@ -899,20 +915,11 @@ export async function processMarkdown(
       const isIncomplete = !hasTitle || (!hasAuthors && !hasSiteName) || !hasAccessDate
       
       if (isIncomplete) {
-        // Check if this URL should be excluded from bibliography (images, social media, etc.)
-        const lowerUrl = normalizedUrl.toLowerCase()
-        const shouldExclude = 
-          lowerUrl.includes('facebook.com') || 
-          lowerUrl.includes('reddit.com') ||
-          /\.(png|jpe?g|gif|webp|svg|bmp|ico|tiff?)($|\?|#)/i.test(lowerUrl) ||
-          (lowerUrl.includes('substackcdn.com') && lowerUrl.includes('/image/fetch/'))
-        
-        if (!shouldExclude) {
-          metadataIssues.push({
-            url: entry.url,
-            message: 'Incomplete metadata detected. Please provide missing details.',
-          })
-        }
+        metadataIssues.push({
+          url: entry.url,
+          message: 'Incomplete metadata detected. Please provide missing details.',
+          partialMetadata: parsedMetadata,
+        })
       }
     })
 
