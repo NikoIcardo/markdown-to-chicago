@@ -801,11 +801,20 @@ export async function processMarkdown(
   markdown: string,
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
+  console.log('[PROCESS] Starting processMarkdown')
+  console.log('[PROCESS] Markdown length:', markdown.length)
   const tree = processor.parse(markdown) as Root
   const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
   const hasCitationReferences = /href="#bib-\d+"/i.test(markdown)
+  const hasCitationLinkClass = markdown.includes('citation-link')
+  console.log('[PROCESS] Detection markers:', { 
+    hasBibliographyAnchors, 
+    hasCitationReferences,
+    hasCitationLinkClass
+  })
   const isPreviouslyProcessed =
-    hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
+    hasBibliographyAnchors || hasCitationReferences || hasCitationLinkClass
+  console.log('[PROCESS] isPreviouslyProcessed:', isPreviouslyProcessed)
   if (!isPreviouslyProcessed) {
     removeExistingCitationReferences(tree)
   }
