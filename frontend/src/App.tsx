@@ -307,9 +307,12 @@ function App() {
     }
 
     try {
-      // Clear persisted session when uploading a new file
+      console.log('📤 New file upload detected:', file.name)
+      
+      // Clear ALL persisted session data and reset state completely
       clearPersistedSession()
       
+      // Reset all state to initial values
       manualMetadataOverridesRef.current = {}
       setManualMetadataQueue([])
       setManualMetadataModalOpen(false)
@@ -319,6 +322,8 @@ function App() {
       setProcessed(null)
       setFileName(file.name)
       setShowBibliographyNotice(false)
+      
+      console.log('🧹 Cleared all cached data for fresh processing')
 
       const text = await file.text()
       setOriginalMarkdown(text)

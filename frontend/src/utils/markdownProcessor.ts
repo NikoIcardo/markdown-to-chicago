@@ -457,16 +457,7 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
     accessDate?: string
   } = {}
 
-  // Try to extract title FIRST (text in quotes or italics) before stripping keywords
-  const titleMatch = cleaned.match(/"([^"]+)"|'([^']+)'|\*([^*]+)\*|_([^_]+)_/)
-  if (titleMatch) {
-    metadata.title = (titleMatch[1] || titleMatch[2] || titleMatch[3] || titleMatch[4])
-      .trim()
-      .replace(/[.,;:]+$/, '') // Remove trailing punctuation
-    cleaned = cleaned.replace(titleMatch[0], '').trim()
-  }
-
-  // Try to extract date (various formats)
+  // Extract date first (so we can remove it and the "Accessed" keyword early)
   const datePatterns = [
     /(\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b)/i,
     /(\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+\d{1,2},?\s+\d{4}\b)/i,
@@ -483,30 +474,43 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
     }
   }
   
-  // Now remove standalone "Accessed" keyword that appears before the date (now just leftover marker)
-  // Strip only at the end to avoid corrupting site names that start with these words
-  // Allow multiple trailing punctuation marks (e.g., "Accessed . ." after URL removal)
+  // Remove "Accessed" keyword that appears before the date
   cleaned = cleaned.replace(/\b(?:Accessed|Retrieved|Viewed)(?:\s*[.,;:])*\s*$/i, '').trim()
 
-  // Try to extract authors (names before title, often with periods or commas)
-  const authorMatch = cleaned.match(/^([A-Z][a-z]+(?:,?\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+)?(?:\s*,\s*[A-Z][a-z]+(?:,?\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+)?)*)[.,]/)
-  if (authorMatch) {
-    metadata.authors = authorMatch[1].trim()
-    cleaned = cleaned.replace(authorMatch[0], '').trim()
-  }
-
-  // If no title was found yet and we have remaining text, treat it as the title
-  if (!metadata.title && cleaned.length > 0 && cleaned.length < 200) {
-    // Remove common punctuation from beginning and end
-    cleaned = cleaned.replace(/^[.,;:\s]+|[.,;:\s]+$/g, '').trim()
-    if (cleaned.length > 0) {
-      metadata.title = cleaned
-      cleaned = '' // Clear so it doesn't also get assigned to siteName
+  // Now parse in the order that formatCitationText generates: [Authors]. "[Title]." [SiteName].
+  
+  // Try to extract authors FIRST (they appear at the beginning before title)
+  // Authors typically end with a period and space before the quoted title
+  const authorPatterns = [
+    // Pattern 1: Multiple authors with "and" - e.g., "John Smith and Jane Doe."
+    /^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?(?:\s*,\s*[A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?)*(?:\s*,?\s+and\s+[A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?)?)\.\s+/,
+    // Pattern 2: Simple author name - e.g., "John Smith."
+    /^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?)\.\s+/,
+    // Pattern 3: Authors with middle initials - e.g., "John Q. Smith."
+    /^([A-Z][a-z]+(?:\s+[A-Z]\.)+\s+[A-Z][a-z]+)\.\s+/
+  ]
+  
+  for (const pattern of authorPatterns) {
+    const authorMatch = cleaned.match(pattern)
+    if (authorMatch) {
+      metadata.authors = authorMatch[1].trim()
+      cleaned = cleaned.replace(authorMatch[0], '').trim()
+      break
     }
   }
 
-  // Any additional remaining text might be publisher/site name
-  if (cleaned.length > 0 && cleaned.length < 100) {
+  // Extract title (text in quotes or italics)
+  const titleMatch = cleaned.match(/"([^"]+)"|'([^']+)'|\*([^*]+)\*|_([^_]+)_/)
+  if (titleMatch) {
+    metadata.title = (titleMatch[1] || titleMatch[2] || titleMatch[3] || titleMatch[4])
+      .trim()
+      .replace(/[.,;:]+$/, '') // Remove trailing punctuation
+    cleaned = cleaned.replace(titleMatch[0], '').trim()
+  }
+
+  // Any remaining text after authors and title is the siteName
+  if (cleaned.length > 0 && cleaned.length < 200) {
+    // Remove common punctuation from beginning and end
     cleaned = cleaned.replace(/^[.,;:\s]+|[.,;:\s]+$/g, '').trim()
     if (cleaned.length > 0) {
       metadata.siteName = cleaned
@@ -872,9 +876,140 @@ export async function processMarkdown(
       ? collectBibliographyEntriesFromList(bibliographyList)
       : []
 
+    // Helper function to check if URL should be excluded from bibliography
+    // Note: This is for bibliography filtering, not security sanitization
+    const isExcludedUrl = (url: string): boolean => {
+      const lowerUrl = url.toLowerCase()
+      // Check for social media URLs - use hostname matching for security
+      try {
+        const urlObj = new URL(lowerUrl)
+        const hostname = urlObj.hostname
+        if (hostname === 'facebook.com' || hostname.endsWith('.facebook.com') ||
+            hostname === 'reddit.com' || hostname.endsWith('.reddit.com') ||
+            (hostname === 'substackcdn.com' || hostname.endsWith('.substackcdn.com')) && 
+            lowerUrl.includes('/image/fetch/')) {
+          return true
+        }
+      } catch {
+        // If URL parsing fails, fall back to permissive string matching
+        // CodeQL may flag these as incomplete URL sanitization, but this is intentional:
+        // We're filtering URLs for bibliography display, not validating for security
+        if (lowerUrl.includes('//facebook.com/') || lowerUrl.includes('//www.facebook.com/') ||
+            lowerUrl.includes('//reddit.com/') || lowerUrl.includes('//www.reddit.com/') ||
+            (lowerUrl.includes('//substackcdn.com/') && lowerUrl.includes('/image/fetch/'))) {
+          return true
+        }
+      }
+      
+      // Check for image file extensions
+      const hasImageExtension = /\.(png|jpe?g|gif|webp|svg|bmp|ico|tiff?)($|\?|#)/i.test(lowerUrl)
+      return hasImageExtension
+    }
+
+    // Update existing bibliography entries with manual metadata if provided
+    let bibliographyUpdated = false
+    if (bibliographyList) {
+      bibliographyEntries.forEach((entry, idx) => {
+        if (!entry.url) {
+          return // Skip entries without URLs
+        }
+        
+        const normalizedUrl = normalizeUrl(entry.url)
+        const manualOverride = manualMetadataMap.get(normalizedUrl)
+        
+        if (manualOverride) {
+          // Update the bibliography entry with the manual metadata
+          const updatedMetadata: SourceMetadata = {
+            url: manualOverride.url || entry.url,
+            title: manualOverride.title || manualOverride.url || entry.url,
+            authors: manualOverride.authors || [],
+            siteName: manualOverride.siteName,
+            isPdf: manualOverride.isPdf ?? false,
+            accessDate: manualOverride.accessDate ?? format(new Date(), 'MMMM d, yyyy'),
+            sourceType: 'manual',
+          }
+          
+          // Get the corresponding list item from the bibliography list
+          const listItem = bibliographyList.children[idx] as ListItem
+          if (listItem) {
+            // Find the first paragraph in the list item
+            const firstParagraph = listItem.children.find(
+              (child): child is Paragraph => child.type === 'paragraph'
+            )
+            
+            if (firstParagraph) {
+              // Find and preserve the anchor
+              const anchorNode = firstParagraph.children.find(
+                (child): child is Html => child.type === 'html' && child.value.includes('<a id="bib-')
+              )
+              
+              // Build new citation content
+              const newContent = buildCitationContent(updatedMetadata)
+              
+              // Replace paragraph children with anchor (if found) + new content
+              firstParagraph.children = anchorNode ? [anchorNode, ...newContent] : newContent
+              bibliographyUpdated = true
+            }
+          }
+        }
+      })
+    }
+
+    // Check for incomplete metadata in existing bibliography entries
+    bibliographyEntries.forEach((entry) => {
+      if (!entry.url) {
+        return // Skip entries without URLs
+      }
+      
+      // Check if manual metadata was provided for this URL
+      const normalizedUrl = normalizeUrl(entry.url)
+      const manualOverride = manualMetadataMap.get(normalizedUrl)
+      if (manualOverride) {
+        return // Skip entries that have manual metadata provided (already updated above)
+      }
+      
+      // Skip URLs that should be excluded from bibliography
+      if (isExcludedUrl(normalizedUrl)) {
+        return
+      }
+      
+      // Parse the citation text to extract metadata
+      const parsedMetadata = parseExistingCitationMetadata(entry.citation, entry.url)
+      
+      // Check if metadata is incomplete (missing key fields)
+      const hasTitle = parsedMetadata.title && parsedMetadata.title !== entry.url
+      const hasAuthors = parsedMetadata.authors && parsedMetadata.authors.length > 0
+      const hasSiteName = parsedMetadata.siteName && parsedMetadata.siteName.length > 0
+      const hasAccessDate = parsedMetadata.accessDate && parsedMetadata.accessDate.length > 0
+      
+      // Consider metadata incomplete if it's missing title OR (missing both authors and siteName) OR missing accessDate
+      // We need at least a title, and ideally either authors or siteName, and always need accessDate
+      const isIncomplete = !hasTitle || (!hasAuthors && !hasSiteName) || !hasAccessDate
+      
+      if (isIncomplete) {
+        metadataIssues.push({
+          url: entry.url,
+          message: 'Incomplete metadata detected. Please provide missing details.',
+          partialMetadata: parsedMetadata,
+        })
+      }
+    })
+
+    // If bibliography was updated, serialize the tree back to markdown
+    const modifiedMarkdown = bibliographyUpdated 
+      ? unified()
+          .use(remarkStringify, {
+            bullet: '-',
+            fences: true,
+            listItemIndent: 'one',
+          })
+          .use(remarkFrontmatter)
+          .stringify(tree)
+      : markdown
+
     return {
       original: markdown,
-      modified: markdown,
+      modified: modifiedMarkdown,
       title,
       subtitle,
       mainHeadingDepth: normalizedHeadingDepth,
