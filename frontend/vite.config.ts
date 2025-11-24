@@ -88,31 +88,31 @@ function saveFilesToRoot() {
               const processed = payload?.processed
               const options = payload?.options ?? {}
 
-                if (!processed || typeof processed.modified !== 'string') {
-                  res.statusCode = 400
-                  res.end('Invalid processed payload')
-                  return
-                }
+              if (!processed || typeof processed.modified !== 'string') {
+                res.statusCode = 400
+                res.end('Invalid processed payload')
+                return
+              }
 
-                const { generatePdfWithPuppeteer } = await ensurePdfModule()
-                const allowedFonts = new Set(['Times New Roman', 'Helvetica', 'Courier New'] as const)
-                const fontFamily =
-                  typeof options.fontFamily === 'string' && allowedFonts.has(options.fontFamily)
-                    ? options.fontFamily
-                    : undefined
-                const fontSize =
-                  typeof options.fontSize === 'number' && Number.isFinite(options.fontSize)
-                    ? options.fontSize
-                    : undefined
-                const pdfBuffer: Buffer = await generatePdfWithPuppeteer(processed, {
-                  fontFamily,
-                  fontSize,
-                })
+              const { generatePdfWithPuppeteer } = await ensurePdfModule()
+              const allowedFonts = new Set(['Times New Roman', 'Helvetica', 'Courier New'] as const)
+              const fontFamily =
+                typeof options.fontFamily === 'string' && allowedFonts.has(options.fontFamily)
+                  ? options.fontFamily
+                  : undefined
+              const fontSize =
+                typeof options.fontSize === 'number' && Number.isFinite(options.fontSize)
+                  ? options.fontSize
+                  : undefined
+              const pdfBuffer: Buffer = await generatePdfWithPuppeteer(processed, {
+                fontFamily,
+                fontSize,
+              })
 
-                const downloadNameBase =
-                  typeof options.originalFileName === 'string' && options.originalFileName
-                    ? options.originalFileName.replace(/\.md$/i, '')
-                    : processed.title || 'document'
+              const downloadNameBase =
+                typeof options.originalFileName === 'string' && options.originalFileName
+                  ? options.originalFileName.replace(/\.md$/i, '')
+                  : processed.title || 'document'
 
               const downloadName = `${sanitizeFileName(downloadNameBase || 'document')}.pdf`
 
