@@ -78,6 +78,10 @@ async function findMarkerPageInPdf(pdfData: Uint8Array, markerText: string): Pro
 }
 
 async function markdownToHtml(markdown: string): Promise<string> {
+  // First, strip the YAML frontmatter before converting to HTML
+  // The frontmatter is used for title page generation but shouldn't appear in the content body
+  const markdownWithoutFrontmatter = markdown.replace(/^---\n[\s\S]*?\n---\n?/, '')
+  
   const file = await unified()
     .use(remarkParse)
     .use(remarkGfm)
@@ -87,7 +91,7 @@ async function markdownToHtml(markdown: string): Promise<string> {
       linkProperties: { ariaHidden: 'true', tabIndex: -1 },
     })
     .use(remarkHtml, { sanitize: false })
-    .process(markdown)
+    .process(markdownWithoutFrontmatter)
   return String(file)
 }
 
