@@ -907,6 +907,8 @@ export async function processMarkdown(
     }
 
     // Check for incomplete metadata in existing bibliography entries
+    const debugInfo: any[] = []
+    
     bibliographyEntries.forEach((entry) => {
       if (!entry.url) {
         return // Skip entries without URLs
@@ -937,11 +939,11 @@ export async function processMarkdown(
       // We need at least a title, and ideally either authors or siteName, and always need accessDate
       const isIncomplete = !hasTitle || (!hasAuthors && !hasSiteName) || !hasAccessDate
       
-      // Debug logging to help diagnose issues
+      // Collect debug info for incomplete entries
       if (isIncomplete) {
-        console.log('[INCOMPLETE ENTRY]', {
+        debugInfo.push({
           url: entry.url,
-          citation: entry.citation.substring(0, 100) + '...',
+          citation: entry.citation,
           parsed: parsedMetadata,
           checks: { hasTitle, hasAuthors, hasSiteName, hasAccessDate, isIncomplete }
         })
@@ -955,6 +957,30 @@ export async function processMarkdown(
         })
       }
     })
+    
+    // If there are debug entries, create a downloadable debug file
+    if (debugInfo.length > 0) {
+      console.log(`[DEBUG] Found ${debugInfo.length} incomplete entries. Creating debug file...`)
+      try {
+        const debugContent = JSON.stringify(debugInfo, null, 2)
+        const blob = new Blob([debugContent], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `metadata-debug-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        console.log(`[DEBUG] Debug file downloaded. Contains ${debugInfo.length} incomplete entries.`)
+      } catch (error) {
+        console.error('[DEBUG] Failed to create debug file:', error)
+        // Fallback to console logging if file creation fails
+        console.log('[DEBUG] Debug info:', debugInfo)
+      }
+    } else {
+      console.log('[DEBUG] No incomplete entries found.')
+    }
 
     return {
       original: markdown,
