@@ -873,14 +873,33 @@ export async function processMarkdown(
       : []
 
     // Helper function to check if URL should be excluded from bibliography
+    // Note: This is for bibliography filtering, not security sanitization
     const isExcludedUrl = (url: string): boolean => {
       const lowerUrl = url.toLowerCase()
-      return (
-        lowerUrl.includes('facebook.com') || 
-        lowerUrl.includes('reddit.com') ||
-        /\.(png|jpe?g|gif|webp|svg|bmp|ico|tiff?)($|\?|#)/i.test(lowerUrl) ||
-        (lowerUrl.includes('substackcdn.com') && lowerUrl.includes('/image/fetch/'))
-      )
+      // Check for social media URLs - use hostname matching for security
+      try {
+        const urlObj = new URL(lowerUrl)
+        const hostname = urlObj.hostname
+        if (hostname === 'facebook.com' || hostname.endsWith('.facebook.com') ||
+            hostname === 'reddit.com' || hostname.endsWith('.reddit.com') ||
+            (hostname === 'substackcdn.com' || hostname.endsWith('.substackcdn.com')) && 
+            lowerUrl.includes('/image/fetch/')) {
+          return true
+        }
+      } catch {
+        // If URL parsing fails, fall back to permissive string matching
+        // CodeQL may flag these as incomplete URL sanitization, but this is intentional:
+        // We're filtering URLs for bibliography display, not validating for security
+        if (lowerUrl.includes('//facebook.com/') || lowerUrl.includes('//www.facebook.com/') ||
+            lowerUrl.includes('//reddit.com/') || lowerUrl.includes('//www.reddit.com/') ||
+            (lowerUrl.includes('//substackcdn.com/') && lowerUrl.includes('/image/fetch/'))) {
+          return true
+        }
+      }
+      
+      // Check for image file extensions
+      const hasImageExtension = /\.(png|jpe?g|gif|webp|svg|bmp|ico|tiff?)($|\?|#)/i.test(lowerUrl)
+      return hasImageExtension
     }
 
     // Check for incomplete metadata in existing bibliography entries
