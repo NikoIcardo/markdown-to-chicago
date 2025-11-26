@@ -65,16 +65,34 @@ async function runTest() {
   
   console.log('=== Verification ===\n');
   
+  // Helper to normalize URL for comparison (strips protocol, trailing slash, and hash)
+  const normalizeForComparison = (url: string): string => {
+    try {
+      const parsed = new URL(url);
+      parsed.hash = '';
+      const normalized = parsed.toString();
+      return normalized.endsWith('/') ? normalized.slice(0, -1) : normalized;
+    } catch {
+      return url.trim();
+    }
+  };
+  
   // Feature 1: Check existing entries are preserved
-  const existingPreserved = existingUrls.every(url => 
-    result.bibliographyEntries.some(entry => entry.url.includes(url.replace('https://', '')))
-  );
+  const existingPreserved = existingUrls.every(url => {
+    const normalizedSearch = normalizeForComparison(url);
+    return result.bibliographyEntries.some(entry => 
+      normalizeForComparison(entry.url) === normalizedSearch
+    );
+  });
   console.log(`Feature 1 - Existing entries preserved: ${existingPreserved ? '✓ PASS' : '✗ FAIL'}`);
   
   // Feature 2: Check new entries were added
-  const newAdded = newUrls.every(url =>
-    result.bibliographyEntries.some(entry => entry.url.includes(url.replace('https://', '')))
-  );
+  const newAdded = newUrls.every(url => {
+    const normalizedSearch = normalizeForComparison(url);
+    return result.bibliographyEntries.some(entry => 
+      normalizeForComparison(entry.url) === normalizedSearch
+    );
+  });
   console.log(`Feature 2 - New entries added: ${newAdded ? '✓ PASS' : '✗ FAIL'}`);
   
   // Check that entries are ordered by first occurrence

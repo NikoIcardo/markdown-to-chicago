@@ -55,16 +55,34 @@ async function runTest() {
   
   console.log('=== Verification ===\n');
   
+  // Helper to normalize URL for comparison (strips protocol, trailing slash, and hash)
+  const normalizeForComparison = (url: string): string => {
+    try {
+      const parsed = new URL(url);
+      parsed.hash = '';
+      const normalized = parsed.toString();
+      return normalized.endsWith('/') ? normalized.slice(0, -1) : normalized;
+    } catch {
+      return url.trim();
+    }
+  };
+  
   // Feature 1: Check that unreferenced entries are preserved
-  const unreferencedPreserved = unreferencedUrls.every(url => 
-    result.bibliographyEntries.some(entry => entry.url.includes(url.replace('https://', '')))
-  );
+  const unreferencedPreserved = unreferencedUrls.every(url => {
+    const normalizedSearch = normalizeForComparison(url);
+    return result.bibliographyEntries.some(entry => 
+      normalizeForComparison(entry.url) === normalizedSearch
+    );
+  });
   console.log(`Feature 1 - Unreferenced entries preserved: ${unreferencedPreserved ? '✓ PASS' : '✗ FAIL'}`);
   
   // Also verify referenced entries are there
-  const referencedPreserved = referencedUrls.every(url => 
-    result.bibliographyEntries.some(entry => entry.url.includes(url.replace('https://', '')))
-  );
+  const referencedPreserved = referencedUrls.every(url => {
+    const normalizedSearch = normalizeForComparison(url);
+    return result.bibliographyEntries.some(entry => 
+      normalizeForComparison(entry.url) === normalizedSearch
+    );
+  });
   console.log(`Referenced entries preserved: ${referencedPreserved ? '✓ PASS' : '✗ FAIL'}`);
   
   // Check total count
