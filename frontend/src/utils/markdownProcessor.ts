@@ -1356,17 +1356,43 @@ export async function processMarkdown(
       }
     })
 
-    // Add citation references for new URLs in the document
-    // Process link occurrences (add citation references after links)
+    // Helper function to check if a node is a citation link
+    const isCitationLinkNode = (node: Content | undefined): boolean => {
+      if (!node) return false
+      if (node.type === 'html') {
+        const htmlNode = node as Html
+        // Match citation link HTML (e.g., <a href="#bib-N" class="citation-link">[N]</a>)
+        return /href="#bib-\d+".*class="citation-link"|class="citation-link".*href="#bib-\d+"/.test(htmlNode.value)
+      }
+      if (node.type === 'link') {
+        const linkNode = node as Link
+        return /^#bib-\d+$/.test(linkNode.url || '')
+      }
+      return false
+    }
+    
+    // Add citation references for URLs in the document
+    // Feature 1: If a bibliography URL appears in the document without a citation link, add the citation
+    // Feature 2: Process new URLs that were just added to the bibliography
+    // Both new and existing entries are processed; we skip only those that already have a citation link
     const parentToOccurrences = new Map<Parent, Array<{ linkIndex: number; entry: ExistingEntryInfo }>>()
     
     urlOccurrences.forEach((occurrences, url) => {
       const entry = newUrlToEntry.get(url)
-      if (!entry || !entry.isNew) {
-        return // Only process new entries
+      if (!entry) {
+        return
       }
       occurrences.forEach((occurrence) => {
         if (occurrence.type === 'link') {
+          // Check if there's already a citation link immediately following this link
+          const nextNodeIndex = occurrence.index + 1
+          const nextNode = occurrence.parent.children[nextNodeIndex] as Content | undefined
+          
+          // Skip if there's already a citation link following this URL
+          if (isCitationLinkNode(nextNode)) {
+            return
+          }
+          
           const list = parentToOccurrences.get(occurrence.parent) || []
           list.push({ linkIndex: occurrence.index, entry })
           parentToOccurrences.set(occurrence.parent, list)
@@ -1437,7 +1463,8 @@ export async function processMarkdown(
       })
     })
 
-    // Process bare text occurrences for new URLs
+    // Process bare text occurrences for URLs (both new and existing without citations)
+    // Feature 1: Add citations for existing bibliography entries that appear as bare URLs
     bareTextOccurrences.forEach(({ node, parent, matches }) => {
       const value = node.value
       let cursor = 0
@@ -1447,9 +1474,15 @@ export async function processMarkdown(
       sorted.forEach((match) => {
         const normalised = normalizeUrl(match.url)
         const entry = newUrlToEntry.get(normalised)
-        if (!entry || !entry.isNew) {
-          // Keep non-new URLs as-is
-          if (match.start > cursor) {
+        
+        // Check if there's already a citation reference following this URL in the text
+        const textAfterUrl = value.slice(match.end)
+        const hasCitationAfter = /^\s*\\?\[\d+\]/.test(textAfterUrl)
+        
+        if (!entry || hasCitationAfter) {
+          // Keep URLs as-is if no entry found or already has citation
+          // Include all text from cursor up to end of URL match
+          if (match.end > cursor) {
             newNodes.push({
               type: 'text',
               value: value.slice(cursor, match.end),
@@ -1469,7 +1502,11 @@ export async function processMarkdown(
           }
         }
 
-        // For bare URLs, we remove the URL and add the reference
+        // For bare URLs without citations, keep the URL and add the reference after
+        newNodes.push({
+          type: 'text',
+          value: value.slice(match.start, match.end),
+        } as Text)
         newNodes.push(createReferenceNode(entry.number, entry.anchorId))
         cursor = match.end
       })

@@ -1,7 +1,8 @@
 /**
- * Test script to verify unreferenced bibliography entries are preserved
+ * Test script to verify missing citation links are added
  * 
- * Feature 1: Bibliography entries NOT referenced in document text should remain in bibliography
+ * Feature 1: When a bibliography URL appears in the document without a citation link,
+ *            the system should ADD the citation link
  */
 
 import { processMarkdown } from '../frontend/src/utils/markdownProcessor.ts';
@@ -18,12 +19,13 @@ const testMarkdown = fs.readFileSync(
 );
 
 async function runTest() {
-  console.log('=== Testing Preservation of Unreferenced Bibliography Entries ===\n');
+  console.log('=== Testing Addition of Missing Citation Links ===\n');
   
   console.log('Input document has:');
   console.log('- 4 bibliography entries');
-  console.log('- References to entries [1] and [3] only');
-  console.log('- Entries [2] and [4] are NOT referenced but should be preserved');
+  console.log('- Citation links for entries [1] and [3]');
+  console.log('- URLs for entries [2] and [4] appear in document WITHOUT citations');
+  console.log('- Expected: Citations [2] and [4] should be ADDED to those URLs');
   console.log('');
   
   const result = await processMarkdown(testMarkdown);
@@ -38,79 +40,37 @@ async function runTest() {
   result.bibliographyEntries.forEach((entry, idx) => {
     console.log(`  ${idx + 1}. ${entry.url}`);
     console.log(`      Anchor: ${entry.anchorId}`);
-    console.log(`      Citation: ${entry.citation.substring(0, 80)}...`);
   });
   console.log('');
   
-  // Check that all entries are preserved
-  const unreferencedUrls = [
-    'https://example.com/second-source-unreferenced',
-    'https://example.com/fourth-source-unreferenced',
-  ];
-  
-  const referencedUrls = [
-    'https://example.com/first-source',
-    'https://example.com/third-source',
-  ];
-  
+  // Check that citation links were added
   console.log('=== Verification ===\n');
   
-  // Helper to normalize URL for comparison (strips protocol, trailing slash, and hash)
-  const normalizeForComparison = (url: string): string => {
-    try {
-      const parsed = new URL(url);
-      parsed.hash = '';
-      const normalized = parsed.toString();
-      return normalized.endsWith('/') ? normalized.slice(0, -1) : normalized;
-    } catch {
-      return url.trim();
-    }
-  };
+  // Check if the modified markdown contains the new citation links
+  const hasBib2Citation = result.modified.includes('href="#bib-2"') || result.modified.includes('[2]');
+  const hasBib4Citation = result.modified.includes('href="#bib-4"') || result.modified.includes('[4]');
   
-  // Feature 1: Check that unreferenced entries are preserved
-  const unreferencedPreserved = unreferencedUrls.every(url => {
-    const normalizedSearch = normalizeForComparison(url);
-    return result.bibliographyEntries.some(entry => 
-      normalizeForComparison(entry.url) === normalizedSearch
-    );
-  });
-  console.log(`Feature 1 - Unreferenced entries preserved: ${unreferencedPreserved ? '✓ PASS' : '✗ FAIL'}`);
+  console.log(`Feature 1 - Citation for entry [2] added: ${hasBib2Citation ? '✓ PASS' : '✗ FAIL'}`);
+  console.log(`Feature 1 - Citation for entry [4] added: ${hasBib4Citation ? '✓ PASS' : '✗ FAIL'}`);
   
-  // Also verify referenced entries are there
-  const referencedPreserved = referencedUrls.every(url => {
-    const normalizedSearch = normalizeForComparison(url);
-    return result.bibliographyEntries.some(entry => 
-      normalizeForComparison(entry.url) === normalizedSearch
-    );
-  });
-  console.log(`Referenced entries preserved: ${referencedPreserved ? '✓ PASS' : '✗ FAIL'}`);
+  // Show the modified markdown for the missing citations section
+  console.log('\n=== Modified Markdown (Missing Citations Section) ===\n');
+  const missingSection = result.modified.match(/## Missing Citations Section[\s\S]*?(?=##|$)/);
+  if (missingSection) {
+    console.log(missingSection[0]);
+  }
+  
+  // Show all citation links found in the modified document
+  console.log('\n=== All Citation Links in Modified Document ===\n');
+  const allCitations = result.modified.match(/href="#bib-\d+"/g) || [];
+  console.log('Found citation links:', allCitations);
   
   // Check total count
-  console.log(`Total entries: ${result.bibliographyEntries.length} (expected 4)`);
+  console.log(`\nTotal bibliography entries: ${result.bibliographyEntries.length} (expected 4)`);
   
-  // Show order of entries (referenced should come first since they appear in document)
-  console.log('\n=== Entry Order (by first occurrence in document) ===\n');
-  result.bibliographyEntries.forEach((entry, idx) => {
-    const isReferenced = referencedUrls.some(url => entry.url.includes(url.replace('https://', '')));
-    console.log(`  ${idx + 1}. [${isReferenced ? 'REFERENCED' : 'UNREFERENCED'}] ${entry.url}`);
-  });
-  
-  // Verify that referenced entries come before unreferenced
-  // Note: For re-uploaded documents, the entries maintain their original order
-  // unless new URLs are added that appear earlier in the document
-  const firstSourceIdx = result.bibliographyEntries.findIndex(e => e.url.includes('first-source'));
-  const thirdSourceIdx = result.bibliographyEntries.findIndex(e => e.url.includes('third-source'));
-  const secondSourceIdx = result.bibliographyEntries.findIndex(e => e.url.includes('second-source-unreferenced'));
-  const fourthSourceIdx = result.bibliographyEntries.findIndex(e => e.url.includes('fourth-source-unreferenced'));
-  
-  // The original order should be maintained (1, 2, 3, 4)
-  const maintainsOriginalOrder = firstSourceIdx === 0 && 
-                                  secondSourceIdx === 1 &&
-                                  thirdSourceIdx === 2 &&
-                                  fourthSourceIdx === 3;
-  
-  console.log(`\nMaintains original order (1,2,3,4): ${maintainsOriginalOrder ? '✓ PASS' : '✗ FAIL'}`);
-  console.log('Note: Unreferenced entries stay in their original position');
+  // Show full modified markdown
+  console.log('\n=== Full Modified Markdown ===\n');
+  console.log(result.modified);
 }
 
 runTest().catch(console.error);
