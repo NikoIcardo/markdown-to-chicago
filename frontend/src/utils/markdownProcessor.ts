@@ -36,6 +36,10 @@ import type {
 
 const MARKDOWN_URL_REGEX = /(https?:\/\/[^\s<>\]")"}]+)/gi
 
+// Pattern to match opening anchor tags with citation-link class and bib reference
+// The href and class attributes can appear in either order
+const CITATION_LINK_PATTERN = /^<a\s+(?:[^>]*\s+)?href="#bib-(\d+)"[^>]*class="citation-link"[^>]*>$|^<a\s+(?:[^>]*\s+)?class="citation-link"[^>]*href="#bib-(\d+)"[^>]*>$/i
+
 const processor = unified().use(remarkParse).use(remarkGfm).use(remarkFrontmatter)
 
 function parseListItemsFromMarkdown(markdown: string): ListItem[] {
@@ -811,24 +815,6 @@ function findStandaloneBibliographyList(root: Root): { index: number; list: List
   return null
 }
 
-function collectBibliographyEntriesFromList(list: List): BibliographyEntry[] {
-  const start = list.start ?? 1
-  return list.children.map((item, idx) => {
-    const listItem = item as ListItem
-    const number = start + idx
-    const citation = toString(listItem).trim()
-    const url = extractUrlFromListItem(listItem) ?? ''
-    return {
-      number,
-      url,
-      citation,
-      anchorId: `bib-${number}`,
-      isNew: false,
-      sourceType: 'existing',
-    }
-  })
-}
-
 export async function processMarkdown(
   markdown: string,
   options: ProcessMarkdownOptions = {},
@@ -889,22 +875,6 @@ export async function processMarkdown(
       )
     }
 
-    let bibliographyList: List | null = null
-    const bibliographyRange = findSectionRange(tree, 'bibliography')
-    if (bibliographyRange) {
-      const nodes = collectNodesInRange(tree, bibliographyRange)
-      bibliographyList = nodes.find((node): node is List => node.type === 'list') ?? null
-    }
-    if (!bibliographyList) {
-      const standalone = findStandaloneBibliographyList(tree)
-      if (standalone) {
-        bibliographyList = standalone.list
-      }
-    }
-    const bibliographyEntries = bibliographyList
-      ? collectBibliographyEntriesFromList(bibliographyList)
-      : []
-
     // Helper function to check if URL should be excluded from bibliography
     // Note: This is for bibliography filtering, not security sanitization
     const isExcludedUrl = (url: string): boolean => {
@@ -935,22 +905,108 @@ export async function processMarkdown(
       return hasImageExtension
     }
 
-    // Update existing bibliography entries with manual metadata if provided
-    let bibliographyUpdated = false
-    if (bibliographyList) {
-      bibliographyEntries.forEach((entry, idx) => {
-        if (!entry.url) {
-          return // Skip entries without URLs
+    // Set up excluded nodes for URL scanning (table of contents and bibliography)
+    const tableOfContentsRange = findSectionRange(tree, 'table of contents')
+    const excludedNodes = new WeakSet<Node>()
+    if (tableOfContentsRange) {
+      collectNodesInRange(tree, tableOfContentsRange).forEach((node) =>
+        addSubtreeToSet(node, excludedNodes),
+      )
+    }
+
+    // Find existing bibliography
+    const rootChildren = tree.children as Content[]
+    const existingBibliographyRange = findSectionRange(tree, 'bibliography')
+    let existingBibliographyItems: ListItem[] = []
+    let insertIndex = rootChildren.length
+    let bibliographyList: List | null = null
+
+    if (existingBibliographyRange) {
+      const existingNodes = collectNodesInRange(tree, existingBibliographyRange)
+      bibliographyList = existingNodes.find((node): node is List => node.type === 'list') ?? null
+      if (bibliographyList) {
+        existingBibliographyItems = bibliographyList.children as ListItem[]
+      }
+      // Remove existing bibliography section (we'll rebuild it)
+      rootChildren.splice(
+        existingBibliographyRange.startIndex,
+        existingBibliographyRange.endIndex - existingBibliographyRange.startIndex,
+      )
+      insertIndex = existingBibliographyRange.startIndex
+    } else {
+      const standalone = findStandaloneBibliographyList(tree)
+      if (standalone) {
+        bibliographyList = standalone.list
+        existingBibliographyItems = standalone.list.children as ListItem[]
+        rootChildren.splice(standalone.index, 1)
+        insertIndex = standalone.index
+      }
+    }
+
+    // Create new bibliography section
+    const bibliographyHeading: Heading = {
+      type: 'heading',
+      depth: normalizedHeadingDepth,
+      children: [{ type: 'text', value: 'Bibliography' }],
+    }
+
+    const newBibliographyList: List = {
+      type: 'list',
+      ordered: true,
+      spread: false,
+      start: 1,
+      children: [],
+    }
+
+    rootChildren.splice(insertIndex, 0, bibliographyHeading, newBibliographyList)
+
+    const bibliographyNodes: Node[] = [bibliographyHeading, newBibliographyList]
+    
+    // Add bibliography nodes to excluded set to prevent URL harvesting from bibliography entries
+    bibliographyNodes.forEach((node) => addSubtreeToSet(node, excludedNodes))
+
+    ensureBibliographyInTableOfContents(tree)
+
+    // Build mapping of existing bibliography entries
+    const urlToExistingEntry = new Map<string, ExistingEntryInfo>()
+    const numberToEntry = new Map<number, ExistingEntryInfo>()
+    const allEntries: ExistingEntryInfo[] = []
+    const existingUrlSet = new Set<string>()
+
+    existingBibliographyItems.forEach((listItem, idx) => {
+      const clonedItem = cloneNode(listItem)
+      const number = idx + 1
+      const anchorId = `bib-${number}`
+      const normalised = extractUrlFromListItem(clonedItem)
+      
+      const entry: ExistingEntryInfo = {
+        number,
+        normalizedUrl: normalised,
+        listItem: clonedItem,
+        anchorId,
+        sourceType: 'existing',
+        metadata: undefined,
+        firstOccurrence: Number.POSITIVE_INFINITY,
+        originalIndex: idx,
+        isNew: false,
+      }
+      
+      if (normalised) {
+        existingUrlSet.add(normalised)
+        if (!urlToExistingEntry.has(normalised)) {
+          urlToExistingEntry.set(normalised, entry)
         }
-        
-        const normalizedUrl = normalizeUrl(entry.url)
-        const manualOverride = manualMetadataMap.get(normalizedUrl)
-        
+      }
+      numberToEntry.set(number, entry)
+      allEntries.push(entry)
+      
+      // Check for manual metadata override
+      if (normalised) {
+        const manualOverride = manualMetadataMap.get(normalised)
         if (manualOverride) {
-          // Update the bibliography entry with the manual metadata
           const updatedMetadata: SourceMetadata = {
-            url: manualOverride.url || entry.url,
-            title: manualOverride.title || manualOverride.url || entry.url,
+            url: manualOverride.url || normalised,
+            title: manualOverride.title || manualOverride.url || normalised,
             authors: manualOverride.authors || [],
             siteName: manualOverride.siteName,
             isPdf: manualOverride.isPdf ?? false,
@@ -958,66 +1014,512 @@ export async function processMarkdown(
             sourceType: 'manual',
           }
           
-          // Get the corresponding list item from the bibliography list
-          const listItem = bibliographyList.children[idx] as ListItem
-          if (listItem) {
-            // Find the first paragraph in the list item
-            const firstParagraph = listItem.children.find(
-              (child): child is Paragraph => child.type === 'paragraph'
+          const firstParagraph = clonedItem.children.find(
+            (child): child is Paragraph => child.type === 'paragraph'
+          )
+          
+          if (firstParagraph) {
+            const anchorNode = firstParagraph.children.find(
+              (child): child is Html => child.type === 'html' && child.value.includes('<a id="bib-')
             )
             
-            if (firstParagraph) {
-              // Find and preserve the anchor
-              const anchorNode = firstParagraph.children.find(
-                (child): child is Html => child.type === 'html' && child.value.includes('<a id="bib-')
-              )
-              
-              // Build new citation content
-              const newContent = buildCitationContent(updatedMetadata)
-              
-              // Replace paragraph children with anchor (if found) + new content
-              firstParagraph.children = anchorNode ? [anchorNode, ...newContent] : newContent
-              bibliographyUpdated = true
+            const newContent = buildCitationContent(updatedMetadata)
+            firstParagraph.children = anchorNode ? [anchorNode, ...newContent] : newContent
+          }
+          
+          entry.metadata = updatedMetadata
+          entry.sourceType = 'manual'
+        }
+      }
+    })
+
+    // Scan for all URLs in the document (including new ones)
+    const definitionMap = new Map<string, Definition>()
+    visit(tree, 'definition', (node: Definition) => {
+      if (!node.identifier || !node.url) {
+        return
+      }
+      definitionMap.set(node.identifier.toLowerCase(), node)
+    })
+
+    const urlOccurrences = new Map<string, UrlOccurrence[]>()
+    const urlFirstOccurrence = new Map<string, number>()
+    let occurrenceCounter = 0
+    const bareTextOccurrences: Array<{
+      node: Text
+      parent: Parent
+      matches: Array<{ start: number; end: number; url: string }>
+    }> = []
+
+    // Track existing citation links for updating (both Link nodes and HTML nodes)
+    const existingCitationLinks: Array<{ 
+      linkNode: Link; 
+      oldNumber: number;
+      parent: Parent;
+    }> = []
+    
+    // Track existing HTML citation links for updating
+    // Note: The markdown parser splits <a href="#bib-1" class="citation-link">[1]</a> into:
+    // - HTML node: <a href="#bib-1" class="citation-link">
+    // - Text node: [1] (or \[1])
+    // - HTML node: </a>
+    // So we only match the opening tag and extract the bib number from href
+    const existingHtmlCitationLinks: Array<{
+      htmlNode: Html;
+      textNode?: Text;
+      oldNumber: number;
+      parent: Parent;
+      parentIndex: number;
+    }> = []
+
+    visitParents(tree, ['link', 'linkReference', 'text', 'html'], (node, ancestors) => {
+      // Handle HTML citation links opening tags (e.g., <a href="#bib-5" class="citation-link">)
+      if (node.type === 'html') {
+        const htmlNode = node as Html
+        const match = htmlNode.value.match(CITATION_LINK_PATTERN)
+        if (match) {
+          const oldNumber = parseInt(match[1] || match[2], 10)
+          const parent = ancestors[ancestors.length - 1] as Parent
+          const parentIndex = parent.children.indexOf(node as Content)
+          
+          // Find the following text node (contains [N] or \[N])
+          let textNode: Text | undefined
+          if (parentIndex >= 0 && parentIndex < parent.children.length - 1) {
+            const nextNode = parent.children[parentIndex + 1]
+            if (nextNode && nextNode.type === 'text') {
+              textNode = nextNode as Text
             }
           }
+          
+          existingHtmlCitationLinks.push({ htmlNode, textNode, oldNumber, parent, parentIndex })
         }
+        return
+      }
+      
+      if (node.type === 'link' || node.type === 'linkReference') {
+        const shouldExclude = ancestors.some((ancestor) => excludedNodes.has(ancestor))
+        if (
+          shouldExclude &&
+          ancestors.some((ancestor) => ancestor.type === 'linkReference')
+        ) {
+          // Links inside bibliographies should still be tracked for renumbering
+        } else if (shouldExclude || ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))) {
+          return
+        }
+
+        let url: string | undefined
+        if (node.type === 'link') {
+          // Check if this is an existing citation link (e.g., #bib-5)
+          const linkNode = node as Link
+          if (linkNode.url) {
+            const match = linkNode.url.match(/^#bib-(\d+)$/)
+            if (match) {
+              const oldNumber = parseInt(match[1], 10)
+              const parent = ancestors[ancestors.length - 1] as Parent
+              existingCitationLinks.push({ linkNode, oldNumber, parent })
+              return // Don't process citation links as regular URLs
+            }
+          }
+          url = linkNode.url || ''
+        } else if (node.type === 'linkReference') {
+          if (!node.identifier) {
+            return
+          }
+          const definition = definitionMap.get(node.identifier.toLowerCase())
+          url = definition?.url
+        }
+        if (!url) {
+          return
+        }
+        if (!/^https?:\/\//i.test(url)) {
+          return
+        }
+
+        const normalised = normalizeUrl(url)
+        const position = occurrenceCounter++
+        if (!urlFirstOccurrence.has(normalised)) {
+          urlFirstOccurrence.set(normalised, position)
+        }
+        const parent = ancestors[ancestors.length - 1] as Parent
+        const index = parent.children.indexOf(node as Content)
+        if (index === -1) {
+          return
+        }
+
+        const occurrences = urlOccurrences.get(normalised) || []
+        occurrences.push({
+          type: 'link',
+          node,
+          parent,
+          index,
+        })
+        urlOccurrences.set(normalised, occurrences)
+      } else if (node.type === 'text') {
+        if (
+          ancestors.some((ancestor) => excludedNodes.has(ancestor)) ||
+          ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))
+        ) {
+          return
+        }
+        const parent = ancestors[ancestors.length - 1] as Parent
+        if (parent.type === 'link') {
+          return
+        }
+
+        const matches: Array<{ start: number; end: number; url: string }> = []
+        const text = node.value
+        let match: RegExpExecArray | null
+        MARKDOWN_URL_REGEX.lastIndex = 0
+        while ((match = MARKDOWN_URL_REGEX.exec(text))) {
+          const rawUrl = match[1]
+          const cleanedUrl = stripTrailingPunctuationFromUrl(rawUrl)
+          const removed = rawUrl.length - cleanedUrl.length
+          matches.push({
+            start: match.index,
+            end: match.index + rawUrl.length - removed,
+            url: cleanedUrl,
+          })
+        }
+
+        if (matches.length) {
+          bareTextOccurrences.push({
+            node,
+            parent,
+            matches: matches.map((m) => ({ ...m })),
+          })
+
+          const perUrlMatches = new Map<string, Array<{ start: number; end: number }>>()
+          matches.forEach((m) => {
+            const normalised = normalizeUrl(m.url)
+            const position = occurrenceCounter++
+            if (!urlFirstOccurrence.has(normalised)) {
+              urlFirstOccurrence.set(normalised, position)
+            }
+            const list = perUrlMatches.get(normalised) || []
+            list.push({ start: m.start, end: m.end })
+            perUrlMatches.set(normalised, list)
+          })
+
+          perUrlMatches.forEach((matchList, normalised) => {
+            const list = urlOccurrences.get(normalised) || []
+            list.push({
+              type: 'bare',
+              node,
+              parent,
+              index: parent.children.indexOf(node as Content),
+              matches: matchList,
+            })
+            urlOccurrences.set(normalised, list)
+          })
+        }
+      }
+    })
+
+    // Find new URLs that are not in the existing bibliography
+    const newUrls: string[] = []
+    urlOccurrences.forEach((_occurrences, url) => {
+      if (!existingUrlSet.has(url) && !isExcludedUrl(url)) {
+        newUrls.push(url)
+      }
+    })
+
+    // Create entries for new URLs
+    if (newUrls.length) {
+      const existingCount = allEntries.length
+      newUrls.forEach((normalizedUrl, idx) => {
+        const manualOverride = manualMetadataMap.get(normalizedUrl)
+        let metadata: SourceMetadata
+        
+        if (manualOverride) {
+          metadata = {
+            url: manualOverride.url || normalizedUrl,
+            title: manualOverride.title || manualOverride.url || normalizedUrl,
+            authors: manualOverride.authors || [],
+            siteName: manualOverride.siteName,
+            isPdf: manualOverride.isPdf ?? false,
+            accessDate: manualOverride.accessDate ?? format(new Date(), 'MMMM d, yyyy'),
+            sourceType: 'manual',
+          }
+        } else {
+          // Create a default metadata record - user can update manually
+          metadata = {
+            url: normalizedUrl,
+            title: normalizedUrl,
+            authors: [],
+            siteName: undefined,
+            isPdf: false,
+            accessDate: format(new Date(), 'MMMM d, yyyy'),
+          }
+          
+          // Add to metadata issues for user to update
+          metadataIssues.push({
+            url: normalizedUrl,
+            message: 'New URL found. Please add details manually or skip.',
+          })
+        }
+
+        const listItem: ListItem = {
+          type: 'listItem',
+          spread: false,
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'html', value: '<a id=""></a>' } as Html,
+                ...buildCitationContent(metadata),
+              ],
+            },
+          ],
+        }
+        
+        const entryInfo: ExistingEntryInfo = {
+          number: 0,
+          normalizedUrl,
+          listItem,
+          anchorId: '',
+          sourceType: metadata.sourceType === 'manual' ? 'manual' : 'fetched',
+          metadata,
+          firstOccurrence: urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY,
+          originalIndex: existingCount + idx,
+          isNew: true,
+        }
+        allEntries.push(entryInfo)
       })
     }
 
+    // Update first occurrence for all entries (including existing ones)
+    allEntries.forEach((entry) => {
+      if (entry.normalizedUrl) {
+        const occurrence = urlFirstOccurrence.get(entry.normalizedUrl)
+        if (occurrence !== undefined) {
+          entry.firstOccurrence = occurrence
+        }
+        // Feature 1: Keep entries that aren't referenced in the document
+        // They should still be in the bibliography but at the end (high firstOccurrence value)
+        // Their firstOccurrence is already set to POSITIVE_INFINITY if not found
+      }
+    })
+
+    // Sort entries by first occurrence in document
+    // Entries not referenced in document (firstOccurrence = POSITIVE_INFINITY) go at the end
+    // but maintain their original order relative to each other
+    allEntries.sort((a, b) => {
+      if (a.firstOccurrence !== b.firstOccurrence) {
+        return a.firstOccurrence - b.firstOccurrence
+      }
+      return a.originalIndex - b.originalIndex
+    })
+
+    // Rebuild the bibliography list with new numbering
+    newBibliographyList.children = []
+    const newUrlToEntry = new Map<string, ExistingEntryInfo>()
+    const oldNumberToNewEntry = new Map<number, ExistingEntryInfo>()
+
+    allEntries.forEach((entry, idx) => {
+      const oldNumber = entry.number
+      const newNumber = idx + 1
+      entry.number = newNumber
+      entry.anchorId = `bib-${newNumber}`
+      ensureListItemAnchor(entry.listItem, entry.anchorId)
+      newBibliographyList.children.push(entry.listItem)
+      
+      if (entry.normalizedUrl) {
+        newUrlToEntry.set(entry.normalizedUrl, entry)
+      }
+      if (oldNumber > 0) {
+        oldNumberToNewEntry.set(oldNumber, entry)
+      }
+    })
+
+    // Update existing citation links with new numbers
+    existingCitationLinks.forEach(({ linkNode, oldNumber }) => {
+      const newEntry = oldNumberToNewEntry.get(oldNumber)
+      if (newEntry) {
+        linkNode.url = `#${newEntry.anchorId}`
+        if (linkNode.children && linkNode.children.length > 0 && linkNode.children[0].type === 'text') {
+          (linkNode.children[0] as Text).value = `[${newEntry.number}]`
+        }
+      }
+    })
+    
+    // Update existing HTML citation links with new numbers
+    existingHtmlCitationLinks.forEach(({ htmlNode, textNode, oldNumber }) => {
+      const newEntry = oldNumberToNewEntry.get(oldNumber)
+      if (newEntry) {
+        // Replace the old bib number in the opening tag
+        htmlNode.value = htmlNode.value.replace(/href="#bib-\d+"/, `href="#${newEntry.anchorId}"`)
+        
+        // Update the text node that contains [N] or \[N]
+        if (textNode) {
+          textNode.value = textNode.value.replace(/\\?\[\d+\]/, `[${newEntry.number}]`)
+        }
+      }
+    })
+
+    // Add citation references for new URLs in the document
+    // Process link occurrences (add citation references after links)
+    const parentToOccurrences = new Map<Parent, Array<{ linkIndex: number; entry: ExistingEntryInfo }>>()
+    
+    urlOccurrences.forEach((occurrences, url) => {
+      const entry = newUrlToEntry.get(url)
+      if (!entry || !entry.isNew) {
+        return // Only process new entries
+      }
+      occurrences.forEach((occurrence) => {
+        if (occurrence.type === 'link') {
+          const list = parentToOccurrences.get(occurrence.parent) || []
+          list.push({ linkIndex: occurrence.index, entry })
+          parentToOccurrences.set(occurrence.parent, list)
+        }
+      })
+    })
+    
+    // Process each parent's new link occurrences
+    parentToOccurrences.forEach((occurrences, parent) => {
+      occurrences.sort((a, b) => a.linkIndex - b.linkIndex)
+      
+      const sentenceBoundaries: Array<{ index: number; punctuationPos: number }> = []
+      for (let i = 0; i < parent.children.length; i++) {
+        const node = parent.children[i]
+        if (node.type === 'text') {
+          const text = (node as Text).value
+          const match = text.match(/[.!?:;]/)
+          if (match && match.index !== undefined) {
+            sentenceBoundaries.push({ index: i, punctuationPos: match.index })
+          }
+        }
+      }
+      
+      if (sentenceBoundaries.length === 0) {
+        sentenceBoundaries.push({ index: parent.children.length - 1, punctuationPos: -1 })
+      }
+      
+      const sentenceGroups = new Map<number, Array<{ linkIndex: number; number: number; anchorId: string }>>()
+      occurrences.forEach(({ linkIndex, entry }) => {
+        const boundary = sentenceBoundaries.find(b => b.index > linkIndex)
+        const sentenceEndIndex = boundary ? boundary.index : sentenceBoundaries[sentenceBoundaries.length - 1].index
+        
+        const group = sentenceGroups.get(sentenceEndIndex) || []
+        group.push({ linkIndex, number: entry.number, anchorId: entry.anchorId })
+        sentenceGroups.set(sentenceEndIndex, group)
+      })
+      
+      const positions = Array.from(sentenceGroups.entries()).sort((a, b) => b[0] - a[0])
+      positions.forEach(([sentenceEndIndex, references]) => {
+        const uniqueRefs = Array.from(
+          new Map(references.map(ref => [ref.number, ref])).values()
+        )
+        
+        uniqueRefs.sort((a, b) => a.number - b.number)
+        
+        const refNodes = uniqueRefs.map(({ number, anchorId }) => 
+          createReferenceNode(number, anchorId)
+        )
+        
+        const boundaryInfo = sentenceBoundaries.find(b => b.index === sentenceEndIndex)
+        
+        if (boundaryInfo && boundaryInfo.punctuationPos >= 0) {
+          const textNode = parent.children[sentenceEndIndex] as Text
+          const beforePunct = textNode.value.substring(0, boundaryInfo.punctuationPos)
+          const punctAndAfter = textNode.value.substring(boundaryInfo.punctuationPos)
+          
+          const newNodes: Content[] = []
+          if (beforePunct) {
+            newNodes.push({ type: 'text', value: beforePunct } as Text)
+          }
+          newNodes.push(...refNodes)
+          newNodes.push({ type: 'text', value: punctAndAfter } as Text)
+          
+          parent.children.splice(sentenceEndIndex, 1, ...newNodes)
+        } else {
+          parent.children.splice(sentenceEndIndex + 1, 0, ...refNodes)
+        }
+      })
+    })
+
+    // Process bare text occurrences for new URLs
+    bareTextOccurrences.forEach(({ node, parent, matches }) => {
+      const value = node.value
+      let cursor = 0
+      const newNodes: Content[] = []
+      const sorted = [...matches].sort((a, b) => a.start - b.start)
+
+      sorted.forEach((match) => {
+        const normalised = normalizeUrl(match.url)
+        const entry = newUrlToEntry.get(normalised)
+        if (!entry || !entry.isNew) {
+          // Keep non-new URLs as-is
+          if (match.start > cursor) {
+            newNodes.push({
+              type: 'text',
+              value: value.slice(cursor, match.end),
+            } as Text)
+          }
+          cursor = match.end
+          return
+        }
+
+        if (match.start > cursor) {
+          const textSegment = value.slice(cursor, match.start)
+          if (textSegment) {
+            newNodes.push({
+              type: 'text',
+              value: textSegment,
+            } as Text)
+          }
+        }
+
+        // For bare URLs, we remove the URL and add the reference
+        newNodes.push(createReferenceNode(entry.number, entry.anchorId))
+        cursor = match.end
+      })
+
+      if (cursor < value.length) {
+        newNodes.push({
+          type: 'text',
+          value: value.slice(cursor),
+        } as Text)
+      }
+
+      if (!newNodes.length) {
+        return
+      }
+
+      const index = parent.children.indexOf(node as Content)
+      if (index !== -1) {
+        parent.children.splice(index, 1, ...newNodes)
+      }
+    })
+
     // Check for incomplete metadata in existing bibliography entries
-    bibliographyEntries.forEach((entry) => {
-      if (!entry.url) {
-        return // Skip entries without URLs
+    allEntries.forEach((entry) => {
+      if (!entry.normalizedUrl) {
+        return
       }
       
-      // Check if manual metadata was provided for this URL
-      const normalizedUrl = normalizeUrl(entry.url)
+      const normalizedUrl = entry.normalizedUrl
       const manualOverride = manualMetadataMap.get(normalizedUrl)
-      if (manualOverride) {
-        return // Skip entries that have manual metadata provided (already updated above)
+      if (manualOverride || entry.isNew) {
+        return // Skip entries with manual metadata or new entries (already added above)
       }
       
-      // Skip URLs that should be excluded from bibliography
       if (isExcludedUrl(normalizedUrl)) {
         return
       }
       
-      // Parse the citation text to extract metadata
-      const parsedMetadata = parseExistingCitationMetadata(entry.citation, entry.url)
+      const citationText = toString(entry.listItem).trim()
+      const parsedMetadata = parseExistingCitationMetadata(citationText, normalizedUrl)
       
-      // Check if metadata is incomplete (missing key fields)
-      const hasTitle = parsedMetadata.title && parsedMetadata.title !== entry.url
+      const hasTitle = parsedMetadata.title && parsedMetadata.title !== normalizedUrl
       const hasAuthors = parsedMetadata.authors && parsedMetadata.authors.length > 0
       const hasSiteName = parsedMetadata.siteName && parsedMetadata.siteName.length > 0
       const hasAccessDate = parsedMetadata.accessDate && parsedMetadata.accessDate.length > 0
       
-      // Consider metadata incomplete if it's missing title OR (missing both authors and siteName) OR missing accessDate
-      // We need at least a title, and ideally either authors or siteName, and always need accessDate
       const isIncomplete = !hasTitle || (!hasAuthors && !hasSiteName) || !hasAccessDate
       
       if (isIncomplete) {
         metadataIssues.push({
-          url: entry.url,
+          url: normalizedUrl,
           message: 'Incomplete metadata detected. Please provide missing details.',
           partialMetadata: parsedMetadata,
         })
@@ -1027,17 +1529,25 @@ export async function processMarkdown(
     // Ensure frontmatter is preserved/added for title extraction on subsequent uploads
     ensureFrontmatter(tree, title, subtitle)
 
-    // If bibliography was updated, serialize the tree back to markdown
-    const modifiedMarkdown = bibliographyUpdated 
-      ? unified()
-          .use(remarkStringify, {
-            bullet: '-',
-            fences: true,
-            listItemIndent: 'one',
-          })
-          .use(remarkFrontmatter)
-          .stringify(tree)
-      : markdown
+    // Serialize the tree back to markdown
+    const modifiedMarkdown = unified()
+      .use(remarkStringify, {
+        bullet: '-',
+        fences: true,
+        listItemIndent: 'one',
+      })
+      .use(remarkFrontmatter)
+      .stringify(tree)
+
+    // Build bibliography entries for return
+    const bibliographyEntries: BibliographyEntry[] = allEntries.map((entry) => ({
+      number: entry.number,
+      url: entry.normalizedUrl || '',
+      citation: toString(entry.listItem).trim(),
+      anchorId: entry.anchorId,
+      isNew: entry.isNew,
+      sourceType: entry.sourceType,
+    }))
 
     return {
       original: markdown,
