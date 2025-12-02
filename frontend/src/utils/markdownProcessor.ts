@@ -1483,9 +1483,9 @@ export async function processMarkdown(
         const textAfterUrl = value.slice(match.end)
         const hasCitationInSameNode = /^\s*\\?\[\d+\]/.test(textAfterUrl)
         
-        // Also check if the next sibling node is a citation link (for the last URL in this text node)
+        // Also check if the next sibling node is a citation link (only for URLs at the end of this text node)
         let hasCitationAfterNode = false
-        if (match.end === value.length || sorted.indexOf(match) === sorted.length - 1) {
+        if (match.end === value.length) {
           const nextSiblingIndex = textNodeIndex + 1
           const nextSibling = parent.children[nextSiblingIndex] as Content | undefined
           hasCitationAfterNode = isCitationLinkNode(nextSibling)
