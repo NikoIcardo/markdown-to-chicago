@@ -1097,34 +1097,13 @@ export async function processMarkdown(
       }
       
       if (node.type === 'link' || node.type === 'linkReference') {
-        const linkNode = node as Link
-        
-        // Debug logging for google.com
-        if (linkNode.url && linkNode.url.includes('google.com') && !linkNode.url.includes('books.google') && !linkNode.url.includes('docs.google')) {
-          console.log('[DEBUG LINK SCAN] Found google.com link node!')
-          console.log('[DEBUG LINK SCAN] URL:', linkNode.url)
-          console.log('[DEBUG LINK SCAN] Ancestor types:', ancestors.map(a => a.type).join(' > '))
-        }
-        
         const shouldExclude = ancestors.some((ancestor) => excludedNodes.has(ancestor))
-        
-        // Debug logging for google.com
-        if (linkNode.url && linkNode.url.includes('google.com') && !linkNode.url.includes('books.google') && !linkNode.url.includes('docs.google')) {
-          console.log('[DEBUG LINK SCAN] shouldExclude:', shouldExclude)
-          const hasExcludedAncestorType = ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))
-          console.log('[DEBUG LINK SCAN] hasExcludedAncestorType:', hasExcludedAncestorType)
-        }
-        
         if (
           shouldExclude &&
           ancestors.some((ancestor) => ancestor.type === 'linkReference')
         ) {
           // Links inside bibliographies should still be tracked for renumbering
         } else if (shouldExclude || ancestors.some((ancestor) => excludedAncestorTypes.has(ancestor.type))) {
-          // Debug logging for google.com
-          if (linkNode.url && linkNode.url.includes('google.com') && !linkNode.url.includes('books.google') && !linkNode.url.includes('docs.google')) {
-            console.log('[DEBUG LINK SCAN] Google.com link EXCLUDED - returning early')
-          }
           return
         }
 
@@ -1157,15 +1136,6 @@ export async function processMarkdown(
         }
 
         const normalised = normalizeUrl(url)
-        
-        // Debug logging for google.com
-        if (normalised.includes('google.com') && !normalised.includes('books.google') && !normalised.includes('docs.google')) {
-          console.log('[DEBUG URL SCAN] Found google.com link!')
-          console.log('[DEBUG URL SCAN] URL:', url)
-          console.log('[DEBUG URL SCAN] Normalized:', normalised)
-          console.log('[DEBUG URL SCAN] Ancestor types:', ancestors.map(a => a.type).join(' > '))
-        }
-        
         const position = occurrenceCounter++
         if (!urlFirstOccurrence.has(normalised)) {
           urlFirstOccurrence.set(normalised, position)
@@ -1184,11 +1154,6 @@ export async function processMarkdown(
           index,
         })
         urlOccurrences.set(normalised, occurrences)
-        
-        // Debug logging for google.com
-        if (normalised.includes('google.com') && !normalised.includes('books.google') && !normalised.includes('docs.google')) {
-          console.log('[DEBUG URL SCAN] Added to urlOccurrences. Total occurrences:', occurrences.length + 1)
-        }
       } else if (node.type === 'text') {
         if (
           ancestors.some((ancestor) => excludedNodes.has(ancestor)) ||
@@ -1252,24 +1217,11 @@ export async function processMarkdown(
 
     // Find new URLs that are not in the existing bibliography
     const newUrls: string[] = []
-    console.log('[DEBUG NEW URLS] Scanning urlOccurrences. Total URLs found:', urlOccurrences.size)
     urlOccurrences.forEach((_occurrences, url) => {
-      // Debug logging for google.com
-      if (url.includes('google.com') && !url.includes('books.google') && !url.includes('docs.google')) {
-        console.log('[DEBUG NEW URLS] Checking google.com:', url)
-        console.log('[DEBUG NEW URLS] In existingUrlSet:', existingUrlSet.has(url))
-        console.log('[DEBUG NEW URLS] Is excluded:', isExcludedUrl(url))
-      }
-      
       if (!existingUrlSet.has(url) && !isExcludedUrl(url)) {
         newUrls.push(url)
       }
     })
-    
-    console.log('[DEBUG NEW URLS] Total new URLs to add:', newUrls.length)
-    if (newUrls.some(url => url.includes('google.com') && !url.includes('books.google') && !url.includes('docs.google'))) {
-      console.log('[DEBUG NEW URLS] Google.com IS in newUrls!')
-    }
 
     // Create entries for new URLs
     if (newUrls.length) {
