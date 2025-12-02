@@ -1371,6 +1371,24 @@ export async function processMarkdown(
       return false
     }
     
+    // Build a set of parents that already have citation links for specific URLs
+    // This prevents adding duplicate citations when a link already has a citation elsewhere in the sentence
+    const parentUrlHasCitation = new Set<string>()
+    existingHtmlCitationLinks.forEach(({ parent, oldNumber }) => {
+      const newEntry = oldNumberToNewEntry.get(oldNumber)
+      if (newEntry && newEntry.normalizedUrl) {
+        const key = `${parent}:${newEntry.normalizedUrl}`
+        parentUrlHasCitation.add(key)
+      }
+    })
+    existingCitationLinks.forEach(({ parent, oldNumber }) => {
+      const newEntry = oldNumberToNewEntry.get(oldNumber)
+      if (newEntry && newEntry.normalizedUrl) {
+        const key = `${parent}:${newEntry.normalizedUrl}`
+        parentUrlHasCitation.add(key)
+      }
+    })
+    
     // Add citation references for URLs in the document
     // Feature 1: If a bibliography URL appears in the document without a citation link, add the citation
     // Feature 2: Process new URLs that were just added to the bibliography
@@ -1384,6 +1402,12 @@ export async function processMarkdown(
       }
       occurrences.forEach((occurrence) => {
         if (occurrence.type === 'link') {
+          // Check if this parent already has a citation for this URL
+          const key = `${occurrence.parent}:${url}`
+          if (parentUrlHasCitation.has(key)) {
+            return
+          }
+          
           // Check if there's already a citation link immediately following this link
           const nextNodeIndex = occurrence.index + 1
           const nextNode = occurrence.parent.children[nextNodeIndex] as Content | undefined
@@ -1478,6 +1502,10 @@ export async function processMarkdown(
         const normalised = normalizeUrl(match.url)
         const entry = newUrlToEntry.get(normalised)
         
+        // Check if this parent already has a citation for this URL
+        const key = `${parent}:${normalised}`
+        const parentAlreadyHasCitation = parentUrlHasCitation.has(key)
+        
         // Check if there's already a citation reference following this URL
         // First check in the same text node
         const textAfterUrl = value.slice(match.end)
@@ -1491,7 +1519,7 @@ export async function processMarkdown(
           hasCitationAfterNode = isCitationLinkNode(nextSibling)
         }
         
-        if (!entry || hasCitationInSameNode || hasCitationAfterNode) {
+        if (!entry || parentAlreadyHasCitation || hasCitationInSameNode || hasCitationAfterNode) {
           // Keep URLs as-is if no entry found or already has citation
           // Include all text from cursor up to end of URL match
           if (match.end > cursor) {
