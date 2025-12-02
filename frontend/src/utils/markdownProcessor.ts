@@ -1371,32 +1371,10 @@ export async function processMarkdown(
       return false
     }
     
-    // Build a map of parents to URLs that already have citation links
-    // This prevents adding duplicate citations when a link already has a citation elsewhere in the sentence
-    const parentUrlHasCitation = new WeakMap<Parent, Set<string>>()
-    
-    existingHtmlCitationLinks.forEach(({ parent, oldNumber }) => {
-      const newEntry = oldNumberToNewEntry.get(oldNumber)
-      if (newEntry && newEntry.normalizedUrl) {
-        const urlSet = parentUrlHasCitation.get(parent) || new Set<string>()
-        urlSet.add(newEntry.normalizedUrl)
-        parentUrlHasCitation.set(parent, urlSet)
-      }
-    })
-    
-    existingCitationLinks.forEach(({ parent, oldNumber }) => {
-      const newEntry = oldNumberToNewEntry.get(oldNumber)
-      if (newEntry && newEntry.normalizedUrl) {
-        const urlSet = parentUrlHasCitation.get(parent) || new Set<string>()
-        urlSet.add(newEntry.normalizedUrl)
-        parentUrlHasCitation.set(parent, urlSet)
-      }
-    })
-    
     // Add citation references for URLs in the document
     // Feature 1: If a bibliography URL appears in the document without a citation link, add the citation
     // Feature 2: Process new URLs that were just added to the bibliography
-    // Both new and existing entries are processed; we skip only those that already have a citation link
+    // We check if the parent already has a citation HTML node for the URL to prevent duplicates
     const parentToOccurrences = new Map<Parent, Array<{ linkIndex: number; entry: ExistingEntryInfo }>>()
     
     urlOccurrences.forEach((occurrences, url) => {
@@ -1406,9 +1384,29 @@ export async function processMarkdown(
       }
       occurrences.forEach((occurrence) => {
         if (occurrence.type === 'link') {
-          // Check if this parent already has a citation for this URL
-          const urlSet = parentUrlHasCitation.get(occurrence.parent)
-          if (urlSet && urlSet.has(url)) {
+          // Check if this parent already has an existing citation HTML node for this URL
+          // Scan through all children to find citation links
+          const parentHasCitationForUrl = occurrence.parent.children.some((child) => {
+            if (child.type === 'html') {
+              const htmlNode = child as Html
+              // Check if this is a citation link HTML node
+              if (/href="#bib-\d+".*class="citation-link"|class="citation-link".*href="#bib-\d+"/.test(htmlNode.value)) {
+                // Extract the bib number from the href
+                const bibMatch = htmlNode.value.match(/href="#bib-(\d+)"/)
+                if (bibMatch) {
+                  const bibNumber = parseInt(bibMatch[1], 10)
+                  // Check if this bib number corresponds to our URL
+                  const citationEntry = allEntries.find(e => e.number === bibNumber)
+                  if (citationEntry && citationEntry.normalizedUrl === url) {
+                    return true
+                  }
+                }
+              }
+            }
+            return false
+          })
+          
+          if (parentHasCitationForUrl) {
             return
           }
           
@@ -1506,9 +1504,26 @@ export async function processMarkdown(
         const normalised = normalizeUrl(match.url)
         const entry = newUrlToEntry.get(normalised)
         
-        // Check if this parent already has a citation for this URL
-        const urlSet = parentUrlHasCitation.get(parent)
-        const parentAlreadyHasCitation = urlSet && urlSet.has(normalised)
+        // Check if this parent already has an existing citation HTML node for this URL
+        const parentHasCitationForUrl = parent.children.some((child) => {
+          if (child.type === 'html') {
+            const htmlNode = child as Html
+            // Check if this is a citation link HTML node
+            if (/href="#bib-\d+".*class="citation-link"|class="citation-link".*href="#bib-\d+"/.test(htmlNode.value)) {
+              // Extract the bib number from the href
+              const bibMatch = htmlNode.value.match(/href="#bib-(\d+)"/)
+              if (bibMatch) {
+                const bibNumber = parseInt(bibMatch[1], 10)
+                // Check if this bib number corresponds to our URL
+                const citationEntry = allEntries.find(e => e.number === bibNumber)
+                if (citationEntry && citationEntry.normalizedUrl === normalised) {
+                  return true
+                }
+              }
+            }
+          }
+          return false
+        })
         
         // Check if there's already a citation reference following this URL
         // First check in the same text node
@@ -1523,7 +1538,7 @@ export async function processMarkdown(
           hasCitationAfterNode = isCitationLinkNode(nextSibling)
         }
         
-        if (!entry || parentAlreadyHasCitation || hasCitationInSameNode || hasCitationAfterNode) {
+        if (!entry || parentHasCitationForUrl || hasCitationInSameNode || hasCitationAfterNode) {
           // Keep URLs as-is if no entry found or already has citation
           // Include all text from cursor up to end of URL match
           if (match.end > cursor) {
