@@ -2339,7 +2339,7 @@ Given the substantial amassing body of reports of psychotronic weapons being use
 # Bibliography
 
 1. <a id="bib-1"></a>"<https://info.publicintelligence.net/GermanPropagandaLeaflets.pdf>." Accessed December 1, 2025. <https://info.publicintelligence.net/GermanPropagandaLeaflets.pdf>.
-2. <a id="bib-2"></a>"https://google.com." Accessed December 1, 2025. <https://google.com>.
+2. <a id="bib-2"></a>"https://google.com." Accessed December 2, 2025. <https://google.com>.
 3. <a id="bib-3"></a>"<https://www.britannica.com/biography/Mildred-Gillars>." Accessed December 1, 2025. <https://www.britannica.com/biography/Mildred-Gillars>.
 4. <a id="bib-4"></a>"<https://codenames.info/operation/soldatensender-calais>." Accessed December 1, 2025. <https://codenames.info/operation/soldatensender-calais>.
 5. <a id="bib-5"></a>"<https://britishonlinearchives.com/posts/category/articles/436/airborne-propaganda-the-battle-for-hearts-and-minds>." Accessed December 1, 2025. <https://britishonlinearchives.com/posts/category/articles/436/airborne-propaganda-the-battle-for-hearts-and-minds>.
