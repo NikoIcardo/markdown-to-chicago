@@ -1470,16 +1470,28 @@ export async function processMarkdown(
       let cursor = 0
       const newNodes: Content[] = []
       const sorted = [...matches].sort((a, b) => a.start - b.start)
+      
+      // Get the index of this text node in its parent
+      const textNodeIndex = parent.children.indexOf(node as Content)
 
       sorted.forEach((match) => {
         const normalised = normalizeUrl(match.url)
         const entry = newUrlToEntry.get(normalised)
         
-        // Check if there's already a citation reference following this URL in the text
+        // Check if there's already a citation reference following this URL
+        // First check in the same text node
         const textAfterUrl = value.slice(match.end)
-        const hasCitationAfter = /^\s*\\?\[\d+\]/.test(textAfterUrl)
+        const hasCitationInSameNode = /^\s*\\?\[\d+\]/.test(textAfterUrl)
         
-        if (!entry || hasCitationAfter) {
+        // Also check if the next sibling node is a citation link (for the last URL in this text node)
+        let hasCitationAfterNode = false
+        if (match.end === value.length || sorted.indexOf(match) === sorted.length - 1) {
+          const nextSiblingIndex = textNodeIndex + 1
+          const nextSibling = parent.children[nextSiblingIndex] as Content | undefined
+          hasCitationAfterNode = isCitationLinkNode(nextSibling)
+        }
+        
+        if (!entry || hasCitationInSameNode || hasCitationAfterNode) {
           // Keep URLs as-is if no entry found or already has citation
           // Include all text from cursor up to end of URL match
           if (match.end > cursor) {
