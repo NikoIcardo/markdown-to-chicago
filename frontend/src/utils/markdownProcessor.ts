@@ -1371,21 +1371,25 @@ export async function processMarkdown(
       return false
     }
     
-    // Build a set of parents that already have citation links for specific URLs
+    // Build a map of parents to URLs that already have citation links
     // This prevents adding duplicate citations when a link already has a citation elsewhere in the sentence
-    const parentUrlHasCitation = new Set<string>()
+    const parentUrlHasCitation = new WeakMap<Parent, Set<string>>()
+    
     existingHtmlCitationLinks.forEach(({ parent, oldNumber }) => {
       const newEntry = oldNumberToNewEntry.get(oldNumber)
       if (newEntry && newEntry.normalizedUrl) {
-        const key = `${parent}:${newEntry.normalizedUrl}`
-        parentUrlHasCitation.add(key)
+        const urlSet = parentUrlHasCitation.get(parent) || new Set<string>()
+        urlSet.add(newEntry.normalizedUrl)
+        parentUrlHasCitation.set(parent, urlSet)
       }
     })
+    
     existingCitationLinks.forEach(({ parent, oldNumber }) => {
       const newEntry = oldNumberToNewEntry.get(oldNumber)
       if (newEntry && newEntry.normalizedUrl) {
-        const key = `${parent}:${newEntry.normalizedUrl}`
-        parentUrlHasCitation.add(key)
+        const urlSet = parentUrlHasCitation.get(parent) || new Set<string>()
+        urlSet.add(newEntry.normalizedUrl)
+        parentUrlHasCitation.set(parent, urlSet)
       }
     })
     
@@ -1403,8 +1407,8 @@ export async function processMarkdown(
       occurrences.forEach((occurrence) => {
         if (occurrence.type === 'link') {
           // Check if this parent already has a citation for this URL
-          const key = `${occurrence.parent}:${url}`
-          if (parentUrlHasCitation.has(key)) {
+          const urlSet = parentUrlHasCitation.get(occurrence.parent)
+          if (urlSet && urlSet.has(url)) {
             return
           }
           
@@ -1503,8 +1507,8 @@ export async function processMarkdown(
         const entry = newUrlToEntry.get(normalised)
         
         // Check if this parent already has a citation for this URL
-        const key = `${parent}:${normalised}`
-        const parentAlreadyHasCitation = parentUrlHasCitation.has(key)
+        const urlSet = parentUrlHasCitation.get(parent)
+        const parentAlreadyHasCitation = urlSet && urlSet.has(normalised)
         
         // Check if there's already a citation reference following this URL
         // First check in the same text node
