@@ -819,11 +819,20 @@ export async function processMarkdown(
   markdown: string,
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
+  // Debug log array to collect diagnostic information
+  const debugLogs: string[] = []
+  const debugLog = (message: string) => {
+    debugLogs.push(`[${new Date().toISOString()}] ${message}`)
+  }
+  
   const tree = processor.parse(markdown) as Root
   const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
   const hasCitationReferences = /href="#bib-\d+"/i.test(markdown)
   const isPreviouslyProcessed =
     hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
+  
+  debugLog(`Processing started. isPreviouslyProcessed: ${isPreviouslyProcessed}`)
+  
   if (!isPreviouslyProcessed) {
     removeExistingCitationReferences(tree)
   }
@@ -1398,21 +1407,21 @@ export async function processMarkdown(
                   // Check if this bib number corresponds to our URL
                   const citationEntry = allEntries.find(e => e.number === bibNumber)
                   if (citationEntry && citationEntry.normalizedUrl === url) {
-                    // Debug logging for google.com
+                    // Debug logging for specific URLs
                     if (url.includes('gmfus.org') || url.includes('carnegieendowment.org')) {
-                      console.log('[DEBUG] Found existing citation for URL:', url)
-                      console.log('[DEBUG] Citation bib number:', bibNumber)
-                      console.log('[DEBUG] Citation entry URL:', citationEntry.normalizedUrl)
-                      console.log('[DEBUG] Skipping duplicate')
+                      debugLog(`Found existing citation for URL: ${url}`)
+                      debugLog(`Citation bib number: ${bibNumber}`)
+                      debugLog(`Citation entry URL: ${citationEntry.normalizedUrl}`)
+                      debugLog('Skipping duplicate')
                     }
                     return true
                   } else if (citationEntry) {
                     // Debug logging to understand mismatches
                     if (url.includes('gmfus.org') || url.includes('carnegieendowment.org')) {
-                      console.log('[DEBUG] Citation found but URL mismatch')
-                      console.log('[DEBUG] Looking for URL:', url)
-                      console.log('[DEBUG] Citation entry URL:', citationEntry.normalizedUrl)
-                      console.log('[DEBUG] Match:', citationEntry.normalizedUrl === url)
+                      debugLog('Citation found but URL mismatch')
+                      debugLog(`Looking for URL: ${url}`)
+                      debugLog(`Citation entry URL: ${citationEntry.normalizedUrl}`)
+                      debugLog(`Match: ${citationEntry.normalizedUrl === url}`)
                     }
                   }
                 }
@@ -1423,8 +1432,8 @@ export async function processMarkdown(
           
           // Debug logging when NOT skipping
           if (!parentHasCitationForUrl && (url.includes('gmfus.org') || url.includes('carnegieendowment.org'))) {
-            console.log('[DEBUG] NO existing citation found for URL:', url)
-            console.log('[DEBUG] Will add new citation')
+            debugLog(`NO existing citation found for URL: ${url}`)
+            debugLog('Will add new citation')
           }
           
           if (parentHasCitationForUrl) {
@@ -2354,6 +2363,29 @@ export async function processMarkdown(
       sourceType: entryInfo?.sourceType ?? 'existing',
     }
   })
+
+  // Write debug logs to a file if there are any
+  if (debugLogs.length > 0) {
+    debugLog(`Total debug log entries: ${debugLogs.length}`)
+    const logContent = debugLogs.join('\n')
+    
+    // Create a Blob and trigger download
+    try {
+      const blob = new Blob([logContent], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `markdown-processor-debug-${Date.now()}.log`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      console.log(`Debug log file created with ${debugLogs.length} entries`)
+    } catch (e) {
+      console.error('Failed to create debug log file:', e)
+      console.log('Debug logs:', logContent)
+    }
+  }
 
   return {
     original: markdown,
