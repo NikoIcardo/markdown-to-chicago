@@ -1398,13 +1398,34 @@ export async function processMarkdown(
                   // Check if this bib number corresponds to our URL
                   const citationEntry = allEntries.find(e => e.number === bibNumber)
                   if (citationEntry && citationEntry.normalizedUrl === url) {
+                    // Debug logging for google.com
+                    if (url.includes('gmfus.org') || url.includes('carnegieendowment.org')) {
+                      console.log('[DEBUG] Found existing citation for URL:', url)
+                      console.log('[DEBUG] Citation bib number:', bibNumber)
+                      console.log('[DEBUG] Citation entry URL:', citationEntry.normalizedUrl)
+                      console.log('[DEBUG] Skipping duplicate')
+                    }
                     return true
+                  } else if (citationEntry) {
+                    // Debug logging to understand mismatches
+                    if (url.includes('gmfus.org') || url.includes('carnegieendowment.org')) {
+                      console.log('[DEBUG] Citation found but URL mismatch')
+                      console.log('[DEBUG] Looking for URL:', url)
+                      console.log('[DEBUG] Citation entry URL:', citationEntry.normalizedUrl)
+                      console.log('[DEBUG] Match:', citationEntry.normalizedUrl === url)
+                    }
                   }
                 }
               }
             }
             return false
           })
+          
+          // Debug logging when NOT skipping
+          if (!parentHasCitationForUrl && (url.includes('gmfus.org') || url.includes('carnegieendowment.org'))) {
+            console.log('[DEBUG] NO existing citation found for URL:', url)
+            console.log('[DEBUG] Will add new citation')
+          }
           
           if (parentHasCitationForUrl) {
             return
