@@ -1393,8 +1393,12 @@ export async function processMarkdown(
       }
       occurrences.forEach((occurrence) => {
         if (occurrence.type === 'link') {
+          debugLog(`\n=== Checking link occurrence for URL: ${url} ===`)
+          debugLog(`Entry number in bibliography: ${entry.number}`)
+          
           // Check if this parent already has an existing citation HTML node for this URL
           // Scan through all children to find citation links
+          let foundCitations: string[] = []
           const parentHasCitationForUrl = occurrence.parent.children.some((child) => {
             if (child.type === 'html') {
               const htmlNode = child as Html
@@ -1404,25 +1408,20 @@ export async function processMarkdown(
                 const bibMatch = htmlNode.value.match(/href="#bib-(\d+)"/)
                 if (bibMatch) {
                   const bibNumber = parseInt(bibMatch[1], 10)
+                  foundCitations.push(`[${bibNumber}]`)
                   // Check if this bib number corresponds to our URL
                   const citationEntry = allEntries.find(e => e.number === bibNumber)
-                  if (citationEntry && citationEntry.normalizedUrl === url) {
-                    // Debug logging for specific URLs
-                    if (url.includes('gmfus.org') || url.includes('carnegieendowment.org')) {
-                      debugLog(`Found existing citation for URL: ${url}`)
-                      debugLog(`Citation bib number: ${bibNumber}`)
-                      debugLog(`Citation entry URL: ${citationEntry.normalizedUrl}`)
-                      debugLog('Skipping duplicate')
+                  debugLog(`Found citation [${bibNumber}] in parent`)
+                  if (citationEntry) {
+                    debugLog(`Citation [${bibNumber}] URL: ${citationEntry.normalizedUrl}`)
+                    debugLog(`Looking for URL: ${url}`)
+                    debugLog(`Match: ${citationEntry.normalizedUrl === url}`)
+                    if (citationEntry.normalizedUrl === url) {
+                      debugLog(`✓ MATCH - Will skip adding citation`)
+                      return true
                     }
-                    return true
-                  } else if (citationEntry) {
-                    // Debug logging to understand mismatches
-                    if (url.includes('gmfus.org') || url.includes('carnegieendowment.org')) {
-                      debugLog('Citation found but URL mismatch')
-                      debugLog(`Looking for URL: ${url}`)
-                      debugLog(`Citation entry URL: ${citationEntry.normalizedUrl}`)
-                      debugLog(`Match: ${citationEntry.normalizedUrl === url}`)
-                    }
+                  } else {
+                    debugLog(`⚠ No entry found with number ${bibNumber}`)
                   }
                 }
               }
@@ -1430,15 +1429,15 @@ export async function processMarkdown(
             return false
           })
           
-          // Debug logging when NOT skipping
-          if (!parentHasCitationForUrl && (url.includes('gmfus.org') || url.includes('carnegieendowment.org'))) {
-            debugLog(`NO existing citation found for URL: ${url}`)
-            debugLog('Will add new citation')
-          }
+          debugLog(`Found citations in parent: ${foundCitations.join(', ') || 'none'}`)
+          debugLog(`parentHasCitationForUrl result: ${parentHasCitationForUrl}`)
           
           if (parentHasCitationForUrl) {
+            debugLog(`Skipping - citation already exists\n`)
             return
           }
+          
+          debugLog(`Will add new citation for this URL\n`)
           
           // Check if there's already a citation link immediately following this link
           const nextNodeIndex = occurrence.index + 1
