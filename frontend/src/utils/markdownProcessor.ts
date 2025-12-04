@@ -1993,10 +1993,11 @@ export async function processMarkdown(
   }
   
   pendingExistingMetadataIssues.forEach(({ issue, normalizedUrl }) => {
-    if (!shouldExcludeUrlFromBibliography(normalizedUrl)) {
+    if (normalizedUrl && !shouldExcludeUrlFromBibliography(normalizedUrl)) {
       // Add firstOccurrence for sorting
       const issueWithOccurrence = issue as MetadataIssue & { _firstOccurrence?: number }
-      issueWithOccurrence._firstOccurrence = urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY
+      const firstOcc = urlFirstOccurrence.get(normalizedUrl)
+      issueWithOccurrence._firstOccurrence = firstOcc !== undefined ? firstOcc : Number.POSITIVE_INFINITY
       metadataIssues.push(issue)
     }
   })
