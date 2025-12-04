@@ -823,7 +823,10 @@ export async function processMarkdown(
   const debugLogs: string[] = []
   const debugLog = (message: string) => {
     debugLogs.push(`[${new Date().toISOString()}] ${message}`)
+    console.log(`[DEBUG] ${message}`)  // Also log to console
   }
+  
+  console.log('[MARKDOWN PROCESSOR] Starting to process markdown document')
   
   const tree = processor.parse(markdown) as Root
   const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
@@ -831,6 +834,7 @@ export async function processMarkdown(
   const isPreviouslyProcessed =
     hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
   
+  console.log(`[MARKDOWN PROCESSOR] isPreviouslyProcessed: ${isPreviouslyProcessed}`)
   debugLog(`Processing started. isPreviouslyProcessed: ${isPreviouslyProcessed}`)
   
   if (!isPreviouslyProcessed) {
@@ -2364,9 +2368,13 @@ export async function processMarkdown(
   })
 
   // Write debug logs to a file if there are any
+  console.log(`[MARKDOWN PROCESSOR] Finishing processing. Debug logs collected: ${debugLogs.length}`)
+  
   if (debugLogs.length > 0) {
     debugLog(`Total debug log entries: ${debugLogs.length}`)
     const logContent = debugLogs.join('\n')
+    
+    console.log('[MARKDOWN PROCESSOR] Creating debug log file for download...')
     
     // Create a Blob and trigger download
     try {
@@ -2379,11 +2387,13 @@ export async function processMarkdown(
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-      console.log(`Debug log file created with ${debugLogs.length} entries`)
+      console.log(`[MARKDOWN PROCESSOR] Debug log file created with ${debugLogs.length} entries`)
     } catch (e) {
-      console.error('Failed to create debug log file:', e)
-      console.log('Debug logs:', logContent)
+      console.error('[MARKDOWN PROCESSOR] Failed to create debug log file:', e)
+      console.log('[MARKDOWN PROCESSOR] Debug logs:', logContent)
     }
+  } else {
+    console.log('[MARKDOWN PROCESSOR] No debug logs to write')
   }
 
   return {
