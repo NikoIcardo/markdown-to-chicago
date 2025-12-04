@@ -1647,13 +1647,11 @@ export async function processMarkdown(
 
     // Sort metadataIssues by first occurrence in document
     // This ensures modals appear in document order, not in the order they were discovered
-    if (metadataIssues.length > 1) {
-      metadataIssues.sort((a, b) => {
-        const aOccurrence = urlFirstOccurrence.get(a.url) ?? Number.POSITIVE_INFINITY
-        const bOccurrence = urlFirstOccurrence.get(b.url) ?? Number.POSITIVE_INFINITY
-        return aOccurrence - bOccurrence
-      })
-    }
+    metadataIssues.sort((a, b) => {
+      const aOccurrence = urlFirstOccurrence.get(a.url) ?? Number.POSITIVE_INFINITY
+      const bOccurrence = urlFirstOccurrence.get(b.url) ?? Number.POSITIVE_INFINITY
+      return aOccurrence - bOccurrence
+    })
 
     return {
       original: markdown,
