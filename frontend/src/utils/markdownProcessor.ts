@@ -1533,7 +1533,7 @@ export async function processMarkdown(
         const entry = newUrlToEntry.get(normalised)
         
         // Check if this parent already has an existing citation HTML node for this URL
-        const parentHasCitationForUrl = parent.children.some((child) => {
+        const parentHasCitationForUrl = entry && parent.children.some((child) => {
           if (child.type === 'html') {
             const htmlNode = child as Html
             // Check if this is a citation link HTML node
@@ -1542,9 +1542,8 @@ export async function processMarkdown(
               const bibMatch = htmlNode.value.match(/href="#bib-(\d+)"/)
               if (bibMatch) {
                 const bibNumber = parseInt(bibMatch[1], 10)
-                // Check if this bib number corresponds to our URL
-                const citationEntry = allEntries.find(e => e.number === bibNumber)
-                if (citationEntry && citationEntry.normalizedUrl === normalised) {
+                // Check if this bib number matches our entry's number
+                if (bibNumber === entry.number) {
                   return true
                 }
               }
