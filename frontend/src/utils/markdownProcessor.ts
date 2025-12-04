@@ -1256,7 +1256,9 @@ export async function processMarkdown(
           metadataIssues.push({
             url: normalizedUrl,
             message: 'New URL found. Please add details manually or skip.',
-          })
+            // Store firstOccurrence for sorting
+            _firstOccurrence: urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY,
+          } as MetadataIssue & { _firstOccurrence: number })
         }
 
         const listItem: ListItem = {
@@ -1618,7 +1620,9 @@ export async function processMarkdown(
           url: normalizedUrl,
           message: 'Incomplete metadata detected. Please provide missing details.',
           partialMetadata: parsedMetadata,
-        })
+          // Store firstOccurrence for sorting
+          _firstOccurrence: entry.firstOccurrence,
+        } as MetadataIssue & { _firstOccurrence: number })
       }
     })
 
@@ -1648,9 +1652,17 @@ export async function processMarkdown(
     // Sort metadataIssues by first occurrence in document
     // This ensures modals appear in document order, not in the order they were discovered
     metadataIssues.sort((a, b) => {
-      const aOccurrence = urlFirstOccurrence.get(a.url) ?? Number.POSITIVE_INFINITY
-      const bOccurrence = urlFirstOccurrence.get(b.url) ?? Number.POSITIVE_INFINITY
+      const aWithOccurrence = a as MetadataIssue & { _firstOccurrence?: number }
+      const bWithOccurrence = b as MetadataIssue & { _firstOccurrence?: number }
+      // Use stored _firstOccurrence if available, otherwise look up in map
+      const aOccurrence = aWithOccurrence._firstOccurrence ?? urlFirstOccurrence.get(a.url) ?? Number.POSITIVE_INFINITY
+      const bOccurrence = bWithOccurrence._firstOccurrence ?? urlFirstOccurrence.get(b.url) ?? Number.POSITIVE_INFINITY
       return aOccurrence - bOccurrence
+    })
+    
+    // Remove the temporary _firstOccurrence field
+    metadataIssues.forEach((issue) => {
+      delete (issue as any)._firstOccurrence
     })
 
     return {
@@ -1982,6 +1994,9 @@ export async function processMarkdown(
   
   pendingExistingMetadataIssues.forEach(({ issue, normalizedUrl }) => {
     if (!shouldExcludeUrlFromBibliography(normalizedUrl)) {
+      // Add firstOccurrence for sorting
+      const issueWithOccurrence = issue as MetadataIssue & { _firstOccurrence?: number }
+      issueWithOccurrence._firstOccurrence = urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY
       metadataIssues.push(issue)
     }
   })
@@ -2024,7 +2039,9 @@ export async function processMarkdown(
             metadataIssues.push({
               url: record.normalizedUrl,
               message: 'Metadata not provided. You can add details manually or skip.',
-            })
+              // Add firstOccurrence for sorting
+              _firstOccurrence: urlFirstOccurrence.get(record.normalizedUrl) ?? Number.POSITIVE_INFINITY,
+            } as MetadataIssue & { _firstOccurrence: number })
           }
           
           // Create a default metadata record using the URL
@@ -2340,6 +2357,22 @@ export async function processMarkdown(
       isNew: entryInfo?.isNew ?? false,
       sourceType: entryInfo?.sourceType ?? 'existing',
     }
+  })
+
+  // Sort metadataIssues by first occurrence in document
+  // This ensures modals appear in document order, not in the order they were discovered
+  metadataIssues.sort((a, b) => {
+    const aWithOccurrence = a as MetadataIssue & { _firstOccurrence?: number }
+    const bWithOccurrence = b as MetadataIssue & { _firstOccurrence?: number }
+    // Use stored _firstOccurrence if available, otherwise look up in map
+    const aOccurrence = aWithOccurrence._firstOccurrence ?? urlFirstOccurrence.get(a.url) ?? Number.POSITIVE_INFINITY
+    const bOccurrence = bWithOccurrence._firstOccurrence ?? urlFirstOccurrence.get(b.url) ?? Number.POSITIVE_INFINITY
+    return aOccurrence - bOccurrence
+  })
+  
+  // Remove the temporary _firstOccurrence field
+  metadataIssues.forEach((issue) => {
+    delete (issue as any)._firstOccurrence
   })
 
   return {
