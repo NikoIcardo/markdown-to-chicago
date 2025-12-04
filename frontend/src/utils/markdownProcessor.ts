@@ -819,23 +819,11 @@ export async function processMarkdown(
   markdown: string,
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
-  // Debug log array to collect diagnostic information
-  const debugLogs: string[] = []
-  const debugLog = (message: string) => {
-    debugLogs.push(`[${new Date().toISOString()}] ${message}`)
-    console.log(`[DEBUG] ${message}`)  // Also log to console
-  }
-  
-  console.log('[MARKDOWN PROCESSOR] Starting to process markdown document')
-  
   const tree = processor.parse(markdown) as Root
   const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
   const hasCitationReferences = /href="#bib-\d+"/i.test(markdown)
   const isPreviouslyProcessed =
     hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
-  
-  console.log(`[MARKDOWN PROCESSOR] isPreviouslyProcessed: ${isPreviouslyProcessed}`)
-  debugLog(`Processing started. isPreviouslyProcessed: ${isPreviouslyProcessed}`)
   
   if (!isPreviouslyProcessed) {
     removeExistingCitationReferences(tree)
@@ -1397,12 +1385,8 @@ export async function processMarkdown(
       }
       occurrences.forEach((occurrence) => {
         if (occurrence.type === 'link') {
-          debugLog(`\n=== Checking link occurrence for URL: ${url} ===`)
-          debugLog(`Entry number in bibliography: ${entry.number}`)
-          
           // Check if this parent already has an existing citation HTML node for this URL
           // Scan through all children to find citation links
-          let foundCitations: string[] = []
           const parentHasCitationForUrl = occurrence.parent.children.some((child) => {
             if (child.type === 'html') {
               const htmlNode = child as Html
@@ -1412,14 +1396,9 @@ export async function processMarkdown(
                 const bibMatch = htmlNode.value.match(/href="#bib-(\d+)"/)
                 if (bibMatch) {
                   const bibNumber = parseInt(bibMatch[1], 10)
-                  foundCitations.push(`[${bibNumber}]`)
-                  debugLog(`Found citation [${bibNumber}] in parent`)
-                  
                   // Check if this bib number matches our entry's number
                   // This means this URL already has a citation in this parent
                   if (bibNumber === entry.number) {
-                    debugLog(`✓ MATCH - Citation [${bibNumber}] matches entry number ${entry.number}`)
-                    debugLog(`Will skip adding citation for this URL\n`)
                     return true
                   }
                 }
@@ -1428,15 +1407,9 @@ export async function processMarkdown(
             return false
           })
           
-          debugLog(`Found citations in parent: ${foundCitations.join(', ') || 'none'}`)
-          debugLog(`parentHasCitationForUrl result: ${parentHasCitationForUrl}`)
-          
           if (parentHasCitationForUrl) {
-            debugLog(`Skipping - citation already exists\n`)
             return
           }
-          
-          debugLog(`Will add new citation for this URL\n`)
           
           // Check if there's already a citation link immediately following this link
           const nextNodeIndex = occurrence.index + 1
@@ -2370,35 +2343,6 @@ export async function processMarkdown(
       sourceType: entryInfo?.sourceType ?? 'existing',
     }
   })
-
-  // Write debug logs to a file if there are any
-  console.log(`[MARKDOWN PROCESSOR] Finishing processing. Debug logs collected: ${debugLogs.length}`)
-  
-  if (debugLogs.length > 0) {
-    debugLog(`Total debug log entries: ${debugLogs.length}`)
-    const logContent = debugLogs.join('\n')
-    
-    console.log('[MARKDOWN PROCESSOR] Creating debug log file for download...')
-    
-    // Create a Blob and trigger download
-    try {
-      const blob = new Blob([logContent], { type: 'text/plain' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `markdown-processor-debug-${Date.now()}.log`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      console.log(`[MARKDOWN PROCESSOR] Debug log file created with ${debugLogs.length} entries`)
-    } catch (e) {
-      console.error('[MARKDOWN PROCESSOR] Failed to create debug log file:', e)
-      console.log('[MARKDOWN PROCESSOR] Debug logs:', logContent)
-    }
-  } else {
-    console.log('[MARKDOWN PROCESSOR] No debug logs to write')
-  }
 
   return {
     original: markdown,
