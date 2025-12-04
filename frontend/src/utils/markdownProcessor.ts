@@ -2390,6 +2390,16 @@ export async function processMarkdown(
     console.log('[MARKDOWN PROCESSOR] No debug logs to write')
   }
 
+  // Sort metadataIssues by first occurrence in document
+  // This ensures modals appear in document order, not in the order they were discovered
+  if (isPreviouslyProcessed && metadataIssues.length > 1) {
+    metadataIssues.sort((a, b) => {
+      const aOccurrence = urlFirstOccurrence.get(a.url) ?? Number.POSITIVE_INFINITY
+      const bOccurrence = urlFirstOccurrence.get(b.url) ?? Number.POSITIVE_INFINITY
+      return aOccurrence - bOccurrence
+    })
+  }
+
   return {
     original: markdown,
     modified: stringified,
