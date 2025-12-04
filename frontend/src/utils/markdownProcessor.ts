@@ -1413,19 +1413,14 @@ export async function processMarkdown(
                 if (bibMatch) {
                   const bibNumber = parseInt(bibMatch[1], 10)
                   foundCitations.push(`[${bibNumber}]`)
-                  // Check if this bib number corresponds to our URL
-                  const citationEntry = allEntries.find(e => e.number === bibNumber)
                   debugLog(`Found citation [${bibNumber}] in parent`)
-                  if (citationEntry) {
-                    debugLog(`Citation [${bibNumber}] URL: ${citationEntry.normalizedUrl}`)
-                    debugLog(`Looking for URL: ${url}`)
-                    debugLog(`Match: ${citationEntry.normalizedUrl === url}`)
-                    if (citationEntry.normalizedUrl === url) {
-                      debugLog(`✓ MATCH - Will skip adding citation`)
-                      return true
-                    }
-                  } else {
-                    debugLog(`⚠ No entry found with number ${bibNumber}`)
+                  
+                  // Check if this bib number matches our entry's number
+                  // This means this URL already has a citation in this parent
+                  if (bibNumber === entry.number) {
+                    debugLog(`✓ MATCH - Citation [${bibNumber}] matches entry number ${entry.number}`)
+                    debugLog(`Will skip adding citation for this URL\n`)
+                    return true
                   }
                 }
               }
