@@ -1253,11 +1253,13 @@ export async function processMarkdown(
           }
           
           // Add to metadata issues for user to update
+          const firstOcc = urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY
+          console.log(`[NEW URL] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${firstOcc}`)
           metadataIssues.push({
             url: normalizedUrl,
             message: 'New URL found. Please add details manually or skip.',
             // Store firstOccurrence for sorting
-            _firstOccurrence: urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY,
+            _firstOccurrence: firstOcc,
           } as MetadataIssue & { _firstOccurrence: number })
         }
 
@@ -1616,6 +1618,7 @@ export async function processMarkdown(
       const isIncomplete = !hasTitle || (!hasAuthors && !hasSiteName) || !hasAccessDate
       
       if (isIncomplete) {
+        console.log(`[INCOMPLETE] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${entry.firstOccurrence}, entry.number: ${entry.number}`)
         metadataIssues.push({
           url: normalizedUrl,
           message: 'Incomplete metadata detected. Please provide missing details.',
@@ -1651,6 +1654,10 @@ export async function processMarkdown(
 
     // Sort metadataIssues by first occurrence in document
     // This ensures modals appear in document order, not in the order they were discovered
+    console.log('[SORT] Before sorting:', metadataIssues.map((i, idx) => {
+      const withOcc = i as MetadataIssue & { _firstOccurrence?: number }
+      return `[${idx}] ${i.url.substring(0, 40)}... firstOcc=${withOcc._firstOccurrence}`
+    }))
     metadataIssues.sort((a, b) => {
       const aWithOccurrence = a as MetadataIssue & { _firstOccurrence?: number }
       const bWithOccurrence = b as MetadataIssue & { _firstOccurrence?: number }
@@ -1659,6 +1666,10 @@ export async function processMarkdown(
       const bOccurrence = bWithOccurrence._firstOccurrence ?? urlFirstOccurrence.get(b.url) ?? Number.POSITIVE_INFINITY
       return aOccurrence - bOccurrence
     })
+    console.log('[SORT] After sorting:', metadataIssues.map((i, idx) => {
+      const withOcc = i as MetadataIssue & { _firstOccurrence?: number }
+      return `[${idx}] ${i.url.substring(0, 40)}... firstOcc=${withOcc._firstOccurrence}`
+    }))
     
     // Remove the temporary _firstOccurrence field
     metadataIssues.forEach((issue) => {
