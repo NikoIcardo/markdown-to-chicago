@@ -1309,13 +1309,14 @@ export async function processMarkdown(
           
           // Add to metadata issues for user to update
           const firstOcc = urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY
-          addDebugLog(`[NEW URL] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${firstOcc}`)
-          metadataIssues.push({
+          addDebugLog(`[NEW URL] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${firstOcc}, normalizedUrl: ${normalizedUrl}`)
+          const newMetadataIssue = {
             url: normalizedUrl,
             message: 'New URL found. Please add details manually or skip.',
             // Store firstOccurrence for sorting
             _firstOccurrence: firstOcc,
-          } as MetadataIssue & { _firstOccurrence: number })
+          } as MetadataIssue & { _firstOccurrence: number }
+          metadataIssues.push(newMetadataIssue)
         }
 
         const listItem: ListItem = {
@@ -1720,9 +1721,21 @@ export async function processMarkdown(
     metadataIssues.sort((a, b) => {
       const aWithOccurrence = a as MetadataIssue & { _firstOccurrence?: number }
       const bWithOccurrence = b as MetadataIssue & { _firstOccurrence?: number }
-      // Use stored _firstOccurrence if available, otherwise look up in map
-      const aOccurrence = aWithOccurrence._firstOccurrence ?? urlFirstOccurrence.get(a.url) ?? Number.POSITIVE_INFINITY
-      const bOccurrence = bWithOccurrence._firstOccurrence ?? urlFirstOccurrence.get(b.url) ?? Number.POSITIVE_INFINITY
+      
+      // CRITICAL: Use _firstOccurrence if available (already set when issue was created)
+      // Otherwise normalize the URL and look up in map
+      let aOccurrence = aWithOccurrence._firstOccurrence
+      if (aOccurrence === undefined) {
+        const aNormalized = normalizeUrl(a.url)
+        aOccurrence = urlFirstOccurrence.get(aNormalized) ?? Number.POSITIVE_INFINITY
+      }
+      
+      let bOccurrence = bWithOccurrence._firstOccurrence
+      if (bOccurrence === undefined) {
+        const bNormalized = normalizeUrl(b.url)
+        bOccurrence = urlFirstOccurrence.get(bNormalized) ?? Number.POSITIVE_INFINITY
+      }
+      
       addDebugLog(`[SORT] Comparing: ${a.url.substring(0, 30)} (${aOccurrence}) vs ${b.url.substring(0, 30)} (${bOccurrence}) => ${aOccurrence - bOccurrence}`)
       return aOccurrence - bOccurrence
     })
