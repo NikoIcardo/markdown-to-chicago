@@ -42,6 +42,56 @@ const CITATION_LINK_PATTERN = /^<a\s+(?:[^>]*\s+)?href="#bib-(\d+)"[^>]*class="c
 
 const processor = unified().use(remarkParse).use(remarkGfm).use(remarkFrontmatter)
 
+// Debug logging array for file output
+const debugLogs: string[] = []
+
+// Function to add a debug log entry
+function addDebugLog(message: string) {
+  const timestamp = new Date().toISOString()
+  const logEntry = `[${timestamp}] ${message}`
+  debugLogs.push(logEntry)
+  console.log(logEntry)
+}
+
+// Function to save debug logs to file in dev mode
+async function saveDebugLogsToFile() {
+  if (debugLogs.length === 0) {
+    console.log('[DEBUG] No logs to save')
+    return
+  }
+
+  // Only save in dev mode
+  // @ts-ignore - import.meta.env is available in Vite
+  if (!import.meta.env.DEV) {
+    console.log('[DEBUG] Not in dev mode, skipping file save')
+    return
+  }
+
+  try {
+    const content = debugLogs.join('\n')
+    const filename = `metadata-ordering-debug-${Date.now()}.log`
+    const blob = new Blob([content], { type: 'text/plain' })
+    
+    const formData = new FormData()
+    formData.append('file', blob, filename)
+    
+    console.log(`[DEBUG] Saving debug log to ${filename}...`)
+    
+    const response = await fetch('/api/save-file', {
+      method: 'POST',
+      body: formData,
+    })
+    
+    if (response.ok) {
+      console.log(`[DEBUG] ✓ Debug log saved to output/${filename}`)
+    } else {
+      console.error(`[DEBUG] ❌ Failed to save debug log: ${response.status}`)
+    }
+  } catch (error) {
+    console.error('[DEBUG] ❌ Exception saving debug log:', error)
+  }
+}
+
 function parseListItemsFromMarkdown(markdown: string): ListItem[] {
   const trimmed = markdown.trim()
   if (!trimmed) {
@@ -819,11 +869,16 @@ export async function processMarkdown(
   markdown: string,
   options: ProcessMarkdownOptions = {},
 ): Promise<ProcessedMarkdown> {
+  // Clear debug logs at the start of each processing run
+  debugLogs.length = 0
+  
   const tree = processor.parse(markdown) as Root
   const hasBibliographyAnchors = /<a\s+id="bib-\d+"/i.test(markdown)
   const hasCitationReferences = /href="#bib-\d+"/i.test(markdown)
   const isPreviouslyProcessed =
     hasBibliographyAnchors || hasCitationReferences || markdown.includes('citation-link')
+  
+  addDebugLog(`[START] Processing document. isPreviouslyProcessed: ${isPreviouslyProcessed}`)
   
   if (!isPreviouslyProcessed) {
     removeExistingCitationReferences(tree)
@@ -1254,7 +1309,7 @@ export async function processMarkdown(
           
           // Add to metadata issues for user to update
           const firstOcc = urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY
-          console.log(`[NEW URL] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${firstOcc}`)
+          addDebugLog(`[NEW URL] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${firstOcc}`)
           metadataIssues.push({
             url: normalizedUrl,
             message: 'New URL found. Please add details manually or skip.',
@@ -1620,7 +1675,7 @@ export async function processMarkdown(
       if (isIncomplete) {
         // Use urlFirstOccurrence map for consistency, falling back to entry.firstOccurrence
         const firstOcc = urlFirstOccurrence.get(normalizedUrl) ?? entry.firstOccurrence
-        console.log(`[INCOMPLETE] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${firstOcc}, entry.firstOccurrence: ${entry.firstOccurrence}, entry.number: ${entry.number}`)
+        addDebugLog(`[INCOMPLETE] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${firstOcc}, entry.firstOccurrence: ${entry.firstOccurrence}, entry.number: ${entry.number}`)
         metadataIssues.push({
           url: normalizedUrl,
           message: 'Incomplete metadata detected. Please provide missing details.',
@@ -1656,32 +1711,35 @@ export async function processMarkdown(
 
     // Sort metadataIssues by first occurrence in document
     // This ensures modals appear in document order, not in the order they were discovered
-    console.log('[SORT] Before sorting:', metadataIssues.map((i, idx) => {
+    addDebugLog('[SORT] Before sorting: ' + metadataIssues.map((i, idx) => {
       const withOcc = i as MetadataIssue & { _firstOccurrence?: number }
       const normalizedForLookup = normalizeUrl(i.url)
       const mapValue = urlFirstOccurrence.get(normalizedForLookup)
       return `[${idx}] URL: ${i.url.substring(0, 50)} | _firstOcc: ${withOcc._firstOccurrence} | mapValue: ${mapValue}`
-    }))
+    }).join('\n       '))
     metadataIssues.sort((a, b) => {
       const aWithOccurrence = a as MetadataIssue & { _firstOccurrence?: number }
       const bWithOccurrence = b as MetadataIssue & { _firstOccurrence?: number }
       // Use stored _firstOccurrence if available, otherwise look up in map
       const aOccurrence = aWithOccurrence._firstOccurrence ?? urlFirstOccurrence.get(a.url) ?? Number.POSITIVE_INFINITY
       const bOccurrence = bWithOccurrence._firstOccurrence ?? urlFirstOccurrence.get(b.url) ?? Number.POSITIVE_INFINITY
-      console.log(`[SORT] Comparing: ${a.url.substring(0, 30)} (${aOccurrence}) vs ${b.url.substring(0, 30)} (${bOccurrence}) => ${aOccurrence - bOccurrence}`)
+      addDebugLog(`[SORT] Comparing: ${a.url.substring(0, 30)} (${aOccurrence}) vs ${b.url.substring(0, 30)} (${bOccurrence}) => ${aOccurrence - bOccurrence}`)
       return aOccurrence - bOccurrence
     })
-    console.log('[SORT] After sorting:', metadataIssues.map((i, idx) => {
+    addDebugLog('[SORT] After sorting: ' + metadataIssues.map((i, idx) => {
       const withOcc = i as MetadataIssue & { _firstOccurrence?: number }
       const normalizedForLookup = normalizeUrl(i.url)
       const mapValue = urlFirstOccurrence.get(normalizedForLookup)
       return `[${idx}] URL: ${i.url.substring(0, 50)} | _firstOcc: ${withOcc._firstOccurrence} | mapValue: ${mapValue}`
-    }))
+    }).join('\n       '))
     
     // Remove the temporary _firstOccurrence field
     metadataIssues.forEach((issue) => {
       delete (issue as any)._firstOccurrence
     })
+    
+    // Save debug logs to file in dev mode
+    await saveDebugLogsToFile()
 
     return {
       original: markdown,
@@ -2394,6 +2452,9 @@ export async function processMarkdown(
     delete (issue as any)._firstOccurrence
   })
 
+  // Save debug logs to file in dev mode
+  await saveDebugLogsToFile()
+  
   return {
     original: markdown,
     modified: stringified,
