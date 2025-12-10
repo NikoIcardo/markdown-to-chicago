@@ -1618,13 +1618,15 @@ export async function processMarkdown(
       const isIncomplete = !hasTitle || (!hasAuthors && !hasSiteName) || !hasAccessDate
       
       if (isIncomplete) {
-        console.log(`[INCOMPLETE] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${entry.firstOccurrence}, entry.number: ${entry.number}`)
+        // Use urlFirstOccurrence map for consistency, falling back to entry.firstOccurrence
+        const firstOcc = urlFirstOccurrence.get(normalizedUrl) ?? entry.firstOccurrence
+        console.log(`[INCOMPLETE] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${firstOcc}, entry.firstOccurrence: ${entry.firstOccurrence}, entry.number: ${entry.number}`)
         metadataIssues.push({
           url: normalizedUrl,
           message: 'Incomplete metadata detected. Please provide missing details.',
           partialMetadata: parsedMetadata,
           // Store firstOccurrence for sorting
-          _firstOccurrence: entry.firstOccurrence,
+          _firstOccurrence: firstOcc,
         } as MetadataIssue & { _firstOccurrence: number })
       }
     })
@@ -1656,7 +1658,9 @@ export async function processMarkdown(
     // This ensures modals appear in document order, not in the order they were discovered
     console.log('[SORT] Before sorting:', metadataIssues.map((i, idx) => {
       const withOcc = i as MetadataIssue & { _firstOccurrence?: number }
-      return `[${idx}] ${i.url.substring(0, 40)}... firstOcc=${withOcc._firstOccurrence}`
+      const normalizedForLookup = normalizeUrl(i.url)
+      const mapValue = urlFirstOccurrence.get(normalizedForLookup)
+      return `[${idx}] URL: ${i.url.substring(0, 50)} | _firstOcc: ${withOcc._firstOccurrence} | mapValue: ${mapValue}`
     }))
     metadataIssues.sort((a, b) => {
       const aWithOccurrence = a as MetadataIssue & { _firstOccurrence?: number }
@@ -1664,11 +1668,14 @@ export async function processMarkdown(
       // Use stored _firstOccurrence if available, otherwise look up in map
       const aOccurrence = aWithOccurrence._firstOccurrence ?? urlFirstOccurrence.get(a.url) ?? Number.POSITIVE_INFINITY
       const bOccurrence = bWithOccurrence._firstOccurrence ?? urlFirstOccurrence.get(b.url) ?? Number.POSITIVE_INFINITY
+      console.log(`[SORT] Comparing: ${a.url.substring(0, 30)} (${aOccurrence}) vs ${b.url.substring(0, 30)} (${bOccurrence}) => ${aOccurrence - bOccurrence}`)
       return aOccurrence - bOccurrence
     })
     console.log('[SORT] After sorting:', metadataIssues.map((i, idx) => {
       const withOcc = i as MetadataIssue & { _firstOccurrence?: number }
-      return `[${idx}] ${i.url.substring(0, 40)}... firstOcc=${withOcc._firstOccurrence}`
+      const normalizedForLookup = normalizeUrl(i.url)
+      const mapValue = urlFirstOccurrence.get(normalizedForLookup)
+      return `[${idx}] URL: ${i.url.substring(0, 50)} | _firstOcc: ${withOcc._firstOccurrence} | mapValue: ${mapValue}`
     }))
     
     // Remove the temporary _firstOccurrence field
