@@ -27,12 +27,15 @@ import type {
 import type { Node } from 'unist'
 import type {
   BibliographyEntry,
+  ImportedBibliographyEntry,
+  ImportedBibliographyMetadata,
   ManualMetadataInput,
   MetadataIssue,
   ProcessedMarkdown,
   ProcessingDiagnostics,
   SourceMetadata,
 } from './types.ts'
+import { normalizeUrl } from './urlUtils'
 
 const MARKDOWN_URL_REGEX = /(https?:\/\/[^\s<>\]")"}]+)/gi
 
@@ -308,20 +311,20 @@ type ExistingEntryInfo = {
 
 const excludedAncestorTypes = new Set(['code', 'inlineCode', 'definition'])
 
-function normalizeUrl(url: string): string {
-  try {
-    // Remove Markdown escape sequences (e.g., \_, \-, \&, etc.) before parsing
-    const unescaped = url
-      .trim()
-      .replace(/\\([\\_\-*[\](){}#.!+`~|&])/g, '$1')
-    const parsed = new URL(unescaped)
-    parsed.hash = ''
-    const normalised = parsed.toString()
-    return normalised.endsWith('/') ? normalised.slice(0, -1) : normalised
-  } catch {
-    // If URL parsing fails, still remove escape sequences from the raw string
-    return url.trim().replace(/\\([_\-*[\](){}#.!+`~|])/g, '$1')
-  }
+/**
+ * Checks if imported metadata contains useful information (title or authors)
+ */
+function hasValidImportedMetadata(metadata: ImportedBibliographyMetadata | undefined): boolean {
+  return !!(metadata && (metadata.title || metadata.authors))
+}
+
+/**
+ * Parses a comma-separated authors string into an array of trimmed author names
+ */
+function parseAuthorsString(authorsStr: string | undefined): string[] {
+  return authorsStr
+    ? authorsStr.split(',').map(a => a.trim()).filter(Boolean)
+    : []
 }
 
 function stripTrailingPunctuationFromUrl(value: string): string {
@@ -831,6 +834,7 @@ function ensureFrontmatter(root: Root, title: string, subtitle?: string) {
 
 interface ProcessMarkdownOptions {
   manualMetadata?: Record<string, ManualMetadataInput>
+  importedBibliography?: ImportedBibliographyEntry[]
 }
 
 function removeExistingCitationReferences(root: Root) {
@@ -897,6 +901,17 @@ export async function processMarkdown(
         ...entry,
         url: entry.url,
       })
+    })
+  }
+
+  // Build map of imported bibliography entries
+  const importedBibliographyMap = new Map<string, ImportedBibliographyMetadata>()
+  if (options.importedBibliography) {
+    options.importedBibliography.forEach((entry) => {
+      const key = normalizeUrl(entry.url)
+      if (entry.metadata) {
+        importedBibliographyMap.set(key, entry.metadata)
+      }
     })
   }
 
@@ -1297,26 +1312,60 @@ export async function processMarkdown(
             sourceType: 'manual',
           }
         } else {
-          // Create a default metadata record - user can update manually
-          metadata = {
-            url: normalizedUrl,
-            title: normalizedUrl,
-            authors: [],
-            siteName: undefined,
-            isPdf: false,
-            accessDate: format(new Date(), 'MMMM d, yyyy'),
-          }
+          // Check if we have imported bibliography metadata for this URL
+          const importedMetadata = importedBibliographyMap.get(normalizedUrl)
           
-          // Add to metadata issues for user to update
-          const firstOcc = urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY
-          addDebugLog(`[NEW URL] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${firstOcc}, normalizedUrl: ${normalizedUrl}`)
-          const newMetadataIssue = {
-            url: normalizedUrl,
-            message: 'New URL found. Please add details manually or skip.',
-            // Store firstOccurrence for sorting
-            _firstOccurrence: firstOcc,
-          } as MetadataIssue & { _firstOccurrence: number }
-          metadataIssues.push(newMetadataIssue)
+          if (hasValidImportedMetadata(importedMetadata)) {
+            // Use imported bibliography metadata
+            const authorsArray = parseAuthorsString(importedMetadata!.authors)
+            
+            metadata = {
+              url: normalizedUrl,
+              title: importedMetadata!.title || normalizedUrl,
+              authors: authorsArray,
+              siteName: importedMetadata!.siteName,
+              isPdf: false,
+              accessDate: importedMetadata!.accessDate || format(new Date(), 'MMMM d, yyyy'),
+              sourceType: 'existing',
+            }
+            
+            // Check if imported metadata is incomplete and needs user review
+            const hasTitle = importedMetadata!.title && importedMetadata!.title !== normalizedUrl
+            const hasAuthors = authorsArray.length > 0
+            const hasSiteName = importedMetadata!.siteName && importedMetadata!.siteName.length > 0
+            const hasAccessDate = importedMetadata!.accessDate && importedMetadata!.accessDate.length > 0
+            
+            if (!hasTitle || (!hasAuthors && !hasSiteName) || !hasAccessDate) {
+              const firstOcc = urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY
+              metadataIssues.push({
+                url: normalizedUrl,
+                message: 'Imported entry has incomplete metadata. Please add missing details.',
+                partialMetadata: importedMetadata!,
+                _firstOccurrence: firstOcc,
+              } as MetadataIssue & { _firstOccurrence: number })
+            }
+          } else {
+            // Create a default metadata record - user can update manually
+            metadata = {
+              url: normalizedUrl,
+              title: normalizedUrl,
+              authors: [],
+              siteName: undefined,
+              isPdf: false,
+              accessDate: format(new Date(), 'MMMM d, yyyy'),
+            }
+            
+            // Add to metadata issues for user to update
+            const firstOcc = urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY
+            addDebugLog(`[NEW URL] Adding metadata issue for ${normalizedUrl.substring(0, 60)}, _firstOccurrence: ${firstOcc}, normalizedUrl: ${normalizedUrl}`)
+            const newMetadataIssue = {
+              url: normalizedUrl,
+              message: 'New URL found. Please add details manually or skip.',
+              // Store firstOccurrence for sorting
+              _firstOccurrence: firstOcc,
+            } as MetadataIssue & { _firstOccurrence: number }
+            metadataIssues.push(newMetadataIssue)
+          }
         }
 
         const listItem: ListItem = {
@@ -2116,7 +2165,26 @@ export async function processMarkdown(
           }
           metadataRecords.push({ metadata: manualMetadata, normalizedUrl })
         } else {
-          metadataRecords.push({ metadata: null, normalizedUrl })
+          // Check if we have imported bibliography metadata for this URL
+          const importedMetadata = importedBibliographyMap.get(normalizedUrl)
+          
+          if (hasValidImportedMetadata(importedMetadata)) {
+            // Use imported bibliography metadata
+            const authorsArray = parseAuthorsString(importedMetadata!.authors)
+            
+            const importedSourceMetadata: SourceMetadata = {
+              url: normalizedUrl,
+              title: importedMetadata!.title || normalizedUrl,
+              authors: authorsArray,
+              siteName: importedMetadata!.siteName,
+              isPdf: false,
+              accessDate: importedMetadata!.accessDate || format(new Date(), 'MMMM d, yyyy'),
+              sourceType: 'existing',
+            }
+            metadataRecords.push({ metadata: importedSourceMetadata, normalizedUrl })
+          } else {
+            metadataRecords.push({ metadata: null, normalizedUrl })
+          }
         }
       })
   
