@@ -86,6 +86,17 @@ function findSectionRange(root: Root, headingText: string): { startIndex: number
 // Re-export the type from types.ts for convenience
 export type { ImportedBibliographyEntry } from './types'
 
+/**
+ * Parses metadata from an existing citation text
+ * 
+ * SECURITY NOTE: This function removes HTML tags from citation text for metadata extraction.
+ * This is safe because:
+ * 1. We're only parsing/extracting metadata, never rendering HTML
+ * 2. The extracted metadata is used to populate form fields or create new citations
+ * 3. All output goes through the markdown processor which properly escapes content
+ * 
+ * The HTML tag removal here is for text cleanup, not XSS prevention.
+ */
 function parseExistingCitationMetadata(citationText: string, url: string): {
   title?: string
   authors?: string
@@ -94,7 +105,7 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
 } {
   let cleaned = citationText
     .replace(/^\d+\.\s*/, '')
-    .replace(/<[^>]+>/g, '')
+    .replace(/<[^>]+>/g, '') // Remove HTML tags from citation text for parsing
     .replace(url, '')
     .replace(/https?:\/\/[^\s<>\]")'}]+/gi, '')
     .trim()
@@ -126,9 +137,14 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
   cleaned = cleaned.replace(/\b(?:Accessed|Retrieved|Viewed)(?:\s*[.,;:])*\s*$/i, '').trim()
 
   // Extract authors
+  // Note: These patterns are simplified to avoid ReDoS vulnerabilities
+  // They match common author name formats but may not catch all edge cases
   const authorPatterns = [
-    /^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?(?:\s*,\s*[A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?)*(?:\s*,?\s+and\s+[A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?)?)\.\s+/,
-    /^([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)?)\.\s+/,
+    // Single author with optional middle initial
+    /^([A-Z][a-z]+(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]+)\.\s+/,
+    // Multiple authors with "and" connector (simplified to avoid nested quantifiers)
+    /^([A-Z][a-z]+[^.]{0,100}?\s+and\s+[A-Z][a-z]+[^.]{0,50}?)\.\s+/,
+    // Author with multiple middle initials
     /^([A-Z][a-z]+(?:\s+[A-Z]\.)+\s+[A-Z][a-z]+)\.\s+/
   ]
   
