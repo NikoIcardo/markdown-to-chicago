@@ -10,6 +10,9 @@ import type { ImportedBibliographyEntry } from './types'
 
 const processor = unified().use(remarkParse).use(remarkGfm).use(remarkFrontmatter)
 
+// URL matching pattern for bibliography entries
+const URL_PATTERN = /https?:\/\/[^\s<>\]")'}]+/i
+
 function extractUrlFromListItem(listItem: ListItem): string | undefined {
   let extracted: string | undefined
 
@@ -32,7 +35,7 @@ function extractUrlFromListItem(listItem: ListItem): string | undefined {
   // Then check HTML nodes (for re-processed files with anchor tags)
   visit(listItem, 'html', (node: Html) => {
     if (!extracted && node.value) {
-      const match = node.value.match(/https?:\/\/[^\s<>\]")'}]+/i)
+      const match = node.value.match(URL_PATTERN)
       if (match) {
         extracted = normalizeUrl(match[0])
       }
@@ -45,7 +48,7 @@ function extractUrlFromListItem(listItem: ListItem): string | undefined {
 
   // Finally try to extract from text content
   const textValue = toString(listItem)
-  const match = textValue.match(/https?:\/\/[^\s<>\]")'}]+/i)
+  const match = textValue.match(URL_PATTERN)
   if (match) {
     return normalizeUrl(match[0])
   }

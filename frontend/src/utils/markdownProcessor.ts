@@ -311,6 +311,22 @@ type ExistingEntryInfo = {
 
 const excludedAncestorTypes = new Set(['code', 'inlineCode', 'definition'])
 
+/**
+ * Checks if imported metadata contains useful information (title or authors)
+ */
+function hasValidImportedMetadata(metadata: ImportedBibliographyMetadata | undefined): boolean {
+  return !!(metadata && (metadata.title || metadata.authors))
+}
+
+/**
+ * Parses a comma-separated authors string into an array of trimmed author names
+ */
+function parseAuthorsString(authorsStr: string | undefined): string[] {
+  return authorsStr
+    ? authorsStr.split(',').map(a => a.trim()).filter(Boolean)
+    : []
+}
+
 function stripTrailingPunctuationFromUrl(value: string): string {
   let result = value.trim()
   const removable = '.,;:!?\'"'
@@ -888,11 +904,6 @@ export async function processMarkdown(
     })
   }
 
-  // Helper to check if imported metadata has useful information
-  const hasValidImportedMetadata = (metadata: ImportedBibliographyMetadata | undefined): boolean => {
-    return !!(metadata && (metadata.title || metadata.authors))
-  }
-
   // Build map of imported bibliography entries
   const importedBibliographyMap = new Map<string, ImportedBibliographyMetadata>()
   if (options.importedBibliography) {
@@ -1306,9 +1317,7 @@ export async function processMarkdown(
           
           if (hasValidImportedMetadata(importedMetadata)) {
             // Use imported bibliography metadata
-            const authorsArray = importedMetadata!.authors 
-              ? importedMetadata!.authors.split(',').map(a => a.trim()).filter(Boolean)
-              : []
+            const authorsArray = parseAuthorsString(importedMetadata!.authors)
             
             metadata = {
               url: normalizedUrl,
@@ -2161,9 +2170,7 @@ export async function processMarkdown(
           
           if (hasValidImportedMetadata(importedMetadata)) {
             // Use imported bibliography metadata
-            const authorsArray = importedMetadata!.authors 
-              ? importedMetadata!.authors.split(',').map(a => a.trim()).filter(Boolean)
-              : []
+            const authorsArray = parseAuthorsString(importedMetadata!.authors)
             
             const importedSourceMetadata: SourceMetadata = {
               url: normalizedUrl,

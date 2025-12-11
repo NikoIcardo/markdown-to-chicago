@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './App.css'
 import type {
+  ImportedBibliographyEntry,
   ManualMetadataInput,
   MetadataIssue,
   ProcessedMarkdown,
@@ -345,23 +346,11 @@ function App() {
       }
 
       // Extract bibliography from old file if provided
-      let importedBibliography: Array<{
-        url: string
-        metadata?: {
-          title?: string
-          authors?: string
-          siteName?: string
-          accessDate?: string
-        }
-      }> | undefined
+      let importedBibliography: ImportedBibliographyEntry[] | undefined
 
       if (importExistingBibliography && oldFileMarkdown) {
         const { extractBibliographyFromMarkdown } = await import('./utils/bibliographyExtractor')
-        const extractedEntries = extractBibliographyFromMarkdown(oldFileMarkdown)
-        importedBibliography = extractedEntries.map(entry => ({
-          url: entry.url,
-          metadata: entry.metadata
-        }))
+        importedBibliography = extractBibliographyFromMarkdown(oldFileMarkdown)
         console.log(`📚 Imported ${importedBibliography.length} bibliography entries from old file`)
       }
 

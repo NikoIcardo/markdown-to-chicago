@@ -13,6 +13,6 @@ export function normalizeUrl(url: string): string {
     return normalised.endsWith('/') ? normalised.slice(0, -1) : normalised
   } catch {
     // If URL parsing fails, still remove escape sequences from the raw string
-    return url.trim().replace(/\\([_\-*[\](){}#.!+`~|])/g, '$1')
+    return url.trim().replace(/\\([\\_\-*[\](){}#.!+`~|&])/g, '$1')
   }
 }
