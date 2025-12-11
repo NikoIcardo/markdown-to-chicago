@@ -5,22 +5,10 @@ import remarkFrontmatter from 'remark-frontmatter'
 import { visit } from 'unist-util-visit'
 import { toString } from 'mdast-util-to-string'
 import type { Root, List, ListItem, Heading, Link, Html } from 'mdast'
+import { normalizeUrl } from './urlUtils'
+import type { ImportedBibliographyEntry } from './types'
 
 const processor = unified().use(remarkParse).use(remarkGfm).use(remarkFrontmatter)
-
-function normalizeUrl(url: string): string {
-  try {
-    const unescaped = url
-      .trim()
-      .replace(/\\([\\_\-*[\](){}#.!+`~|&])/g, '$1')
-    const parsed = new URL(unescaped)
-    parsed.hash = ''
-    const normalised = parsed.toString()
-    return normalised.endsWith('/') ? normalised.slice(0, -1) : normalised
-  } catch {
-    return url.trim().replace(/\\([_\-*[\](){}#.!+`~|])/g, '$1')
-  }
-}
 
 function extractUrlFromListItem(listItem: ListItem): string | undefined {
   let extracted: string | undefined
@@ -92,16 +80,8 @@ function findSectionRange(root: Root, headingText: string): { startIndex: number
   return null
 }
 
-export interface ExtractedBibliographyEntry {
-  url: string
-  citationText: string
-  metadata?: {
-    title?: string
-    authors?: string
-    siteName?: string
-    accessDate?: string
-  }
-}
+// Re-export the type from types.ts for convenience
+export type { ImportedBibliographyEntry } from './types'
 
 function parseExistingCitationMetadata(citationText: string, url: string): {
   title?: string
@@ -182,9 +162,9 @@ function parseExistingCitationMetadata(citationText: string, url: string): {
  * Extracts bibliography entries from a markdown document
  * Looks for a "Bibliography" section and extracts all entries with their URLs and metadata
  */
-export function extractBibliographyFromMarkdown(markdown: string): ExtractedBibliographyEntry[] {
+export function extractBibliographyFromMarkdown(markdown: string): ImportedBibliographyEntry[] {
   const tree = processor.parse(markdown) as Root
-  const entries: ExtractedBibliographyEntry[] = []
+  const entries: ImportedBibliographyEntry[] = []
 
   // Find bibliography section
   const bibliographyRange = findSectionRange(tree, 'bibliography')

@@ -27,12 +27,15 @@ import type {
 import type { Node } from 'unist'
 import type {
   BibliographyEntry,
+  ImportedBibliographyEntry,
+  ImportedBibliographyMetadata,
   ManualMetadataInput,
   MetadataIssue,
   ProcessedMarkdown,
   ProcessingDiagnostics,
   SourceMetadata,
 } from './types.ts'
+import { normalizeUrl } from './urlUtils'
 
 const MARKDOWN_URL_REGEX = /(https?:\/\/[^\s<>\]")"}]+)/gi
 
@@ -307,22 +310,6 @@ type ExistingEntryInfo = {
 }
 
 const excludedAncestorTypes = new Set(['code', 'inlineCode', 'definition'])
-
-function normalizeUrl(url: string): string {
-  try {
-    // Remove Markdown escape sequences (e.g., \_, \-, \&, etc.) before parsing
-    const unescaped = url
-      .trim()
-      .replace(/\\([\\_\-*[\](){}#.!+`~|&])/g, '$1')
-    const parsed = new URL(unescaped)
-    parsed.hash = ''
-    const normalised = parsed.toString()
-    return normalised.endsWith('/') ? normalised.slice(0, -1) : normalised
-  } catch {
-    // If URL parsing fails, still remove escape sequences from the raw string
-    return url.trim().replace(/\\([_\-*[\](){}#.!+`~|])/g, '$1')
-  }
-}
 
 function stripTrailingPunctuationFromUrl(value: string): string {
   let result = value.trim()
@@ -831,15 +818,7 @@ function ensureFrontmatter(root: Root, title: string, subtitle?: string) {
 
 interface ProcessMarkdownOptions {
   manualMetadata?: Record<string, ManualMetadataInput>
-  importedBibliography?: Array<{
-    url: string
-    metadata?: {
-      title?: string
-      authors?: string
-      siteName?: string
-      accessDate?: string
-    }
-  }>
+  importedBibliography?: ImportedBibliographyEntry[]
 }
 
 function removeExistingCitationReferences(root: Root) {
@@ -909,8 +888,13 @@ export async function processMarkdown(
     })
   }
 
+  // Helper to check if imported metadata has useful information
+  const hasValidImportedMetadata = (metadata: ImportedBibliographyMetadata | undefined): boolean => {
+    return !!(metadata && (metadata.title || metadata.authors))
+  }
+
   // Build map of imported bibliography entries
-  const importedBibliographyMap = new Map<string, { title?: string; authors?: string; siteName?: string; accessDate?: string }>()
+  const importedBibliographyMap = new Map<string, ImportedBibliographyMetadata>()
   if (options.importedBibliography) {
     options.importedBibliography.forEach((entry) => {
       const key = normalizeUrl(entry.url)
@@ -1320,34 +1304,34 @@ export async function processMarkdown(
           // Check if we have imported bibliography metadata for this URL
           const importedMetadata = importedBibliographyMap.get(normalizedUrl)
           
-          if (importedMetadata && (importedMetadata.title || importedMetadata.authors)) {
+          if (hasValidImportedMetadata(importedMetadata)) {
             // Use imported bibliography metadata
-            const authorsArray = importedMetadata.authors 
-              ? importedMetadata.authors.split(',').map(a => a.trim()).filter(Boolean)
+            const authorsArray = importedMetadata!.authors 
+              ? importedMetadata!.authors.split(',').map(a => a.trim()).filter(Boolean)
               : []
             
             metadata = {
               url: normalizedUrl,
-              title: importedMetadata.title || normalizedUrl,
+              title: importedMetadata!.title || normalizedUrl,
               authors: authorsArray,
-              siteName: importedMetadata.siteName,
+              siteName: importedMetadata!.siteName,
               isPdf: false,
-              accessDate: importedMetadata.accessDate || format(new Date(), 'MMMM d, yyyy'),
+              accessDate: importedMetadata!.accessDate || format(new Date(), 'MMMM d, yyyy'),
               sourceType: 'existing',
             }
             
             // Check if imported metadata is incomplete and needs user review
-            const hasTitle = importedMetadata.title && importedMetadata.title !== normalizedUrl
+            const hasTitle = importedMetadata!.title && importedMetadata!.title !== normalizedUrl
             const hasAuthors = authorsArray.length > 0
-            const hasSiteName = importedMetadata.siteName && importedMetadata.siteName.length > 0
-            const hasAccessDate = importedMetadata.accessDate && importedMetadata.accessDate.length > 0
+            const hasSiteName = importedMetadata!.siteName && importedMetadata!.siteName.length > 0
+            const hasAccessDate = importedMetadata!.accessDate && importedMetadata!.accessDate.length > 0
             
             if (!hasTitle || (!hasAuthors && !hasSiteName) || !hasAccessDate) {
               const firstOcc = urlFirstOccurrence.get(normalizedUrl) ?? Number.POSITIVE_INFINITY
               metadataIssues.push({
                 url: normalizedUrl,
                 message: 'Imported entry has incomplete metadata. Please add missing details.',
-                partialMetadata: importedMetadata,
+                partialMetadata: importedMetadata!,
                 _firstOccurrence: firstOcc,
               } as MetadataIssue & { _firstOccurrence: number })
             }
@@ -2175,19 +2159,19 @@ export async function processMarkdown(
           // Check if we have imported bibliography metadata for this URL
           const importedMetadata = importedBibliographyMap.get(normalizedUrl)
           
-          if (importedMetadata && (importedMetadata.title || importedMetadata.authors)) {
+          if (hasValidImportedMetadata(importedMetadata)) {
             // Use imported bibliography metadata
-            const authorsArray = importedMetadata.authors 
-              ? importedMetadata.authors.split(',').map(a => a.trim()).filter(Boolean)
+            const authorsArray = importedMetadata!.authors 
+              ? importedMetadata!.authors.split(',').map(a => a.trim()).filter(Boolean)
               : []
             
             const importedSourceMetadata: SourceMetadata = {
               url: normalizedUrl,
-              title: importedMetadata.title || normalizedUrl,
+              title: importedMetadata!.title || normalizedUrl,
               authors: authorsArray,
-              siteName: importedMetadata.siteName,
+              siteName: importedMetadata!.siteName,
               isPdf: false,
-              accessDate: importedMetadata.accessDate || format(new Date(), 'MMMM d, yyyy'),
+              accessDate: importedMetadata!.accessDate || format(new Date(), 'MMMM d, yyyy'),
               sourceType: 'existing',
             }
             metadataRecords.push({ metadata: importedSourceMetadata, normalizedUrl })

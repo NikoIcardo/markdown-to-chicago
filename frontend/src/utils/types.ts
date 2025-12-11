@@ -66,12 +66,15 @@ export interface ReferenceOccurrence {
   number: number
 }
 
+export interface ImportedBibliographyMetadata {
+  title?: string
+  authors?: string
+  siteName?: string
+  accessDate?: string
+}
+
 export interface ImportedBibliographyEntry {
   url: string
-  metadata?: {
-    title?: string
-    authors?: string
-    siteName?: string
-    accessDate?: string
-  }
+  citationText?: string
+  metadata?: ImportedBibliographyMetadata
 }
