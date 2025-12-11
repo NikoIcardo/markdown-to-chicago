@@ -65,3 +65,13 @@ export interface ReferenceOccurrence {
   url: string
   number: number
 }
+
+export interface ImportedBibliographyEntry {
+  url: string
+  metadata?: {
+    title?: string
+    authors?: string
+    siteName?: string
+    accessDate?: string
+  }
+}
