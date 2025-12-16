@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './App.css'
 import type {
+  ImportedBibliographyEntry,
   ManualMetadataInput,
   MetadataIssue,
   ProcessedMarkdown,
@@ -139,6 +140,10 @@ function App() {
   const [pendingManualMarkdown, setPendingManualMarkdown] = useState<string | null>(null)
   const [showBibliographyNotice, setShowBibliographyNotice] = useState(false)
   const [theme, setTheme] = useState<Theme>('dark')
+  const [importExistingBibliography, setImportExistingBibliography] = useState(false)
+  const [oldFileName, setOldFileName] = useState<string | null>(null)
+  const [oldFileMarkdown, setOldFileMarkdown] = useState<string | null>(null)
+  const oldFileInputRef = useRef<HTMLInputElement | null>(null)
 
   // Helper to persist manual metadata immediately (since refs don't trigger useEffect)
   // Use useRef to avoid recreating this function on every render
@@ -317,7 +322,6 @@ function App() {
       setManualMetadataQueue([])
       setManualMetadataModalOpen(false)
       setExpandedSections({ ...initialSectionState })
-      setProcessingState('processing')
       setErrorMessage(null)
       setProcessed(null)
       setFileName(file.name)
@@ -340,8 +344,28 @@ function App() {
         console.warn('Could not save markdown to output folder:', saveError)
       }
 
+      // If import bibliography is enabled, wait for the old file to be uploaded
+      if (importExistingBibliography && !oldFileMarkdown) {
+        console.log('⏳ Waiting for previous version file to be uploaded...')
+        setProcessingState('idle')
+        return
+      }
+
+      // Process the markdown
+      setProcessingState('processing')
+
+      // Extract bibliography from old file if provided
+      let importedBibliography: ImportedBibliographyEntry[] | undefined
+
+      if (importExistingBibliography && oldFileMarkdown) {
+        const { extractBibliographyFromMarkdown } = await import('./utils/bibliographyExtractor')
+        importedBibliography = extractBibliographyFromMarkdown(oldFileMarkdown)
+        console.log(`📚 Imported ${importedBibliography.length} bibliography entries from old file`)
+      }
+
       const result = await processMarkdown(text, {
         manualMetadata: manualMetadataOverridesRef.current,
+        importedBibliography,
       })
       setProcessed(result)
       setProcessingState('processed')
@@ -356,7 +380,56 @@ function App() {
         error instanceof Error ? error.message : 'Unable to process the markdown file.',
       )
     }
-  }, [promptForManualMetadata, startManualMetadataCollection])
+  }, [promptForManualMetadata, startManualMetadataCollection, importExistingBibliography, oldFileMarkdown])
+
+  const handleOldFileSelection = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) {
+      return
+    }
+
+    try {
+      console.log('📤 Old file with bibliography uploaded:', file.name)
+      const text = await file.text()
+      setOldFileMarkdown(text)
+      setOldFileName(file.name)
+
+      // If we have both files, trigger processing
+      if (originalMarkdown) {
+        console.log('📚 Both files uploaded, processing...')
+        setProcessingState('processing')
+
+        try {
+          // Extract bibliography from old file
+          const { extractBibliographyFromMarkdown } = await import('./utils/bibliographyExtractor')
+          const importedBibliography = extractBibliographyFromMarkdown(text)
+          console.log(`📚 Imported ${importedBibliography.length} bibliography entries from old file`)
+
+          const result = await processMarkdown(originalMarkdown, {
+            manualMetadata: manualMetadataOverridesRef.current,
+            importedBibliography,
+          })
+          setProcessed(result)
+          setProcessingState('processed')
+
+          if (promptForManualMetadata && result.metadataIssues.length) {
+            startManualMetadataCollection(result.metadataIssues, originalMarkdown)
+          }
+        } catch (processingError) {
+          console.error('Error processing files:', processingError)
+          setProcessingState('error')
+          setErrorMessage(
+            processingError instanceof Error ? processingError.message : 'Unable to process the files.',
+          )
+        }
+      }
+    } catch (error) {
+      console.error('Error reading old file:', error)
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Unable to read the old file.',
+      )
+    }
+  }, [originalMarkdown, promptForManualMetadata, startManualMetadataCollection])
 
   const handleDownloadMarkdown = useCallback(() => {
     if (!processed) return
@@ -459,8 +532,14 @@ function App() {
     setManualFormState(createEmptyManualFormState())
     setIsGeneratingPdf(false)
     setIsGeneratingDocx(false)
+    setImportExistingBibliography(false)
+    setOldFileName(null)
+    setOldFileMarkdown(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
+    }
+    if (oldFileInputRef.current) {
+      oldFileInputRef.current.value = ''
     }
   }
 
@@ -533,6 +612,44 @@ function App() {
                 </button>
               )}
             </div>
+          <div className="toggle">
+            <label className="toggle__control">
+              <input
+                type="checkbox"
+                checked={importExistingBibliography}
+                onChange={(event) => {
+                  setImportExistingBibliography(event.target.checked)
+                  if (!event.target.checked) {
+                    setOldFileName(null)
+                    setOldFileMarkdown(null)
+                    if (oldFileInputRef.current) {
+                      oldFileInputRef.current.value = ''
+                    }
+                  }
+                }}
+              />
+              <span className="toggle__slider" aria-hidden="true" />
+            </label>
+            <div className="toggle__text">
+              <span className="toggle__title">Import bibliography from previous version</span>
+              <span className="toggle__description">
+                Upload a previously processed file to reuse its bibliography entries with the new document.
+              </span>
+            </div>
+          </div>
+          {importExistingBibliography && (
+            <div className="file-input__actions" style={{ marginTop: '1rem' }}>
+              <label className="file-input">
+                <input
+                  ref={oldFileInputRef}
+                  type="file"
+                  accept=".md,.markdown,text/markdown"
+                  onChange={handleOldFileSelection}
+                />
+                <span>{oldFileName ?? 'Choose Previous Version File'}</span>
+              </label>
+            </div>
+          )}
           <div className="toggle">
             <label className="toggle__control">
               <input
