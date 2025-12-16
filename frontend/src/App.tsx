@@ -322,7 +322,6 @@ function App() {
       setManualMetadataQueue([])
       setManualMetadataModalOpen(false)
       setExpandedSections({ ...initialSectionState })
-      setProcessingState('processing')
       setErrorMessage(null)
       setProcessed(null)
       setFileName(file.name)
@@ -344,6 +343,16 @@ function App() {
       } catch (saveError) {
         console.warn('Could not save markdown to output folder:', saveError)
       }
+
+      // If import bibliography is enabled, wait for the old file to be uploaded
+      if (importExistingBibliography && !oldFileMarkdown) {
+        console.log('⏳ Waiting for previous version file to be uploaded...')
+        setProcessingState('idle')
+        return
+      }
+
+      // Process the markdown
+      setProcessingState('processing')
 
       // Extract bibliography from old file if provided
       let importedBibliography: ImportedBibliographyEntry[] | undefined
@@ -384,13 +393,43 @@ function App() {
       const text = await file.text()
       setOldFileMarkdown(text)
       setOldFileName(file.name)
+
+      // If we have both files, trigger processing
+      if (originalMarkdown) {
+        console.log('📚 Both files uploaded, processing...')
+        setProcessingState('processing')
+
+        try {
+          // Extract bibliography from old file
+          const { extractBibliographyFromMarkdown } = await import('./utils/bibliographyExtractor')
+          const importedBibliography = extractBibliographyFromMarkdown(text)
+          console.log(`📚 Imported ${importedBibliography.length} bibliography entries from old file`)
+
+          const result = await processMarkdown(originalMarkdown, {
+            manualMetadata: manualMetadataOverridesRef.current,
+            importedBibliography,
+          })
+          setProcessed(result)
+          setProcessingState('processed')
+
+          if (promptForManualMetadata && result.metadataIssues.length) {
+            startManualMetadataCollection(result.metadataIssues, originalMarkdown)
+          }
+        } catch (processingError) {
+          console.error('Error processing files:', processingError)
+          setProcessingState('error')
+          setErrorMessage(
+            processingError instanceof Error ? processingError.message : 'Unable to process the files.',
+          )
+        }
+      }
     } catch (error) {
       console.error('Error reading old file:', error)
       setErrorMessage(
         error instanceof Error ? error.message : 'Unable to read the old file.',
       )
     }
-  }, [])
+  }, [originalMarkdown, promptForManualMetadata, startManualMetadataCollection])
 
   const handleDownloadMarkdown = useCallback(() => {
     if (!processed) return
